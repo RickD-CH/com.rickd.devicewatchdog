@@ -374,9 +374,9 @@
 
       // ---------------------------------------------------------------
       // Einstellungen-Tab <-> state.config
-      // (excludedZones / excludedOwnerUriPattern / includedDeviceClassPattern have no UI
-      // anymore - they just keep whatever value is already stored, using the defaults
-      // from lib/defaults.js until someone edits them directly via the API.)
+      // Es gibt bewusst keine globalen Ausschluss-Filter (Zone/App/Klasse) mehr -
+      // jedes Geraet wird gescannt. Ausschliessen laeuft nur noch explizit ueber den
+      // Pro-Geraet-Toggle bzw. die "Zone ignorieren"-Aktion im Geraete-Tab.
       // ---------------------------------------------------------------
       function fillSettingsTab() {
         var c = state.config;
@@ -393,9 +393,6 @@
           scanIntervalMinutes: Number(document.getElementById('cfg-interval-minutes').value) || 60,
           notReportingThresholdHours: Number(document.getElementById('cfg-not-reporting-hours').value) || 24,
           batteryThresholdPercent: Number(document.getElementById('cfg-battery-threshold').value) || 30,
-          excludedZones: state.config.excludedZones,
-          excludedOwnerUriPattern: state.config.excludedOwnerUriPattern,
-          includedDeviceClassPattern: state.config.includedDeviceClassPattern,
         };
       }
 
