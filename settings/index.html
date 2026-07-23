@@ -750,17 +750,27 @@
       // ---------------------------------------------------------------
       document.getElementById('btn-save').addEventListener('click', function () {
         var payload = { config: readSettingsTab(), rules: state.rules };
+        var btn = document.getElementById('btn-save');
+        btn.disabled = true;
         setSaveStatus('Speichern…', false);
 
         apiCall('POST', '/config', payload).then(function (saved) {
           state.config = saved.config;
           state.rules = saved.rules;
-          renderDevices();
           fillSettingsTab();
+          // Gespeicherte Regeln (z.B. "Batterie ignorieren") wirken sich auf den Status aus -
+          // ohne frischen Scan wuerde die Liste noch die alten Badges/Filter-Zugehoerigkeiten zeigen.
+          setSaveStatus('Gespeichert, aktualisiere Status…', false);
+          return apiCall('POST', '/scan');
+        }).then(function (scanResult) {
+          state.lastScan = scanResult;
+          renderDevices();
           setSaveStatus('Gespeichert um ' + new Date().toLocaleTimeString('de-DE'), false);
         }).catch(function (err) {
           setSaveStatus('Fehler beim Speichern', true);
           Homey.alert('Speichern fehlgeschlagen: ' + (err && err.message ? err.message : err));
+        }).finally(function () {
+          btn.disabled = false;
         });
       });
 
