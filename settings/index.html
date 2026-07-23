@@ -13,15 +13,28 @@
       --color-bg-alt: #fafafa;
     }
     * { box-sizing: border-box; }
+    html, body {
+      height: auto;
+      min-height: 100%;
+    }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 14px;
       color: #212121;
       margin: 0;
-      padding: 16px 20px 60px;
+      padding: 16px 20px 24px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
-    h1 { font-size: 18px; margin: 0 0 4px; }
-    p.sub { color: var(--color-muted); margin: 0 0 16px; }
+    .app-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+    .app-icon-badge {
+      width: 52px; height: 52px; border-radius: 14px; flex: 0 0 auto;
+      background: linear-gradient(135deg, #4CAF50, #1B5E20);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,.15);
+    }
+    h1 { font-size: 18px; margin: 0; }
+    p.sub { color: var(--color-muted); margin: 2px 0 0; }
     .tabs {
       display: flex;
       gap: 4px;
@@ -96,14 +109,18 @@
     .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
     .toolbar .spacer { flex: 1; }
     .save-bar {
-      position: fixed; bottom: 0; left: 0; right: 0;
       background: #fff; border-top: 1px solid var(--color-border);
-      padding: 10px 20px; display: flex; justify-content: flex-end; align-items: center; gap: 12px;
-      z-index: 10;
+      margin-top: 20px;
+      padding: 14px 0 4px; display: flex; justify-content: flex-end; align-items: center; gap: 12px;
     }
     #save-status { color: var(--color-muted); font-size: 12.5px; }
     .stat-grid { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
-    .stat { border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 16px; min-width: 120px; }
+    .stat {
+      border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 16px; min-width: 120px;
+      cursor: pointer; transition: border-color .15s, background-color .15s;
+    }
+    .stat:hover { border-color: #90caf9; }
+    .stat.active { border-color: #1a73e8; background: #eaf2fe; }
     .stat .num { font-size: 22px; font-weight: 700; }
     .stat .lbl { color: var(--color-muted); font-size: 11.5px; text-transform: uppercase; }
     .empty { color: var(--color-muted); font-style: italic; padding: 8px 4px; }
@@ -145,6 +162,9 @@
     .device-advanced .f { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--color-muted); }
     .device-advanced .f.chk { flex-direction: row; align-items: center; gap: 6px; }
     .device-advanced input[type=number] { width: 90px; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; }
+    .device-info { width: 100%; display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 12px; color: var(--color-muted); margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--color-border); }
+    .device-info b { color: #212121; font-weight: 600; }
+    .badge-group { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 
     details.adv-block {
       border: 1px solid var(--color-border); border-radius: 8px; padding: 12px 16px; margin-top: 16px; background: #fff;
@@ -157,8 +177,27 @@
 </head>
 <body>
 
-  <h1>Device Watchdog</h1>
-  <p class="sub">Überwacht Geräte auf Erreichbarkeit und Batteriestand.</p>
+  <div class="app-header">
+    <div class="app-icon-badge">
+      <svg viewBox="-140 -170 280 320" width="30" height="30">
+        <g fill="#ffffff">
+          <path d="M38,-45 L88,-150 L98,-55 Z" />
+          <path d="M-38,-45 L-88,-150 L-98,-55 Z" />
+          <circle cx="0" cy="-15" r="78" />
+          <path d="M-46,15 C-46,55 -26,88 0,90 C26,88 46,55 46,15 C46,-5 -46,-5 -46,15 Z" />
+        </g>
+        <g fill="#1B5E20">
+          <circle cx="-30" cy="-18" r="10" />
+          <circle cx="30" cy="-18" r="10" />
+          <ellipse cx="0" cy="28" rx="12" ry="8" />
+        </g>
+      </svg>
+    </div>
+    <div>
+      <h1>Device Watchdog</h1>
+      <p class="sub">Überwacht Geräte auf Erreichbarkeit und Batteriestand.</p>
+    </div>
+  </div>
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="devices">Geräte</button>
@@ -270,6 +309,7 @@
         rules: [],
         devices: [],
         lastScan: null,
+        filterMode: null,
       };
 
       // ---------------------------------------------------------------
@@ -389,17 +429,51 @@
         return '<span class="badge">kein Status (Filter)</span>';
       }
 
+      // Separate battery-% badge, shown independently of the connectivity badge above
+      // (so you can see the charge level even for a device that's also flagged offline).
+      function batteryBadgeHtml(view) {
+        if (!view.scanEntry) return '';
+        var b = view.scanEntry.battery;
+        if (!b || b === 'N/A' || b === 'EXCL') return '';
+        if (b === 'ALARM') return '<span class="badge nok">Batterie-Alarm</span>';
+        if (view.isLowBattery) return '';  // already shown by badgeHtml above in this case
+        return '<span class="badge">🔋 ' + escapeHtml(b) + '</span>';
+      }
+
       function metaHtml(view) {
         if (!view.scanEntry) return view.monitored ? 'Noch kein Scan-Ergebnis' : 'Wird beim Scan übersprungen';
-        var parts = ['Update: ' + (view.scanEntry.lastUpdated ? new Date(view.scanEntry.lastUpdated).toLocaleString('de-DE') : 'keine Daten')];
-        if (view.scanEntry.battery && view.scanEntry.battery !== 'N/A') parts.push('Batterie: ' + view.scanEntry.battery);
-        return parts.join(' · ');
+        return 'Update: ' + (view.scanEntry.lastUpdated ? new Date(view.scanEntry.lastUpdated).toLocaleString('de-DE') : 'keine Daten');
+      }
+
+      // Best-effort, honest connection label: only claims a specific protocol (Z-Wave/Zigbee/...)
+      // when the owning app id literally says so - otherwise just shows which app manages the device.
+      function connectionLabel(ownerUri) {
+        if (!ownerUri) return null;
+        var appId = ownerUri.replace(/^homey:app:/, '');
+        var lower = appId.toLowerCase();
+        if (lower.indexOf('zwave') !== -1) return 'Z-Wave (' + appId + ')';
+        if (lower.indexOf('zigbee') !== -1) return 'Zigbee (' + appId + ')';
+        if (lower.indexOf('bluetooth') !== -1 || lower.indexOf('.ble') !== -1) return 'Bluetooth (' + appId + ')';
+        if (lower.indexOf('433') !== -1) return '433 MHz (' + appId + ')';
+        if (lower.indexOf('infrared') !== -1 || lower.indexOf('.ir') !== -1) return 'Infrarot (' + appId + ')';
+        return appId;
+      }
+
+      function deviceInfoHtml(view) {
+        var d = view.device;
+        var bits = ['<span><b>Geräte-ID:</b> ' + escapeHtml(d.id) + '</span>'];
+        var conn = connectionLabel(d.ownerUri);
+        if (conn) bits.push('<span><b>Verwaltet von:</b> ' + escapeHtml(conn) + '</span>');
+        if (d.driverId) bits.push('<span><b>Treiber:</b> ' + escapeHtml(d.driverId) + '</span>');
+        if (d.lastSeenAt) bits.push('<span><b>Zuletzt gesehen:</b> ' + new Date(d.lastSeenAt).toLocaleString('de-DE') + '</span>');
+        return '<div class="device-info">' + bits.join('') + '</div>';
       }
 
       function deviceAdvancedHtml(view) {
         var r = view.rule || {};
         return '' +
           '<div class="device-advanced" id="adv-' + view.device.id + '">' +
+          deviceInfoHtml(view) +
           '<div class="f"><label>Tage bis "offline"</label><input type="number" min="0" step="1" data-field="notReportingDays" data-id="' + view.device.id + '" value="' + (r.notReportingDays == null ? '' : r.notReportingDays) + '" placeholder="Standard" /></div>' +
           '<div class="f"><label>Batterie-Schwelle %</label><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" data-id="' + view.device.id + '" value="' + (r.batteryThreshold == null ? '' : r.batteryThreshold) + '" placeholder="Standard" /></div>' +
           '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + view.device.id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> Nur Batterie prüfen</label>' +
@@ -419,8 +493,8 @@
           '<div class="device-name">' + escapeHtml(d.name) + (d.zone ? '<span class="device-zone">' + escapeHtml(d.zone) + '</span>' : '') + '</div>' +
           '<div class="device-meta">' + metaHtml(view) + '</div>' +
           '</div>' +
-          badgeHtml(view) +
-          '<button class="btn small link" data-action="toggle-advanced" data-id="' + d.id + '" data-name="' + escapeHtml(d.name) + '">Anpassen' + (hasAdvanced ? ' ●' : '') + '</button>' +
+          '<div class="badge-group">' + badgeHtml(view) + batteryBadgeHtml(view) + '</div>' +
+          '<button class="btn small link" data-action="toggle-advanced" data-id="' + d.id + '" data-name="' + escapeHtml(d.name) + '">Details' + (hasAdvanced ? ' ●' : '') + '</button>' +
           '</div>' +
           deviceAdvancedHtml(view);
       }
@@ -432,13 +506,28 @@
         return 3;
       }
 
+      function matchesFilter(view) {
+        switch (state.filterMode) {
+          case 'offline': return !!(view.scanEntry && view.scanEntry.status === 'NOK');
+          case 'lowBattery': return view.isLowBattery;
+          case 'unmonitored': return !view.monitored;
+          default: return true;
+        }
+      }
+
       function renderDevices() {
         var query = document.getElementById('device-search').value.trim().toLowerCase();
         var views = state.devices
           .filter(function (d) {
             return !query || d.name.toLowerCase().indexOf(query) !== -1 || (d.zone || '').toLowerCase().indexOf(query) !== -1;
           })
-          .map(computeDeviceView);
+          .map(computeDeviceView)
+          .filter(matchesFilter);
+
+        if (state.filterMode === 'unmonitored') {
+          var detailsEl = document.getElementById('unmonitored-details');
+          if (detailsEl) detailsEl.open = true;
+        }
 
         var monitoredViews = views.filter(function (v) { return v.monitored; });
         var unmonitoredViews = views.filter(function (v) { return !v.monitored; });
@@ -463,11 +552,19 @@
         var offline = state.lastScan ? state.lastScan.notReporting.length : 0;
         var lowBatt = state.lastScan ? state.lastScan.lowBattery.length : 0;
         var unmonitoredTotal = state.rules.filter(function (r) { return r.matchType === 'id' && r.excludeAll; }).length;
+
+        function statCard(filterKey, num, color, label) {
+          var isActive = state.filterMode === filterKey;
+          return '<div class="stat' + (isActive ? ' active' : '') + '" data-filter="' + filterKey + '">' +
+            '<div class="num"' + (color ? ' style="color:' + color + '"' : '') + '>' + num + '</div>' +
+            '<div class="lbl">' + label + '</div></div>';
+        }
+
         grid.innerHTML =
-          '<div class="stat"><div class="num">' + total + '</div><div class="lbl">Geräte gesamt</div></div>' +
-          '<div class="stat"><div class="num" style="color:var(--color-nok)">' + offline + '</div><div class="lbl">Offline</div></div>' +
-          '<div class="stat"><div class="num" style="color:var(--color-warn)">' + lowBatt + '</div><div class="lbl">Batterie niedrig</div></div>' +
-          '<div class="stat"><div class="num">' + unmonitoredTotal + '</div><div class="lbl">Nicht überwacht</div></div>';
+          statCard('all', total, null, 'Geräte gesamt') +
+          statCard('offline', offline, 'var(--color-nok)', 'Offline') +
+          statCard('lowBattery', lowBatt, 'var(--color-warn)', 'Batterie niedrig') +
+          statCard('unmonitored', unmonitoredTotal, null, 'Nicht überwacht');
 
         var info = document.getElementById('last-scan-info');
         info.textContent = state.lastScan
@@ -514,12 +611,24 @@
 
       document.getElementById('device-search').addEventListener('input', renderDevices);
 
+      document.getElementById('stat-grid').addEventListener('click', function (e) {
+        var card = e.target.closest('.stat');
+        if (!card) return;
+        var key = card.dataset.filter;
+        state.filterMode = (key === 'all' || state.filterMode === key) ? null : key;
+        renderDevices();
+      });
+
       document.getElementById('btn-run-scan').addEventListener('click', function () {
         var btn = document.getElementById('btn-run-scan');
         btn.disabled = true;
         btn.textContent = 'Scan läuft…';
-        apiCall('POST', '/scan').then(function (scan) {
-          state.lastScan = scan;
+        Promise.all([
+          apiCall('POST', '/scan'),
+          apiCall('GET', '/devices/raw'),
+        ]).then(function (results) {
+          state.lastScan = results[0];
+          state.devices = results[1];
           renderDevices();
         }).catch(function (err) {
           Homey.alert('Scan fehlgeschlagen: ' + (err && err.message ? err.message : err));

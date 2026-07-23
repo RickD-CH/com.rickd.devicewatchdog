@@ -186,6 +186,9 @@ class DeviceWatchdogApp extends Homey.App {
         zone: device.zone ? (zoneMap[device.zone] || null) : null,
         class: device.class || null,
         available: device.available !== false,
+        ownerUri: device.ownerUri || null,
+        driverId: device.driverId || null,
+        lastSeenAt: device.lastSeenAt || null,
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
