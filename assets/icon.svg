@@ -1,15 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
-  <g transform="translate(480,608) scale(3.2)">
-    <g fill="#2E7D32">
-      <path d="M38,-45 L88,-150 L98,-55 Z" />
-      <path d="M-38,-45 L-88,-150 L-98,-55 Z" />
-      <circle cx="0" cy="-15" r="78" />
-      <path d="M-46,15 C-46,55 -26,88 0,90 C26,88 46,55 46,15 C46,-5 -46,-5 -46,15 Z" />
-    </g>
-    <g fill="#ffffff">
-      <circle cx="-30" cy="-18" r="10" />
-      <circle cx="30" cy="-18" r="10" />
-      <ellipse cx="0" cy="28" rx="12" ry="8" />
-    </g>
+  <g transform="translate(480,608) scale(3.2)" fill="none" stroke="#26323a" stroke-width="11" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M38,-45 L88,-150 L98,-55 Z" />
+    <path d="M-38,-45 L-88,-150 L-98,-55 Z" />
+    <circle cx="0" cy="-15" r="78" />
+    <path d="M-46,15 C-46,55 -26,88 0,90 C26,88 46,55 46,15 C46,-5 -46,-5 -46,15 Z" />
+  </g>
+  <g transform="translate(480,608) scale(3.2)" fill="#26323a">
+    <circle cx="-30" cy="-18" r="9" />
+    <circle cx="30" cy="-18" r="9" />
+    <ellipse cx="0" cy="28" rx="11" ry="7" />
   </g>
 </svg>
