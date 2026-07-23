@@ -1,0 +1,35 @@
+{
+  "id": "device_battery_low",
+  "title": {
+    "en": "A device's battery gets low",
+    "de": "Ein Gerät hat eine niedrige Batterie"
+  },
+  "titleFormatted": {
+    "en": "[[device]]'s battery gets low",
+    "de": "[[device]] hat eine niedrige Batterie"
+  },
+  "hint": {
+    "en": "Fires when a scan (interval or manual) newly detects that a device's battery dropped to/below its threshold, or reports a battery alarm.",
+    "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass die Batterie eines Geräts die Schwelle unterschreitet oder einen Batterie-Alarm meldet."
+  },
+  "tokens": [
+    {
+      "name": "device",
+      "type": "string",
+      "title": { "en": "Device", "de": "Gerät" },
+      "example": { "en": "Garage sensor", "de": "Garage Sensor" }
+    },
+    {
+      "name": "zone",
+      "type": "string",
+      "title": { "en": "Zone", "de": "Zone" },
+      "example": { "en": "Garage", "de": "Garage" }
+    },
+    {
+      "name": "battery",
+      "type": "string",
+      "title": { "en": "Battery status", "de": "Batteriestatus" },
+      "example": { "en": "15%", "de": "15%" }
+    }
+  ]
+}

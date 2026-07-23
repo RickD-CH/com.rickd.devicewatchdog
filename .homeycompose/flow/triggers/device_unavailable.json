@@ -1,0 +1,29 @@
+{
+  "id": "device_unavailable",
+  "title": {
+    "en": "A device becomes unavailable",
+    "de": "Ein Gerät wird nicht erreichbar"
+  },
+  "titleFormatted": {
+    "en": "[[device]] becomes unavailable",
+    "de": "[[device]] wird nicht erreichbar"
+  },
+  "hint": {
+    "en": "Fires in realtime, directly via Homey's device availability event - independent of the interval scan and the settings toggle for it.",
+    "de": "Wird in Echtzeit über Homeys Geräte-Verfügbarkeits-Event ausgelöst - unabhängig vom Intervall-Scan und dessen Einstellungs-Schalter."
+  },
+  "tokens": [
+    {
+      "name": "device",
+      "type": "string",
+      "title": { "en": "Device", "de": "Gerät" },
+      "example": { "en": "Front door lock", "de": "Haustürschloss" }
+    },
+    {
+      "name": "zone",
+      "type": "string",
+      "title": { "en": "Zone", "de": "Zone" },
+      "example": { "en": "Hallway", "de": "Flur" }
+    }
+  ]
+}

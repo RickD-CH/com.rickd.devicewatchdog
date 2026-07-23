@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Device Watchdog</title>
+  <style>
+    :root {
+      --color-ok: #2e7d32;
+      --color-nok: #c62828;
+      --color-warn: #ef6c00;
+      --color-muted: #757575;
+      --color-border: #e0e0e0;
+      --color-bg-alt: #fafafa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      color: #212121;
+      margin: 0;
+      padding: 16px 20px 60px;
+    }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    p.sub { color: var(--color-muted); margin: 0 0 16px; }
+    .tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: 16px;
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 5;
+      padding-top: 4px;
+    }
+    .tab-btn {
+      border: none;
+      background: none;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--color-muted);
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active { color: #1a73e8; border-bottom-color: #1a73e8; font-weight: 600; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .card {
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      background: #fff;
+    }
+    .card h2 { font-size: 15px; margin: 0 0 12px; }
+    .field-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .field-row label { flex: 0 0 260px; }
+    .field-row input[type="text"], .field-row input[type="number"], .field-row textarea {
+      flex: 1;
+      min-width: 200px;
+      padding: 6px 8px;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .field-row textarea { min-height: 44px; resize: vertical; }
+    .hint { color: var(--color-muted); font-size: 12px; margin: -6px 0 10px 270px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    th, td { border-bottom: 1px solid var(--color-border); padding: 6px 6px; text-align: left; vertical-align: middle; }
+    th { color: var(--color-muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: .02em; }
+    td input[type="text"], td input[type="number"], td select {
+      width: 100%;
+      padding: 4px 5px;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      font-size: 12.5px;
+    }
+    td.center, th.center { text-align: center; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #eee; color: var(--color-muted); white-space: nowrap; }
+    .badge.ok { background: #e8f5e9; color: var(--color-ok); }
+    .badge.nok { background: #ffebee; color: var(--color-nok); }
+    .badge.warn { background: #fff3e0; color: var(--color-warn); }
+    .btn {
+      padding: 7px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--color-border);
+      background: #fff;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn.primary { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+    .btn.danger { background: #fff; color: var(--color-nok); border-color: #ffcdd2; }
+    .btn.small { padding: 3px 9px; font-size: 12px; }
+    .btn.link { border: none; background: none; color: #1a73e8; padding: 3px 6px; }
+    .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+    .toolbar .spacer { flex: 1; }
+    .save-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #fff; border-top: 1px solid var(--color-border);
+      padding: 10px 20px; display: flex; justify-content: flex-end; align-items: center; gap: 12px;
+      z-index: 10;
+    }
+    #save-status { color: var(--color-muted); font-size: 12.5px; }
+    .stat-grid { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .stat { border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 16px; min-width: 120px; }
+    .stat .num { font-size: 22px; font-weight: 700; }
+    .stat .lbl { color: var(--color-muted); font-size: 11.5px; text-transform: uppercase; }
+    .empty { color: var(--color-muted); font-style: italic; padding: 8px 4px; }
+    .checkbox-cell { text-align: center; }
+    .checkbox-cell input { width: auto; }
+    .search-input {
+      padding: 7px 10px; border: 1px solid var(--color-border); border-radius: 6px;
+      font-size: 13px; min-width: 220px;
+    }
+
+    /* Toggle switch */
+    .switch { position: relative; display: inline-block; width: 38px; height: 22px; flex: 0 0 auto; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc; transition: .15s; border-radius: 22px;
+    }
+    .switch .slider:before {
+      position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px;
+      background-color: #fff; transition: .15s; border-radius: 50%;
+    }
+    .switch input:checked + .slider { background-color: var(--color-ok); }
+    .switch input:checked + .slider:before { transform: translateX(16px); }
+
+    /* Device list */
+    .device-list { border: 1px solid var(--color-border); border-radius: 8px; background: #fff; }
+    .device-row { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-bottom: 1px solid var(--color-border); }
+    .device-list > .device-row:last-child { border-bottom: none; }
+    .device-row.dimmed .device-name { color: var(--color-muted); }
+    .device-main { flex: 1; min-width: 0; }
+    .device-name { font-weight: 600; }
+    .device-zone { color: var(--color-muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
+    .device-meta { color: var(--color-muted); font-size: 12px; margin-top: 2px; }
+    .device-advanced {
+      display: none; padding: 12px 12px 16px 62px; background: var(--color-bg-alt);
+      border-bottom: 1px solid var(--color-border); gap: 16px; flex-wrap: wrap; align-items: center;
+    }
+    .device-advanced.open { display: flex; }
+    .device-advanced .f { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--color-muted); }
+    .device-advanced .f.chk { flex-direction: row; align-items: center; gap: 6px; }
+    .device-advanced input[type=number] { width: 90px; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; }
+
+    details.adv-block {
+      border: 1px solid var(--color-border); border-radius: 8px; padding: 12px 16px; margin-top: 16px; background: #fff;
+    }
+    details.adv-block summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--color-muted); }
+    details.adv-block[open] summary { margin-bottom: 12px; }
+    details.unmon-block { border-top: 1px solid var(--color-border); padding: 10px 12px; }
+    details.unmon-block summary { cursor: pointer; color: var(--color-muted); font-size: 12.5px; }
+  </style>
+</head>
+<body>
+
+  <h1>Device Watchdog</h1>
+  <p class="sub">Überwacht Geräte auf Erreichbarkeit und Batteriestand.</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="devices">Geräte</button>
+    <button class="tab-btn" data-tab="settings">Einstellungen</button>
+  </div>
+
+  <!-- ============ TAB: GERÄTE ============ -->
+  <div class="tab-panel active" id="tab-devices">
+    <div class="toolbar">
+      <button class="btn primary" id="btn-run-scan">Scan jetzt ausführen</button>
+      <input type="text" class="search-input" id="device-search" placeholder="Gerät suchen…" />
+      <span class="spacer"></span>
+      <span id="last-scan-info" class="hint" style="margin:0;"></span>
+    </div>
+
+    <div class="stat-grid" id="stat-grid"></div>
+
+    <div class="device-list" id="device-list-monitored"></div>
+
+    <details class="unmon-block" id="unmonitored-details" style="display:none;">
+      <summary id="unmonitored-summary">0 Geräte nicht überwacht</summary>
+      <div class="device-list" id="device-list-unmonitored" style="border:none;"></div>
+    </details>
+
+    <details class="adv-block">
+      <summary>Erweitert: Regeln nach Namensmuster (für Profis)</summary>
+      <p class="hint" style="margin:0 0 10px;">Gilt zusätzlich für alle Geräte, deren Name auf ein Muster passt (Regex, Groß-/Kleinschreibung egal) - praktisch um z.B. alle "Licht …"-Geräte auf einen Schlag zu behandeln, ohne jedes einzeln umzuschalten.</p>
+      <div class="toolbar">
+        <button class="btn" id="btn-add-pattern-rule">+ Muster-Regel hinzufügen</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:110px;">Typ</th>
+              <th>Wert</th>
+              <th>Kommentar</th>
+              <th style="width:90px;">Tage offline</th>
+              <th style="width:90px;">Batt. %</th>
+              <th class="center" style="width:60px;">Nur Batt.</th>
+              <th class="center" style="width:60px;">Kein Batt.</th>
+              <th class="center" style="width:60px;">Ignorieren</th>
+              <th style="width:40px;"></th>
+            </tr>
+          </thead>
+          <tbody id="pattern-rules-tbody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="pattern-rules-empty" style="display:none;">Keine Muster-Regeln angelegt.</div>
+    </details>
+  </div>
+
+  <!-- ============ TAB: EINSTELLUNGEN ============ -->
+  <div class="tab-panel" id="tab-settings">
+    <div class="card">
+      <h2>Automatischer Scan</h2>
+      <div class="field-row">
+        <label for="cfg-interval-enabled">Automatisches Intervall aktiv</label>
+        <input type="checkbox" id="cfg-interval-enabled" />
+      </div>
+      <p class="hint">Ist dies deaktiviert, läuft kein Hintergrund-Scan mehr - die Aktion "Geräte-Scan jetzt ausführen" in einem Flow funktioniert aber trotzdem immer.</p>
+      <div class="field-row">
+        <label for="cfg-interval-minutes">Scan-Intervall (Minuten)</label>
+        <input type="number" id="cfg-interval-minutes" min="1" step="1" />
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Standard-Schwellenwerte</h2>
+      <div class="field-row">
+        <label for="cfg-not-reporting-hours">Standard: Stunden ohne Meldung, bevor "offline"</label>
+        <input type="number" id="cfg-not-reporting-hours" min="1" step="1" />
+      </div>
+      <p class="hint">Kann pro Gerät im Tab "Geräte" über "Anpassen" überschrieben werden (dort in Tagen statt Stunden).</p>
+      <div class="field-row">
+        <label for="cfg-battery-threshold">Standard: Batteriewarnung ab (%)</label>
+        <input type="number" id="cfg-battery-threshold" min="0" max="100" step="1" />
+      </div>
+    </div>
+
+    <details class="adv-block">
+      <summary>Erweitert (nur für Spezialfälle nötig)</summary>
+      <p class="hint" style="margin:0 0 10px;">Die Standardwerte passen für die meisten Setups. Diese Filter gelten global, zusätzlich zu den Regeln pro Gerät. Regex-Felder sind case-insensitive.</p>
+      <div class="field-row">
+        <label for="cfg-excluded-zones">Ignorierte Zonen (Komma-getrennt)</label>
+        <input type="text" id="cfg-excluded-zones" placeholder="z.B. n-a, keller-unused" />
+      </div>
+      <div class="field-row">
+        <label for="cfg-owner-pattern">Ignorierte App-IDs (Regex, device.ownerUri)</label>
+        <textarea id="cfg-owner-pattern" placeholder="z.B. vdevice|com.gruijter.callmebot"></textarea>
+      </div>
+      <div class="field-row">
+        <label for="cfg-class-pattern">Berücksichtigte Geräteklassen (Regex)</label>
+        <textarea id="cfg-class-pattern"></textarea>
+      </div>
+    </details>
+  </div>
+
+  <div class="save-bar">
+    <span id="save-status"></span>
+    <button class="btn primary" id="btn-save">Speichern</button>
+  </div>
+
+  <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
+  <script>
+    function onHomeyReady(Homey) {
+      var state = {
+        config: {},
+        rules: [],
+        devices: [],
+        lastScan: null,
+      };
+
+      // ---------------------------------------------------------------
+      // Helpers
+      // ---------------------------------------------------------------
+      function escapeHtml(str) {
+        return String(str == null ? '' : str)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function genId() {
+        return 'r-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+      }
+
+      function apiCall(method, path, body) {
+        return new Promise(function (resolve, reject) {
+          Homey.api(method, path, body || null, function (err, result) {
+            if (err) return reject(err);
+            resolve(result);
+          });
+        });
+      }
+
+      function setSaveStatus(text, isError) {
+        var el = document.getElementById('save-status');
+        el.textContent = text;
+        el.style.color = isError ? 'var(--color-nok)' : 'var(--color-muted)';
+      }
+
+      // ---------------------------------------------------------------
+      // Tabs
+      // ---------------------------------------------------------------
+      document.querySelectorAll('.tab-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+          document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
+          btn.classList.add('active');
+          document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ---------------------------------------------------------------
+      // Einstellungen-Tab <-> state.config
+      // ---------------------------------------------------------------
+      function fillSettingsTab() {
+        var c = state.config;
+        document.getElementById('cfg-interval-enabled').checked = !!c.scanIntervalEnabled;
+        document.getElementById('cfg-interval-minutes').value = c.scanIntervalMinutes;
+        document.getElementById('cfg-not-reporting-hours').value = c.notReportingThresholdHours;
+        document.getElementById('cfg-battery-threshold').value = c.batteryThresholdPercent;
+        document.getElementById('cfg-excluded-zones').value = (c.excludedZones || []).join(', ');
+        document.getElementById('cfg-owner-pattern').value = c.excludedOwnerUriPattern || '';
+        document.getElementById('cfg-class-pattern').value = c.includedDeviceClassPattern || '';
+      }
+
+      function readSettingsTab() {
+        return {
+          scanIntervalEnabled: document.getElementById('cfg-interval-enabled').checked,
+          scanIntervalMinutes: Number(document.getElementById('cfg-interval-minutes').value) || 60,
+          notReportingThresholdHours: Number(document.getElementById('cfg-not-reporting-hours').value) || 24,
+          batteryThresholdPercent: Number(document.getElementById('cfg-battery-threshold').value) || 30,
+          excludedZones: document.getElementById('cfg-excluded-zones').value
+            .split(',').map(function (s) { return s.trim(); }).filter(Boolean),
+          excludedOwnerUriPattern: document.getElementById('cfg-owner-pattern').value,
+          includedDeviceClassPattern: document.getElementById('cfg-class-pattern').value,
+        };
+      }
+
+      // ---------------------------------------------------------------
+      // Rule helpers (shared by device tiles + pattern-rule table)
+      // ---------------------------------------------------------------
+      function getDeviceRule(id) {
+        return state.rules.find(function (r) { return r.matchType === 'id' && r.matchValue === id; });
+      }
+
+      function ensureDeviceRule(id, name) {
+        var rule = getDeviceRule(id);
+        if (!rule) {
+          rule = {
+            id: genId(), matchType: 'id', matchValue: id, label: name,
+            notReportingDays: null, batteryThreshold: null,
+            excludeBattery: false, onlyCheckBattery: false, excludeAll: false,
+          };
+          state.rules.push(rule);
+        }
+        return rule;
+      }
+
+      function cleanupDeviceRule(id) {
+        var rule = getDeviceRule(id);
+        if (!rule) return;
+        var isEmpty = !rule.excludeAll && rule.notReportingDays == null && rule.batteryThreshold == null
+          && !rule.excludeBattery && !rule.onlyCheckBattery;
+        if (isEmpty) state.rules = state.rules.filter(function (r) { return r !== rule; });
+      }
+
+      // ---------------------------------------------------------------
+      // Geräte-Tab: device tiles
+      // ---------------------------------------------------------------
+      function computeDeviceView(device) {
+        var rule = getDeviceRule(device.id);
+        var monitored = !(rule && rule.excludeAll);
+        var scanEntry = state.lastScan ? state.lastScan.all.find(function (d) { return d.id === device.id; }) : null;
+        var isLowBattery = state.lastScan ? state.lastScan.lowBattery.some(function (d) { return d.id === device.id; }) : false;
+        return { device: device, rule: rule, monitored: monitored, scanEntry: scanEntry, isLowBattery: isLowBattery };
+      }
+
+      function badgeHtml(view) {
+        if (!view.monitored) return '<span class="badge">nicht überwacht</span>';
+        if (!state.lastScan) return '<span class="badge">kein Scan</span>';
+        if (view.scanEntry) {
+          if (view.scanEntry.status === 'NOK') return '<span class="badge nok">offline</span>';
+          if (view.isLowBattery) return '<span class="badge warn">Batterie ' + escapeHtml(view.scanEntry.battery) + '</span>';
+          return '<span class="badge ok">ok</span>';
+        }
+        return '<span class="badge">kein Status (Filter)</span>';
+      }
+
+      function metaHtml(view) {
+        if (!view.scanEntry) return view.monitored ? 'Noch kein Scan-Ergebnis' : 'Wird beim Scan übersprungen';
+        var parts = ['Update: ' + (view.scanEntry.lastUpdated ? new Date(view.scanEntry.lastUpdated).toLocaleString('de-DE') : 'keine Daten')];
+        if (view.scanEntry.battery && view.scanEntry.battery !== 'N/A') parts.push('Batterie: ' + view.scanEntry.battery);
+        return parts.join(' · ');
+      }
+
+      function deviceAdvancedHtml(view) {
+        var r = view.rule || {};
+        return '' +
+          '<div class="device-advanced" id="adv-' + view.device.id + '">' +
+          '<div class="f"><label>Tage bis "offline"</label><input type="number" min="0" step="1" data-field="notReportingDays" data-id="' + view.device.id + '" value="' + (r.notReportingDays == null ? '' : r.notReportingDays) + '" placeholder="Standard" /></div>' +
+          '<div class="f"><label>Batterie-Schwelle %</label><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" data-id="' + view.device.id + '" value="' + (r.batteryThreshold == null ? '' : r.batteryThreshold) + '" placeholder="Standard" /></div>' +
+          '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + view.device.id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> Nur Batterie prüfen</label>' +
+          '<label class="f chk"><input type="checkbox" data-field="excludeBattery" data-id="' + view.device.id + '"' + (r.excludeBattery ? ' checked' : '') + ' /> Batterie ignorieren</label>' +
+          '</div>';
+      }
+
+      function deviceRowHtml(view) {
+        var d = view.device;
+        var hasAdvanced = view.rule && (view.rule.notReportingDays != null || view.rule.batteryThreshold != null
+          || view.rule.excludeBattery || view.rule.onlyCheckBattery);
+
+        return '' +
+          '<div class="device-row' + (view.monitored ? '' : ' dimmed') + '" data-id="' + d.id + '">' +
+          '<label class="switch"><input type="checkbox" class="monitor-toggle" data-id="' + d.id + '" data-name="' + escapeHtml(d.name) + '"' + (view.monitored ? ' checked' : '') + '><span class="slider"></span></label>' +
+          '<div class="device-main">' +
+          '<div class="device-name">' + escapeHtml(d.name) + (d.zone ? '<span class="device-zone">' + escapeHtml(d.zone) + '</span>' : '') + '</div>' +
+          '<div class="device-meta">' + metaHtml(view) + '</div>' +
+          '</div>' +
+          badgeHtml(view) +
+          '<button class="btn small link" data-action="toggle-advanced" data-id="' + d.id + '" data-name="' + escapeHtml(d.name) + '">Anpassen' + (hasAdvanced ? ' ●' : '') + '</button>' +
+          '</div>' +
+          deviceAdvancedHtml(view);
+      }
+
+      function priority(view) {
+        if (view.scanEntry && view.scanEntry.status === 'NOK') return 0;
+        if (view.isLowBattery) return 1;
+        if (!view.scanEntry) return 2;
+        return 3;
+      }
+
+      function renderDevices() {
+        var query = document.getElementById('device-search').value.trim().toLowerCase();
+        var views = state.devices
+          .filter(function (d) {
+            return !query || d.name.toLowerCase().indexOf(query) !== -1 || (d.zone || '').toLowerCase().indexOf(query) !== -1;
+          })
+          .map(computeDeviceView);
+
+        var monitoredViews = views.filter(function (v) { return v.monitored; });
+        var unmonitoredViews = views.filter(function (v) { return !v.monitored; });
+
+        monitoredViews.sort(function (a, b) {
+          var pa = priority(a); var pb = priority(b);
+          if (pa !== pb) return pa - pb;
+          return a.device.name.localeCompare(b.device.name);
+        });
+        unmonitoredViews.sort(function (a, b) { return a.device.name.localeCompare(b.device.name); });
+
+        document.getElementById('device-list-monitored').innerHTML = monitoredViews.length
+          ? monitoredViews.map(deviceRowHtml).join('')
+          : '<div class="empty">Keine Geräte gefunden.</div>';
+
+        document.getElementById('device-list-unmonitored').innerHTML = unmonitoredViews.map(deviceRowHtml).join('');
+        document.getElementById('unmonitored-summary').textContent = unmonitoredViews.length + ' Gerät(e) nicht überwacht';
+        document.getElementById('unmonitored-details').style.display = unmonitoredViews.length ? 'block' : 'none';
+
+        var grid = document.getElementById('stat-grid');
+        var total = state.devices.length;
+        var offline = state.lastScan ? state.lastScan.notReporting.length : 0;
+        var lowBatt = state.lastScan ? state.lastScan.lowBattery.length : 0;
+        var unmonitoredTotal = state.rules.filter(function (r) { return r.matchType === 'id' && r.excludeAll; }).length;
+        grid.innerHTML =
+          '<div class="stat"><div class="num">' + total + '</div><div class="lbl">Geräte gesamt</div></div>' +
+          '<div class="stat"><div class="num" style="color:var(--color-nok)">' + offline + '</div><div class="lbl">Offline</div></div>' +
+          '<div class="stat"><div class="num" style="color:var(--color-warn)">' + lowBatt + '</div><div class="lbl">Batterie niedrig</div></div>' +
+          '<div class="stat"><div class="num">' + unmonitoredTotal + '</div><div class="lbl">Nicht überwacht</div></div>';
+
+        var info = document.getElementById('last-scan-info');
+        info.textContent = state.lastScan
+          ? ('Letzter Scan: ' + new Date(state.lastScan.generatedAt).toLocaleString('de-DE'))
+          : 'Noch kein Scan gelaufen';
+      }
+
+      function bindDeviceListEvents(containerId) {
+        var container = document.getElementById(containerId);
+
+        container.addEventListener('click', function (e) {
+          if (e.target.dataset.action === 'toggle-advanced') {
+            var panel = document.getElementById('adv-' + e.target.dataset.id);
+            if (panel) panel.classList.toggle('open');
+          }
+        });
+
+        container.addEventListener('change', function (e) {
+          var id = e.target.dataset.id;
+          if (!id) return;
+
+          if (e.target.classList.contains('monitor-toggle')) {
+            var rule = ensureDeviceRule(id, e.target.dataset.name);
+            rule.excludeAll = !e.target.checked;
+            cleanupDeviceRule(id);
+            renderDevices();
+            return;
+          }
+
+          var field = e.target.dataset.field;
+          if (!field) return;
+          var r = ensureDeviceRule(id, e.target.dataset.name || '');
+          if (e.target.type === 'checkbox') {
+            r[field] = e.target.checked;
+          } else {
+            r[field] = e.target.value === '' ? null : Number(e.target.value);
+          }
+          cleanupDeviceRule(id);
+        });
+      }
+
+      bindDeviceListEvents('device-list-monitored');
+      bindDeviceListEvents('device-list-unmonitored');
+
+      document.getElementById('device-search').addEventListener('input', renderDevices);
+
+      document.getElementById('btn-run-scan').addEventListener('click', function () {
+        var btn = document.getElementById('btn-run-scan');
+        btn.disabled = true;
+        btn.textContent = 'Scan läuft…';
+        apiCall('POST', '/scan').then(function (scan) {
+          state.lastScan = scan;
+          renderDevices();
+        }).catch(function (err) {
+          Homey.alert('Scan fehlgeschlagen: ' + (err && err.message ? err.message : err));
+        }).finally(function () {
+          btn.disabled = false;
+          btn.textContent = 'Scan jetzt ausführen';
+        });
+      });
+
+      // ---------------------------------------------------------------
+      // Erweitert: Muster-Regeln (pattern / name)
+      // ---------------------------------------------------------------
+      function patternRuleRowHtml(rule) {
+        return '' +
+          '<tr data-id="' + rule.id + '">' +
+          '<td><select data-field="matchType">' +
+          '<option value="pattern"' + (rule.matchType === 'pattern' ? ' selected' : '') + '>Muster (Regex)</option>' +
+          '<option value="name"' + (rule.matchType === 'name' ? ' selected' : '') + '>Exakter Name</option>' +
+          '</select></td>' +
+          '<td><input type="text" data-field="matchValue" value="' + escapeHtml(rule.matchValue) + '" placeholder="' +
+          (rule.matchType === 'name' ? 'Exakter Gerätename' : 'Regex, z.B. Licht|Steckdose') + '" /></td>' +
+          '<td><input type="text" data-field="label" value="' + escapeHtml(rule.label) + '" placeholder="Notiz" /></td>' +
+          '<td><input type="number" min="0" step="1" data-field="notReportingDays" value="' + (rule.notReportingDays == null ? '' : rule.notReportingDays) + '" /></td>' +
+          '<td><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" value="' + (rule.batteryThreshold == null ? '' : rule.batteryThreshold) + '" /></td>' +
+          '<td class="checkbox-cell"><input type="checkbox" data-field="onlyCheckBattery"' + (rule.onlyCheckBattery ? ' checked' : '') + ' /></td>' +
+          '<td class="checkbox-cell"><input type="checkbox" data-field="excludeBattery"' + (rule.excludeBattery ? ' checked' : '') + ' /></td>' +
+          '<td class="checkbox-cell"><input type="checkbox" data-field="excludeAll"' + (rule.excludeAll ? ' checked' : '') + ' /></td>' +
+          '<td><button class="btn small danger" data-action="delete-pattern-rule">✕</button></td>' +
+          '</tr>';
+      }
+
+      function renderPatternRules() {
+        var patternRules = state.rules.filter(function (r) { return r.matchType === 'pattern' || r.matchType === 'name'; });
+        var tbody = document.getElementById('pattern-rules-tbody');
+        tbody.innerHTML = patternRules.map(patternRuleRowHtml).join('');
+        document.getElementById('pattern-rules-empty').style.display = patternRules.length ? 'none' : 'block';
+      }
+
+      document.getElementById('btn-add-pattern-rule').addEventListener('click', function () {
+        state.rules.push({
+          id: genId(), matchType: 'pattern', matchValue: '', label: '',
+          notReportingDays: null, batteryThreshold: null,
+          excludeBattery: false, onlyCheckBattery: false, excludeAll: false,
+        });
+        renderPatternRules();
+      });
+
+      document.getElementById('pattern-rules-tbody').addEventListener('click', function (e) {
+        if (e.target.dataset.action === 'delete-pattern-rule') {
+          var tr = e.target.closest('tr');
+          var id = tr.dataset.id;
+          state.rules = state.rules.filter(function (r) { return r.id !== id; });
+          renderPatternRules();
+        }
+      });
+
+      document.getElementById('pattern-rules-tbody').addEventListener('change', function (e) {
+        var tr = e.target.closest('tr');
+        if (!tr) return;
+        var rule = state.rules.find(function (r) { return r.id === tr.dataset.id; });
+        if (!rule) return;
+        var field = e.target.dataset.field;
+        if (!field) return;
+
+        if (e.target.type === 'checkbox') {
+          rule[field] = e.target.checked;
+        } else if (field === 'notReportingDays' || field === 'batteryThreshold') {
+          rule[field] = e.target.value === '' ? null : Number(e.target.value);
+        } else {
+          rule[field] = e.target.value;
+        }
+      });
+
+      // ---------------------------------------------------------------
+      // Save
+      // ---------------------------------------------------------------
+      document.getElementById('btn-save').addEventListener('click', function () {
+        var invalid = state.rules.filter(function (r) { return (r.matchType === 'pattern' || r.matchType === 'name') && !r.matchValue; });
+        if (invalid.length) {
+          Homey.alert(invalid.length + ' Muster-Regel(n) haben keinen Wert - bitte ausfüllen oder löschen.');
+          return;
+        }
+
+        var payload = { config: readSettingsTab(), rules: state.rules };
+        setSaveStatus('Speichern…', false);
+
+        apiCall('POST', '/config', payload).then(function (saved) {
+          state.config = saved.config;
+          state.rules = saved.rules;
+          renderDevices();
+          renderPatternRules();
+          fillSettingsTab();
+          setSaveStatus('Gespeichert um ' + new Date().toLocaleTimeString('de-DE'), false);
+        }).catch(function (err) {
+          setSaveStatus('Fehler beim Speichern', true);
+          Homey.alert('Speichern fehlgeschlagen: ' + (err && err.message ? err.message : err));
+        });
+      });
+
+      // ---------------------------------------------------------------
+      // Initial load
+      // ---------------------------------------------------------------
+      Promise.all([
+        apiCall('GET', '/config'),
+        apiCall('GET', '/status'),
+        apiCall('GET', '/devices/raw'),
+      ]).then(function (results) {
+        state.config = results[0].config;
+        state.rules = results[0].rules;
+        state.lastScan = results[1].lastScan;
+        state.devices = results[2];
+
+        fillSettingsTab();
+        renderDevices();
+        renderPatternRules();
+        Homey.ready();
+      }).catch(function (err) {
+        Homey.alert('Laden fehlgeschlagen: ' + (err && err.message ? err.message : err));
+        Homey.ready();
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "id": "device_not_reporting",
+  "title": {
+    "en": "A device stops reporting",
+    "de": "Ein Gerät meldet sich nicht mehr"
+  },
+  "titleFormatted": {
+    "en": "[[device]] stops reporting",
+    "de": "[[device]] meldet sich nicht mehr"
+  },
+  "hint": {
+    "en": "Fires when a scan (interval or manual) newly detects that a device hasn't reported within its configured threshold.",
+    "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass sich ein Gerät nicht mehr innerhalb der konfigurierten Schwelle gemeldet hat."
+  },
+  "tokens": [
+    {
+      "name": "device",
+      "type": "string",
+      "title": { "en": "Device", "de": "Gerät" },
+      "example": { "en": "Garden sensor", "de": "Gartensensor" }
+    },
+    {
+      "name": "zone",
+      "type": "string",
+      "title": { "en": "Zone", "de": "Zone" },
+      "example": { "en": "Garden", "de": "Garten" }
+    },
+    {
+      "name": "last_updated",
+      "type": "string",
+      "title": { "en": "Last update", "de": "Letztes Update" },
+      "example": { "en": "2026-07-01T10:00:00.000Z", "de": "2026-07-01T10:00:00.000Z" }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "run_scan",
+  "title": {
+    "en": "Run device scan now",
+    "de": "Geräte-Scan jetzt ausführen"
+  },
+  "titleFormatted": {
+    "en": "Run device scan now",
+    "de": "Geräte-Scan jetzt ausführen"
+  },
+  "hint": {
+    "en": "Runs a full device check immediately, independent of the automatic interval setting. Also works when the automatic scan is disabled in the app settings.",
+    "de": "Führt sofort einen vollständigen Geräte-Check aus, unabhängig vom automatischen Intervall. Funktioniert auch, wenn der automatische Scan in den App-Einstellungen deaktiviert ist."
+  }
+}

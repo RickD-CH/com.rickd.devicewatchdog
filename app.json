@@ -1,0 +1,224 @@
+{
+  "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
+  "id": "com.rickd.devicewatchdog",
+  "version": "1.0.0",
+  "compatibility": ">=12.4.0",
+  "sdk": 3,
+  "runtime": "nodejs",
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "Device Watchdog",
+    "de": "Device Watchdog"
+  },
+  "description": {
+    "en": "Watches your devices for connectivity and battery issues, with fully customizable rules per device.",
+    "de": "Überwacht deine Geräte auf Erreichbarkeits- und Batterieprobleme, mit frei konfigurierbaren Regeln pro Gerät."
+  },
+  "category": "tools",
+  "brandColor": "#2E7D32",
+  "permissions": [
+    "homey:manager:api"
+  ],
+  "support": "mailto:ric.dubs@gmail.com",
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Richard Dubs",
+    "email": "ric.dubs@gmail.com"
+  },
+  "api": {
+    "getConfig": {
+      "method": "get",
+      "path": "/config"
+    },
+    "saveConfig": {
+      "method": "post",
+      "path": "/config"
+    },
+    "getStatus": {
+      "method": "get",
+      "path": "/status"
+    },
+    "getRawDevices": {
+      "method": "get",
+      "path": "/devices/raw"
+    },
+    "runScan": {
+      "method": "post",
+      "path": "/scan"
+    }
+  },
+  "flow": {
+    "triggers": [
+      {
+        "id": "device_battery_low",
+        "title": {
+          "en": "A device's battery gets low",
+          "de": "Ein Gerät hat eine niedrige Batterie"
+        },
+        "titleFormatted": {
+          "en": "[[device]]'s battery gets low",
+          "de": "[[device]] hat eine niedrige Batterie"
+        },
+        "hint": {
+          "en": "Fires when a scan (interval or manual) newly detects that a device's battery dropped to/below its threshold, or reports a battery alarm.",
+          "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass die Batterie eines Geräts die Schwelle unterschreitet oder einen Batterie-Alarm meldet."
+        },
+        "tokens": [
+          {
+            "name": "device",
+            "type": "string",
+            "title": {
+              "en": "Device",
+              "de": "Gerät"
+            },
+            "example": {
+              "en": "Garage sensor",
+              "de": "Garage Sensor"
+            }
+          },
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone",
+              "de": "Zone"
+            },
+            "example": {
+              "en": "Garage",
+              "de": "Garage"
+            }
+          },
+          {
+            "name": "battery",
+            "type": "string",
+            "title": {
+              "en": "Battery status",
+              "de": "Batteriestatus"
+            },
+            "example": {
+              "en": "15%",
+              "de": "15%"
+            }
+          }
+        ]
+      },
+      {
+        "id": "device_not_reporting",
+        "title": {
+          "en": "A device stops reporting",
+          "de": "Ein Gerät meldet sich nicht mehr"
+        },
+        "titleFormatted": {
+          "en": "[[device]] stops reporting",
+          "de": "[[device]] meldet sich nicht mehr"
+        },
+        "hint": {
+          "en": "Fires when a scan (interval or manual) newly detects that a device hasn't reported within its configured threshold.",
+          "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass sich ein Gerät nicht mehr innerhalb der konfigurierten Schwelle gemeldet hat."
+        },
+        "tokens": [
+          {
+            "name": "device",
+            "type": "string",
+            "title": {
+              "en": "Device",
+              "de": "Gerät"
+            },
+            "example": {
+              "en": "Garden sensor",
+              "de": "Gartensensor"
+            }
+          },
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone",
+              "de": "Zone"
+            },
+            "example": {
+              "en": "Garden",
+              "de": "Garten"
+            }
+          },
+          {
+            "name": "last_updated",
+            "type": "string",
+            "title": {
+              "en": "Last update",
+              "de": "Letztes Update"
+            },
+            "example": {
+              "en": "2026-07-01T10:00:00.000Z",
+              "de": "2026-07-01T10:00:00.000Z"
+            }
+          }
+        ]
+      },
+      {
+        "id": "device_unavailable",
+        "title": {
+          "en": "A device becomes unavailable",
+          "de": "Ein Gerät wird nicht erreichbar"
+        },
+        "titleFormatted": {
+          "en": "[[device]] becomes unavailable",
+          "de": "[[device]] wird nicht erreichbar"
+        },
+        "hint": {
+          "en": "Fires in realtime, directly via Homey's device availability event - independent of the interval scan and the settings toggle for it.",
+          "de": "Wird in Echtzeit über Homeys Geräte-Verfügbarkeits-Event ausgelöst - unabhängig vom Intervall-Scan und dessen Einstellungs-Schalter."
+        },
+        "tokens": [
+          {
+            "name": "device",
+            "type": "string",
+            "title": {
+              "en": "Device",
+              "de": "Gerät"
+            },
+            "example": {
+              "en": "Front door lock",
+              "de": "Haustürschloss"
+            }
+          },
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone",
+              "de": "Zone"
+            },
+            "example": {
+              "en": "Hallway",
+              "de": "Flur"
+            }
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "run_scan",
+        "title": {
+          "en": "Run device scan now",
+          "de": "Geräte-Scan jetzt ausführen"
+        },
+        "titleFormatted": {
+          "en": "Run device scan now",
+          "de": "Geräte-Scan jetzt ausführen"
+        },
+        "hint": {
+          "en": "Runs a full device check immediately, independent of the automatic interval setting. Also works when the automatic scan is disabled in the app settings.",
+          "de": "Führt sofort einen vollständigen Geräte-Check aus, unabhängig vom automatischen Intervall. Funktioniert auch, wenn der automatische Scan in den App-Einstellungen deaktiviert ist."
+        }
+      }
+    ]
+  }
+}
