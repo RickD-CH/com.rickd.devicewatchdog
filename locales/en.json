@@ -1,1 +1,94 @@
-{}
+{
+  "app": {
+    "title": "Device Watchdog",
+    "subtitle": "Monitors devices for connectivity and battery status."
+  },
+  "tabs": {
+    "devices": "Devices",
+    "settings": "Settings",
+    "save": "Save"
+  },
+  "devices": {
+    "scanNow": "Run scan now",
+    "scanning": "Scanning…",
+    "searchPlaceholder": "Search device…",
+    "sortPriority": "Sort: status first",
+    "sortName": "Sort: name (A-Z)",
+    "unmonitoredSummary": "__count__ device(s) not monitored",
+    "noScanYet": "No scan run yet",
+    "lastScan": "Last scan: __date__",
+    "empty": "No devices found.",
+    "scanFailed": "Scan failed: __error__",
+    "loadFailed": "Loading failed: __error__"
+  },
+  "stats": {
+    "total": "Devices total",
+    "offline": "Offline",
+    "lowBattery": "Low battery",
+    "unmonitored": "Not monitored",
+    "specialRules": "Custom rules"
+  },
+  "badge": {
+    "notMonitored": "not monitored",
+    "noScan": "no scan",
+    "offline": "offline",
+    "battery": "Battery __value__",
+    "ok": "ok",
+    "noStatus": "no status (filtered)",
+    "batteryAlarm": "Battery alarm"
+  },
+  "meta": {
+    "noScanResult": "No scan result yet",
+    "skipped": "Skipped during scan",
+    "update": "Updated: __date__",
+    "noData": "no data"
+  },
+  "connection": {
+    "zwave": "Z-Wave (__app__)",
+    "zigbee": "Zigbee (__app__)",
+    "bluetooth": "Bluetooth (__app__)",
+    "rf433": "433 MHz (__app__)",
+    "infrared": "Infrared (__app__)"
+  },
+  "info": {
+    "id": "Device ID:",
+    "managedBy": "Managed by:",
+    "driver": "Driver:",
+    "lastSeen": "Last seen:",
+    "liveStatus": "Live status (Homey):",
+    "available": "reachable",
+    "unavailable": "not reachable"
+  },
+  "advanced": {
+    "daysUntilOffline": "Days until \"offline\"",
+    "batteryThreshold": "Battery threshold %",
+    "placeholderDefault": "Default",
+    "onlyBattery": "Only check battery",
+    "excludeBattery": "Ignore battery",
+    "detailsButton": "Details"
+  },
+  "zone": {
+    "none": "No zone",
+    "issues": "__count__ issue(s)",
+    "ignore": "Ignore zone",
+    "monitor": "Monitor zone"
+  },
+  "settingsTab": {
+    "autoScanTitle": "Automatic scan",
+    "intervalEnabled": "Automatic interval active",
+    "intervalHint": "Off = no background scan. The \"Run device scan now\" Flow action still always works.",
+    "intervalMinutes": "Scan interval (minutes)",
+    "thresholdsTitle": "Default thresholds",
+    "notReportingLabel": "Hours without update until \"offline\"",
+    "notReportingHint": "Overridable per device via \"Details\" (in days there).",
+    "batteryLabel": "Battery warning at (%)",
+    "batteryHint": "Applies to all devices without their own rule."
+  },
+  "save": {
+    "saving": "Saving…",
+    "savingRefresh": "Saved, refreshing status…",
+    "savedAt": "Saved at __time__",
+    "error": "Error while saving",
+    "saveFailed": "Save failed: __error__"
+  }
+}

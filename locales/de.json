@@ -1,0 +1,94 @@
+{
+  "app": {
+    "title": "Device Watchdog",
+    "subtitle": "Überwacht Geräte auf Erreichbarkeit und Batteriestand."
+  },
+  "tabs": {
+    "devices": "Geräte",
+    "settings": "Einstellungen",
+    "save": "Speichern"
+  },
+  "devices": {
+    "scanNow": "Scan jetzt ausführen",
+    "scanning": "Scan läuft…",
+    "searchPlaceholder": "Gerät suchen…",
+    "sortPriority": "Sortierung: Status zuerst",
+    "sortName": "Sortierung: Name (A-Z)",
+    "unmonitoredSummary": "__count__ Gerät(e) nicht überwacht",
+    "noScanYet": "Noch kein Scan gelaufen",
+    "lastScan": "Letzter Scan: __date__",
+    "empty": "Keine Geräte gefunden.",
+    "scanFailed": "Scan fehlgeschlagen: __error__",
+    "loadFailed": "Laden fehlgeschlagen: __error__"
+  },
+  "stats": {
+    "total": "Geräte gesamt",
+    "offline": "Offline",
+    "lowBattery": "Batterie niedrig",
+    "unmonitored": "Nicht überwacht",
+    "specialRules": "Sonderregeln"
+  },
+  "badge": {
+    "notMonitored": "nicht überwacht",
+    "noScan": "kein Scan",
+    "offline": "offline",
+    "battery": "Batterie __value__",
+    "ok": "ok",
+    "noStatus": "kein Status (Filter)",
+    "batteryAlarm": "Batterie-Alarm"
+  },
+  "meta": {
+    "noScanResult": "Noch kein Scan-Ergebnis",
+    "skipped": "Wird beim Scan übersprungen",
+    "update": "Update: __date__",
+    "noData": "keine Daten"
+  },
+  "connection": {
+    "zwave": "Z-Wave (__app__)",
+    "zigbee": "Zigbee (__app__)",
+    "bluetooth": "Bluetooth (__app__)",
+    "rf433": "433 MHz (__app__)",
+    "infrared": "Infrarot (__app__)"
+  },
+  "info": {
+    "id": "Geräte-ID:",
+    "managedBy": "Verwaltet von:",
+    "driver": "Treiber:",
+    "lastSeen": "Zuletzt gesehen:",
+    "liveStatus": "Live-Status (Homey):",
+    "available": "erreichbar",
+    "unavailable": "nicht erreichbar"
+  },
+  "advanced": {
+    "daysUntilOffline": "Tage bis \"offline\"",
+    "batteryThreshold": "Batterie-Schwelle %",
+    "placeholderDefault": "Standard",
+    "onlyBattery": "Nur Batterie prüfen",
+    "excludeBattery": "Batterie ignorieren",
+    "detailsButton": "Details"
+  },
+  "zone": {
+    "none": "Ohne Zone",
+    "issues": "__count__ Problem(e)",
+    "ignore": "Zone ignorieren",
+    "monitor": "Zone überwachen"
+  },
+  "settingsTab": {
+    "autoScanTitle": "Automatischer Scan",
+    "intervalEnabled": "Automatisches Intervall aktiv",
+    "intervalHint": "Aus = kein Hintergrund-Scan. \"Geräte-Scan jetzt ausführen\" per Flow funktioniert trotzdem immer.",
+    "intervalMinutes": "Scan-Intervall (Minuten)",
+    "thresholdsTitle": "Standard-Schwellenwerte",
+    "notReportingLabel": "Stunden ohne Meldung bis \"offline\"",
+    "notReportingHint": "Pro Gerät via \"Details\" überschreibbar (dort in Tagen).",
+    "batteryLabel": "Batteriewarnung ab (%)",
+    "batteryHint": "Gilt für alle Geräte ohne eigene Regel."
+  },
+  "save": {
+    "saving": "Speichern…",
+    "savingRefresh": "Gespeichert, aktualisiere Status…",
+    "savedAt": "Gespeichert um __time__",
+    "error": "Fehler beim Speichern",
+    "saveFailed": "Speichern fehlgeschlagen: __error__"
+  }
+}
