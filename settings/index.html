@@ -11,6 +11,23 @@
       --color-muted: #757575;
       --color-border: #e0e0e0;
       --color-bg-alt: #fafafa;
+      --color-card-bg: #fff;
+      --color-text: #212121;
+      --color-input-bg: #fff;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-border: #3a3a3c;
+        --color-bg-alt: #232325;
+        --color-card-bg: #1e1e20;
+        --color-text: #ececec;
+        --color-input-bg: #2a2a2c;
+      }
+      body { background: #131314; }
+      .tabs { background: #131314; }
+      .badge { background: #333; }
+      .btn { background: var(--color-input-bg); color: var(--color-text); }
+      .stat.active { background: #16324a; }
     }
     * { box-sizing: border-box; }
     html, body {
@@ -20,7 +37,7 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 14px;
-      color: #212121;
+      color: var(--color-text);
       margin: 0;
       padding: 16px 20px 24px;
       overflow-y: auto;
@@ -43,7 +60,7 @@
       margin-bottom: 16px;
       position: sticky;
       top: 0;
-      background: #fff;
+      background: var(--color-card-bg);
       z-index: 5;
       padding-top: 4px;
     }
@@ -66,22 +83,29 @@
       border-radius: 8px;
       padding: 16px;
       margin-bottom: 16px;
-      background: #fff;
+      background: var(--color-card-bg);
     }
     .card h2 { font-size: 15px; margin: 0 0 12px; }
-    .field-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-    .field-row label { flex: 0 0 260px; }
+    .field-row { margin-bottom: 4px; }
+    .field-row label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
     .field-row input[type="text"], .field-row input[type="number"], .field-row textarea {
-      flex: 1;
-      min-width: 200px;
-      padding: 6px 8px;
+      width: 100%;
+      padding: 7px 9px;
       border: 1px solid var(--color-border);
       border-radius: 4px;
       font-size: 13px;
       font-family: inherit;
+      background: var(--color-input-bg);
+      color: var(--color-text);
     }
     .field-row textarea { min-height: 44px; resize: vertical; }
-    .hint { color: var(--color-muted); font-size: 12px; margin: -6px 0 10px 270px; }
+    .field-row.toggle-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .field-row.toggle-row label { margin-bottom: 0; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    @media (max-width: 420px) { .field-grid { grid-template-columns: 1fr; } }
+    .hint { color: var(--color-muted); font-size: 12px; margin: 0 0 14px; line-height: 1.4; }
     table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
     th, td { border-bottom: 1px solid var(--color-border); padding: 6px 6px; text-align: left; vertical-align: middle; }
     th { color: var(--color-muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: .02em; }
@@ -91,6 +115,8 @@
       border: 1px solid var(--color-border);
       border-radius: 4px;
       font-size: 12.5px;
+      background: var(--color-input-bg);
+      color: var(--color-text);
     }
     td.center, th.center { text-align: center; }
     .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #eee; color: var(--color-muted); white-space: nowrap; }
@@ -123,10 +149,35 @@
     .empty { color: var(--color-muted); font-style: italic; padding: 8px 4px; }
     .checkbox-cell { text-align: center; }
     .checkbox-cell input { width: auto; }
-    .search-input {
+    .search-input, .select-input {
       padding: 7px 10px; border: 1px solid var(--color-border); border-radius: 6px;
-      font-size: 13px; min-width: 220px;
+      font-size: 13px; min-width: 220px; background: var(--color-input-bg); color: var(--color-text);
     }
+    .select-input { min-width: 150px; }
+
+    /* Zone groups */
+    .zone-group {
+      border: 1px solid var(--color-border); border-radius: 8px; margin-bottom: 10px;
+      background: var(--color-card-bg); overflow: hidden;
+    }
+    .zone-group summary {
+      display: flex; align-items: center; gap: 10px; cursor: pointer;
+      padding: 10px 12px; font-weight: 600; font-size: 13.5px; list-style: revert;
+    }
+    .zone-group[open] summary { border-bottom: 1px solid var(--color-border); }
+    .zone-group .zone-count { color: var(--color-muted); font-weight: 400; }
+    .zone-group .zone-issue { color: var(--color-nok); font-weight: 600; font-size: 12px; }
+    .zone-group .zone-spacer { flex: 1; }
+    .zone-group .device-list { border: none; border-radius: 0; }
+    .zone-empty-hint { color: var(--color-muted); font-size: 12px; padding: 4px 2px 10px; }
+
+    /* Device class icon */
+    .device-class-icon { margin-right: 6px; }
+
+    /* Live availability dot */
+    .avail-dot { font-size: 9px; margin-right: 5px; letter-spacing: 0; }
+    .avail-dot.up { color: var(--color-ok); }
+    .avail-dot.down { color: var(--color-nok); }
 
     /* Toggle switch */
     .switch { position: relative; display: inline-block; width: 38px; height: 22px; flex: 0 0 auto; }
@@ -143,7 +194,7 @@
     .switch input:checked + .slider:before { transform: translateX(16px); }
 
     /* Device list */
-    .device-list { border: 1px solid var(--color-border); border-radius: 8px; background: #fff; }
+    .device-list { border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-card-bg); }
     .device-row { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-bottom: 1px solid var(--color-border); }
     .device-list > .device-row:last-child { border-bottom: none; }
     .device-row.dimmed .device-name { color: var(--color-muted); }
@@ -192,17 +243,21 @@
     <div class="toolbar">
       <button class="btn primary" id="btn-run-scan">Scan jetzt ausführen</button>
       <input type="text" class="search-input" id="device-search" placeholder="Gerät suchen…" />
+      <select class="select-input" id="device-sort">
+        <option value="priority">Sortierung: Status zuerst</option>
+        <option value="name">Sortierung: Name (A-Z)</option>
+      </select>
       <span class="spacer"></span>
       <span id="last-scan-info" class="hint" style="margin:0;"></span>
     </div>
 
     <div class="stat-grid" id="stat-grid"></div>
 
-    <div class="device-list" id="device-list-monitored"></div>
+    <div id="device-list-monitored"></div>
 
     <details class="unmon-block" id="unmonitored-details" style="display:none;">
       <summary id="unmonitored-summary">0 Geräte nicht überwacht</summary>
-      <div class="device-list" id="device-list-unmonitored" style="border:none;"></div>
+      <div id="device-list-unmonitored"></div>
     </details>
   </div>
 
@@ -210,12 +265,12 @@
   <div class="tab-panel" id="tab-settings">
     <div class="card">
       <h2>Automatischer Scan</h2>
-      <div class="field-row">
+      <div class="field-row toggle-row">
         <label for="cfg-interval-enabled">Automatisches Intervall aktiv</label>
-        <input type="checkbox" id="cfg-interval-enabled" />
+        <label class="switch"><input type="checkbox" id="cfg-interval-enabled" /><span class="slider"></span></label>
       </div>
-      <p class="hint">Ist dies deaktiviert, läuft kein Hintergrund-Scan mehr - die Aktion "Geräte-Scan jetzt ausführen" in einem Flow funktioniert aber trotzdem immer.</p>
-      <div class="field-row">
+      <p class="hint">Aus = kein Hintergrund-Scan. "Geräte-Scan jetzt ausführen" per Flow funktioniert trotzdem immer.</p>
+      <div class="field-row" id="row-interval-minutes">
         <label for="cfg-interval-minutes">Scan-Intervall (Minuten)</label>
         <input type="number" id="cfg-interval-minutes" min="1" step="1" />
       </div>
@@ -223,14 +278,17 @@
 
     <div class="card">
       <h2>Standard-Schwellenwerte</h2>
-      <div class="field-row">
-        <label for="cfg-not-reporting-hours">Standard: Stunden ohne Meldung, bevor "offline"</label>
-        <input type="number" id="cfg-not-reporting-hours" min="1" step="1" />
-      </div>
-      <p class="hint">Kann pro Gerät im Tab "Geräte" über "Details" überschrieben werden (dort in Tagen statt Stunden).</p>
-      <div class="field-row">
-        <label for="cfg-battery-threshold">Standard: Batteriewarnung ab (%)</label>
-        <input type="number" id="cfg-battery-threshold" min="0" max="100" step="1" />
+      <div class="field-grid">
+        <div class="field-row">
+          <label for="cfg-not-reporting-hours">Stunden ohne Meldung bis "offline"</label>
+          <input type="number" id="cfg-not-reporting-hours" min="1" step="1" />
+          <p class="hint">Pro Gerät via "Details" überschreibbar (dort in Tagen).</p>
+        </div>
+        <div class="field-row">
+          <label for="cfg-battery-threshold">Batteriewarnung ab (%)</label>
+          <input type="number" id="cfg-battery-threshold" min="0" max="100" step="1" />
+          <p class="hint">Gilt für alle Geräte ohne eigene Regel.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -244,6 +302,7 @@
         devices: [],
         lastScan: null,
         filterMode: null,
+        zoneOpenOverride: {},
       };
 
       // ---------------------------------------------------------------
@@ -298,6 +357,7 @@
         document.getElementById('cfg-interval-minutes').value = c.scanIntervalMinutes;
         document.getElementById('cfg-not-reporting-hours').value = c.notReportingThresholdHours;
         document.getElementById('cfg-battery-threshold').value = c.batteryThresholdPercent;
+        document.getElementById('row-interval-minutes').style.display = c.scanIntervalEnabled ? '' : 'none';
       }
 
       function readSettingsTab() {
@@ -378,6 +438,19 @@
         return 'Update: ' + (view.scanEntry.lastUpdated ? new Date(view.scanEntry.lastUpdated).toLocaleString('de-DE') : 'keine Daten');
       }
 
+      // Small visual cue per device class - purely cosmetic, falls back to a generic icon.
+      var CLASS_ICONS = {
+        light: '💡', socket: '🔌', sensor: '📟', thermostat: '🌡️', lock: '🔒',
+        doorbell: '🔔', camera: '📷', tv: '📺', speaker: '🔊', vacuumcleaner: '🧹',
+        fan: '🌀', heater: '♨️', airconditioning: '❄️', curtain: '🪟', blinds: '🪟',
+        sunshade: '⛱️', windowcoverings: '🪟', garagedoor: '🚪', kettle: '🫖',
+        coffeemachine: '☕', oven: '🍳', button: '🔘', remote: '🎛️',
+        homealarm: '🚨', siren: '📢', solarpanel: '☀️', evcharger: '⚡',
+      };
+      function classIcon(cls) {
+        return (cls && CLASS_ICONS[cls]) || '⚙️';
+      }
+
       // Best-effort, honest connection label: only claims a specific protocol (Z-Wave/Zigbee/...)
       // when the owning app id literally says so - otherwise just shows which app manages the device.
       function connectionLabel(ownerUri) {
@@ -399,6 +472,7 @@
         if (conn) bits.push('<span><b>Verwaltet von:</b> ' + escapeHtml(conn) + '</span>');
         if (d.driverId) bits.push('<span><b>Treiber:</b> ' + escapeHtml(d.driverId) + '</span>');
         if (d.lastSeenAt) bits.push('<span><b>Zuletzt gesehen:</b> ' + new Date(d.lastSeenAt).toLocaleString('de-DE') + '</span>');
+        bits.push('<span><b>Live-Status (Homey):</b> ' + (d.available === false ? 'nicht erreichbar' : 'erreichbar') + '</span>');
         return '<div class="device-info">' + bits.join('') + '</div>';
       }
 
@@ -420,6 +494,11 @@
           || r.excludeBattery || r.onlyCheckBattery));
       }
 
+      function availDotHtml(d) {
+        if (d.available === false) return '<span class="avail-dot down" title="Live-Status (Homey): nicht erreichbar">●</span>';
+        return '<span class="avail-dot up" title="Live-Status (Homey): erreichbar">●</span>';
+      }
+
       function deviceRowHtml(view) {
         var d = view.device;
         var hasAdvanced = hasSpecialRules(view);
@@ -428,7 +507,7 @@
           '<div class="device-row' + (view.monitored ? '' : ' dimmed') + '" data-id="' + d.id + '">' +
           '<label class="switch"><input type="checkbox" class="monitor-toggle" data-id="' + d.id + '" data-name="' + escapeHtml(d.name) + '"' + (view.monitored ? ' checked' : '') + '><span class="slider"></span></label>' +
           '<div class="device-main">' +
-          '<div class="device-name">' + escapeHtml(d.name) + (d.zone ? '<span class="device-zone">' + escapeHtml(d.zone) + '</span>' : '') + '</div>' +
+          '<div class="device-name"><span class="device-class-icon">' + classIcon(d.class) + '</span>' + availDotHtml(d) + escapeHtml(d.name) + (d.zone ? '<span class="device-zone">' + escapeHtml(d.zone) + '</span>' : '') + '</div>' +
           '<div class="device-meta">' + metaHtml(view) + '</div>' +
           '</div>' +
           '<div class="badge-group">' + badgeHtml(view) + batteryBadgeHtml(view) + '</div>' +
@@ -454,8 +533,91 @@
         }
       }
 
+      function sortViews(views, sortMode) {
+        var arr = views.slice();
+        if (sortMode === 'name') {
+          arr.sort(function (a, b) { return a.device.name.localeCompare(b.device.name); });
+        } else {
+          arr.sort(function (a, b) {
+            var pa = priority(a); var pb = priority(b);
+            if (pa !== pb) return pa - pb;
+            return a.device.name.localeCompare(b.device.name);
+          });
+        }
+        return arr;
+      }
+
+      function groupByZone(views) {
+        var groups = {};
+        views.forEach(function (v) {
+          var key = v.device.zone || '';
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(v);
+        });
+        var keys = Object.keys(groups).sort(function (a, b) {
+          if (!a) return 1;
+          if (!b) return -1;
+          return a.localeCompare(b);
+        });
+        return keys.map(function (key) { return { zone: key || null, views: groups[key] }; });
+      }
+
+      function zoneGroupHtml(group, sortMode, bulkAction) {
+        var views = sortViews(group.views, sortMode);
+        var zoneLabel = group.zone || 'Ohne Zone';
+        var zoneKey = group.zone || '';
+        var issueCount = views.filter(function (v) { return priority(v) <= 1; }).length;
+        var override = state.zoneOpenOverride[zoneKey];
+        var isOpen = override === undefined ? issueCount > 0 : override;
+        var issueBadge = issueCount ? '<span class="zone-issue">' + issueCount + ' Problem(e)</span>' : '';
+        var bulkLabel = bulkAction === 'ignore' ? 'Zone ignorieren' : 'Zone überwachen';
+
+        return '' +
+          '<details class="zone-group" data-zone="' + escapeHtml(zoneKey) + '"' + (isOpen ? ' open' : '') + '>' +
+          '<summary>' +
+          '<span class="zone-name">' + escapeHtml(zoneLabel) + ' <span class="zone-count">(' + views.length + ')</span></span>' +
+          issueBadge +
+          '<span class="zone-spacer"></span>' +
+          '<button class="btn small link" data-action="zone-bulk" data-bulk="' + bulkAction + '" data-zone="' + escapeHtml(zoneKey) + '">' + bulkLabel + '</button>' +
+          '</summary>' +
+          '<div class="device-list">' + views.map(deviceRowHtml).join('') + '</div>' +
+          '</details>';
+      }
+
+      function renderDeviceContainer(containerId, viewsList, bulkAction, sortMode) {
+        var container = document.getElementById(containerId);
+        if (!viewsList.length) {
+          container.innerHTML = bulkAction === 'ignore' ? '<div class="empty">Keine Geräte gefunden.</div>' : '';
+          return;
+        }
+
+        var groups = groupByZone(viewsList);
+        if (groups.length <= 1) {
+          // Nur eine (oder keine) Zone im Spiel - einfache flache Liste, keine unnötige Verschachtelung.
+          container.innerHTML = '<div class="device-list">' + sortViews(viewsList, sortMode).map(deviceRowHtml).join('') + '</div>';
+        } else {
+          container.innerHTML = groups.map(function (g) { return zoneGroupHtml(g, sortMode, bulkAction); }).join('');
+          container.querySelectorAll('details.zone-group').forEach(function (det) {
+            det.addEventListener('toggle', function () {
+              state.zoneOpenOverride[det.dataset.zone] = det.open;
+            });
+          });
+        }
+      }
+
+      function bulkSetZoneMonitored(zoneKey, monitored) {
+        var devicesInZone = state.devices.filter(function (d) { return (d.zone || '') === zoneKey; });
+        devicesInZone.forEach(function (d) {
+          var rule = ensureDeviceRule(d.id, d.name);
+          rule.excludeAll = !monitored;
+          cleanupDeviceRule(d.id);
+        });
+        renderDevices();
+      }
+
       function renderDevices() {
         var query = document.getElementById('device-search').value.trim().toLowerCase();
+        var sortMode = document.getElementById('device-sort').value;
         var views = state.devices
           .filter(function (d) {
             return !query || d.name.toLowerCase().indexOf(query) !== -1 || (d.zone || '').toLowerCase().indexOf(query) !== -1;
@@ -471,18 +633,9 @@
         var monitoredViews = views.filter(function (v) { return v.monitored; });
         var unmonitoredViews = views.filter(function (v) { return !v.monitored; });
 
-        monitoredViews.sort(function (a, b) {
-          var pa = priority(a); var pb = priority(b);
-          if (pa !== pb) return pa - pb;
-          return a.device.name.localeCompare(b.device.name);
-        });
-        unmonitoredViews.sort(function (a, b) { return a.device.name.localeCompare(b.device.name); });
+        renderDeviceContainer('device-list-monitored', monitoredViews, 'ignore', sortMode);
+        renderDeviceContainer('device-list-unmonitored', unmonitoredViews, 'monitor', sortMode);
 
-        document.getElementById('device-list-monitored').innerHTML = monitoredViews.length
-          ? monitoredViews.map(deviceRowHtml).join('')
-          : '<div class="empty">Keine Geräte gefunden.</div>';
-
-        document.getElementById('device-list-unmonitored').innerHTML = unmonitoredViews.map(deviceRowHtml).join('');
         document.getElementById('unmonitored-summary').textContent = unmonitoredViews.length + ' Gerät(e) nicht überwacht';
         document.getElementById('unmonitored-details').style.display = unmonitoredViews.length ? 'block' : 'none';
 
@@ -523,6 +676,12 @@
           if (e.target.dataset.action === 'toggle-advanced') {
             var panel = document.getElementById('adv-' + e.target.dataset.id);
             if (panel) panel.classList.toggle('open');
+            return;
+          }
+          if (e.target.dataset.action === 'zone-bulk') {
+            e.preventDefault();
+            e.stopPropagation();
+            bulkSetZoneMonitored(e.target.dataset.zone, e.target.dataset.bulk === 'monitor');
           }
         });
 
@@ -554,6 +713,10 @@
       bindDeviceListEvents('device-list-unmonitored');
 
       document.getElementById('device-search').addEventListener('input', renderDevices);
+      document.getElementById('device-sort').addEventListener('change', renderDevices);
+      document.getElementById('cfg-interval-enabled').addEventListener('change', function (e) {
+        document.getElementById('row-interval-minutes').style.display = e.target.checked ? '' : 'none';
+      });
 
       document.getElementById('stat-grid').addEventListener('click', function (e) {
         var card = e.target.closest('.stat');
