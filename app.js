@@ -10,6 +10,11 @@ const SETTINGS_KEY_RULES = 'rules';
 const SETTINGS_KEY_FLAG_STATE = 'flagState';
 const SETTINGS_KEY_LAST_SCAN = 'lastScan';
 
+// Capabilities safe to re-set with their own current value as a reachability test:
+// this round-trips to the hardware (so a failure means the device is truly unreachable)
+// without producing a perceptible state change, unlike toggling on/off for real.
+const TESTABLE_CAPABILITIES = ['onoff', 'dim'];
+
 function generateId() {
   return `r-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -196,6 +201,7 @@ class DeviceWatchdogApp extends Homey.App {
           zoneOrder: device.zone && zoneOrderMap[device.zone] !== undefined ? zoneOrderMap[device.zone] : Number.MAX_SAFE_INTEGER,
           class: device.class || null,
           available: device.available !== false,
+          testCapability: TESTABLE_CAPABILITIES.find((id) => (device.capabilities || []).includes(id)) || null,
           ownerUri: device.ownerUri || null,
           ownerAppName: ownerAppId ? (appNameMap[ownerAppId] || null) : null,
           driverId: device.driverId || null,
@@ -221,6 +227,23 @@ class DeviceWatchdogApp extends Homey.App {
       this.error('Konnte App-Namen nicht laden:', err);
       return {};
     }
+  }
+
+  async testDevice(deviceId) {
+    await this._ensureApi();
+
+    const device = await this.api.devices.getDevice({ id: deviceId });
+    if (!device) throw new Error('Gerät nicht gefunden');
+
+    const capabilityId = TESTABLE_CAPABILITIES.find((id) => (device.capabilities || []).includes(id));
+    if (!capabilityId) throw new Error('Keine testbare Capability (onoff/dim) vorhanden');
+
+    const currentValue = device.capabilitiesObj?.[capabilityId]?.value;
+    if (currentValue === undefined || currentValue === null) throw new Error('Kein aktueller Wert verfügbar');
+
+    await device.setCapabilityValue({ capabilityId, value: currentValue });
+
+    return { ok: true, capabilityId, value: currentValue };
   }
 
   getStatus() {

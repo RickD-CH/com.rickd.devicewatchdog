@@ -19,7 +19,12 @@
     "lastScan": "Last scan: __date__",
     "empty": "No devices found.",
     "scanFailed": "Scan failed: __error__",
-    "loadFailed": "Loading failed: __error__"
+    "loadFailed": "Loading failed: __error__",
+    "testButton": "Test",
+    "testHint": "Resends the current value to the device to check reachability (no visible state change).",
+    "testRunning": "Testing…",
+    "testOk": "✓ Reachable",
+    "testFailed": "✗ Failed"
   },
   "stats": {
     "total": "Devices total",

@@ -544,6 +544,7 @@
           '<div class="device-meta">' + metaHtml(view) + '</div>' +
           '</div>' +
           '<div class="badge-group">' + badgeHtml(view) + batteryBadgeHtml(view) + '</div>' +
+          (d.testCapability ? '<button class="btn small link" data-action="test-device" data-id="' + d.id + '" title="' + escapeHtml(Homey.__('devices.testHint')) + '">' + Homey.__('devices.testButton') + '</button>' : '') +
           '<button class="btn small link" data-action="toggle-advanced" data-id="' + d.id + '" data-name="' + escapeHtml(d.name) + '">' + Homey.__('advanced.detailsButton') + (hasAdvanced ? ' ●' : '') + '</button>' +
           '</div>' +
           deviceAdvancedHtml(view);
@@ -704,6 +705,31 @@
           : Homey.__('devices.noScanYet');
       }
 
+      function runDeviceTest(btn) {
+        if (btn.disabled) return;
+        var id = btn.dataset.id;
+        var originalText = Homey.__('devices.testButton');
+        btn.disabled = true;
+        btn.textContent = Homey.__('devices.testRunning');
+
+        apiCall('POST', '/devices/' + id + '/test', {})
+          .then(function () {
+            btn.textContent = Homey.__('devices.testOk');
+            btn.title = '';
+          })
+          .catch(function (err) {
+            btn.textContent = Homey.__('devices.testFailed');
+            btn.title = (err && err.message) || '';
+          })
+          .finally(function () {
+            setTimeout(function () {
+              btn.disabled = false;
+              btn.textContent = originalText;
+              btn.title = Homey.__('devices.testHint');
+            }, 3000);
+          });
+      }
+
       function bindDeviceListEvents(containerId) {
         var container = document.getElementById(containerId);
 
@@ -717,6 +743,11 @@
             e.preventDefault();
             e.stopPropagation();
             bulkSetZoneMonitored(e.target.dataset.zone, e.target.dataset.bulk === 'monitor');
+          }
+          if (e.target.dataset.action === 'test-device') {
+            e.preventDefault();
+            e.stopPropagation();
+            runDeviceTest(e.target);
           }
         });
 

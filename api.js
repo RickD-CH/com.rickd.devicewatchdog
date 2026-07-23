@@ -18,4 +18,8 @@ module.exports = {
   async runScan({ homey }) {
     return homey.app.runScan('settings-ui');
   },
+
+  async testDevice({ homey, params }) {
+    return homey.app.testDevice(params.id);
+  },
 };

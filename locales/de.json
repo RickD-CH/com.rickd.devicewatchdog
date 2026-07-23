@@ -19,7 +19,12 @@
     "lastScan": "Letzter Scan: __date__",
     "empty": "Keine Geräte gefunden.",
     "scanFailed": "Scan fehlgeschlagen: __error__",
-    "loadFailed": "Laden fehlgeschlagen: __error__"
+    "loadFailed": "Laden fehlgeschlagen: __error__",
+    "testButton": "Testen",
+    "testHint": "Sendet den aktuellen Wert erneut ans Gerät, um Erreichbarkeit zu prüfen (kein sichtbarer Zustandswechsel).",
+    "testRunning": "Teste…",
+    "testOk": "✓ Erreichbar",
+    "testFailed": "✗ Fehlgeschlagen"
   },
   "stats": {
     "total": "Geräte gesamt",
