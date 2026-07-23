@@ -439,7 +439,12 @@
         if (!view.monitored) return '<span class="badge">' + Homey.__('badge.notMonitored') + '</span>';
         if (!state.lastScan) return '<span class="badge">' + Homey.__('badge.noScan') + '</span>';
         if (view.scanEntry) {
-          if (view.scanEntry.status === 'NOK') return '<span class="badge nok">' + Homey.__('badge.offline') + '</span>';
+          if (view.scanEntry.status === 'NOK') {
+            if (view.device.available === false) {
+              return '<span class="badge nok" title="' + escapeHtml(Homey.__('badge.unreachableHint')) + '">' + Homey.__('badge.offline') + '</span>';
+            }
+            return '<span class="badge warn" title="' + escapeHtml(Homey.__('badge.notReportingHint')) + '">' + Homey.__('badge.notReporting') + '</span>';
+          }
           if (view.isLowBattery) return '<span class="badge warn">' + Homey.__('badge.battery', { value: escapeHtml(view.scanEntry.battery) }) + '</span>';
           return '<span class="badge ok">' + Homey.__('badge.ok') + '</span>';
         }
@@ -477,22 +482,25 @@
 
       // Best-effort, honest connection label: only claims a specific protocol (Z-Wave/Zigbee/...)
       // when the owning app id literally says so - otherwise just shows which app manages the device.
-      function connectionLabel(ownerUri) {
+      // Prefers the real app display name (resolved server-side via the Apps manager) over the
+      // raw app id, but always falls back to the id so something meaningful is always shown.
+      function connectionLabel(ownerUri, appName) {
         if (!ownerUri) return null;
         var appId = ownerUri.replace(/^homey:app:/, '');
+        var display = appName || appId;
         var lower = appId.toLowerCase();
-        if (lower.indexOf('zwave') !== -1) return Homey.__('connection.zwave', { app: appId });
-        if (lower.indexOf('zigbee') !== -1) return Homey.__('connection.zigbee', { app: appId });
-        if (lower.indexOf('bluetooth') !== -1 || lower.indexOf('.ble') !== -1) return Homey.__('connection.bluetooth', { app: appId });
-        if (lower.indexOf('433') !== -1) return Homey.__('connection.rf433', { app: appId });
-        if (lower.indexOf('infrared') !== -1 || lower.indexOf('.ir') !== -1) return Homey.__('connection.infrared', { app: appId });
-        return appId;
+        if (lower.indexOf('zwave') !== -1) return Homey.__('connection.zwave', { app: display });
+        if (lower.indexOf('zigbee') !== -1) return Homey.__('connection.zigbee', { app: display });
+        if (lower.indexOf('bluetooth') !== -1 || lower.indexOf('.ble') !== -1) return Homey.__('connection.bluetooth', { app: display });
+        if (lower.indexOf('433') !== -1) return Homey.__('connection.rf433', { app: display });
+        if (lower.indexOf('infrared') !== -1 || lower.indexOf('.ir') !== -1) return Homey.__('connection.infrared', { app: display });
+        return display;
       }
 
       function deviceInfoHtml(view) {
         var d = view.device;
         var bits = ['<span><b>' + Homey.__('info.id') + '</b> ' + escapeHtml(d.id) + '</span>'];
-        var conn = connectionLabel(d.ownerUri);
+        var conn = connectionLabel(d.ownerUri, d.ownerAppName);
         if (conn) bits.push('<span><b>' + Homey.__('info.managedBy') + '</b> ' + escapeHtml(conn) + '</span>');
         if (d.driverId) bits.push('<span><b>' + Homey.__('info.driver') + '</b> ' + escapeHtml(d.driverId) + '</span>');
         if (d.lastSeenAt) bits.push('<span><b>' + Homey.__('info.lastSeen') + '</b> ' + new Date(d.lastSeenAt).toLocaleString() + '</span>');

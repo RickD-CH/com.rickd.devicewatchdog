@@ -31,7 +31,10 @@
   "badge": {
     "notMonitored": "not monitored",
     "noScan": "no scan",
-    "offline": "offline",
+    "offline": "not reachable",
+    "unreachableHint": "Homey currently can't reach this device (connection lost).",
+    "notReporting": "not reporting",
+    "notReportingHint": "Device is connected according to Homey, but hasn't sent any new data for a while.",
     "battery": "Battery __value__",
     "ok": "ok",
     "noStatus": "no status (filtered)",

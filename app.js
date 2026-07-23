@@ -181,20 +181,46 @@ class DeviceWatchdogApp extends Homey.App {
     // Mirrors Homey's own zone-tree order (see lib/scanner.js), so the Settings UI
     // can group devices by zone in the same order they appear in the Homey app.
     const zoneOrderMap = scanner.buildZoneOrderMap(zones);
+    // Resolve real app display names (e.g. "Z-Wave") for the "Verwaltet von" info line,
+    // instead of showing the raw app id. Best-effort: if this fails (e.g. missing scope),
+    // devices simply fall back to their raw ownerUri app id further down the chain.
+    const appNameMap = await this._getAppNameMap();
 
     return Object.values(devices)
-      .map((device) => ({
-        id: device.id,
-        name: device.name,
-        zone: device.zone ? (zoneMap[device.zone] || null) : null,
-        zoneOrder: device.zone && zoneOrderMap[device.zone] !== undefined ? zoneOrderMap[device.zone] : Number.MAX_SAFE_INTEGER,
-        class: device.class || null,
-        available: device.available !== false,
-        ownerUri: device.ownerUri || null,
-        driverId: device.driverId || null,
-        lastSeenAt: device.lastSeenAt || null,
-      }))
+      .map((device) => {
+        const ownerAppId = device.ownerUri ? device.ownerUri.replace(/^homey:app:/, '') : null;
+        return {
+          id: device.id,
+          name: device.name,
+          zone: device.zone ? (zoneMap[device.zone] || null) : null,
+          zoneOrder: device.zone && zoneOrderMap[device.zone] !== undefined ? zoneOrderMap[device.zone] : Number.MAX_SAFE_INTEGER,
+          class: device.class || null,
+          available: device.available !== false,
+          ownerUri: device.ownerUri || null,
+          ownerAppName: ownerAppId ? (appNameMap[ownerAppId] || null) : null,
+          driverId: device.driverId || null,
+          lastSeenAt: device.lastSeenAt || null,
+        };
+      })
       .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async _getAppNameMap() {
+    try {
+      const apps = await this.api.apps.getApps();
+      const map = {};
+      for (const [key, app] of Object.entries(apps || {})) {
+        const name = typeof app.name === 'string' ? app.name : (app.name && (app.name.en || Object.values(app.name)[0]));
+        if (name) {
+          map[key] = name;
+          if (app.id) map[app.id] = name;
+        }
+      }
+      return map;
+    } catch (err) {
+      this.error('Konnte App-Namen nicht laden:', err);
+      return {};
+    }
   }
 
   getStatus() {
