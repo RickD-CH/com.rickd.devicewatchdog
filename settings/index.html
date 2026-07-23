@@ -577,16 +577,18 @@
 
       function groupByZone(views) {
         var groups = {};
+        var groupOrder = {};
         views.forEach(function (v) {
           var key = v.device.zone || '';
-          if (!groups[key]) groups[key] = [];
+          if (!groups[key]) {
+            groups[key] = [];
+            // zoneOrder kommt vom Server (spiegelt Homeys eigene Zonen-Baum-Reihenfolge,
+            // siehe lib/scanner.js#buildZoneOrderMap) - Geraete ohne Zone landen ganz hinten.
+            groupOrder[key] = typeof v.device.zoneOrder === 'number' ? v.device.zoneOrder : Number.MAX_SAFE_INTEGER;
+          }
           groups[key].push(v);
         });
-        var keys = Object.keys(groups).sort(function (a, b) {
-          if (!a) return 1;
-          if (!b) return -1;
-          return a.localeCompare(b);
-        });
+        var keys = Object.keys(groups).sort(function (a, b) { return groupOrder[a] - groupOrder[b]; });
         return keys.map(function (key) { return { zone: key || null, views: groups[key] }; });
       }
 

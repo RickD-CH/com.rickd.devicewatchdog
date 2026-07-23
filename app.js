@@ -178,12 +178,16 @@ class DeviceWatchdogApp extends Homey.App {
     const devices = await this.api.devices.getDevices();
     const zones = await this.api.zones.getZones();
     const zoneMap = Object.fromEntries(Object.values(zones).map((z) => [z.id, z.name]));
+    // Mirrors Homey's own zone-tree order (see lib/scanner.js), so the Settings UI
+    // can group devices by zone in the same order they appear in the Homey app.
+    const zoneOrderMap = scanner.buildZoneOrderMap(zones);
 
     return Object.values(devices)
       .map((device) => ({
         id: device.id,
         name: device.name,
         zone: device.zone ? (zoneMap[device.zone] || null) : null,
+        zoneOrder: device.zone && zoneOrderMap[device.zone] !== undefined ? zoneOrderMap[device.zone] : Number.MAX_SAFE_INTEGER,
         class: device.class || null,
         available: device.available !== false,
         ownerUri: device.ownerUri || null,
