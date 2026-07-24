@@ -256,8 +256,14 @@ class DeviceWatchdogApp extends Homey.App {
         ?.trigger({ device: device.name || '', zone: zoneName || '' }, { deviceId: device.id })
         .catch((err) => this.error('Trigger device_unavailable fehlgeschlagen:', err));
 
-      this._recordEvent('unavailable', { device: device.name, zone: zoneName, detail: device.lastSeenAt || null });
-      this._queueUnavailableSummary(device.name || '');
+      // The per-device trigger above always fires (it's opt-in - only produces noise if
+      // the user builds a Flow around this specific device). The summary/Timeline/log/
+      // count below are the automatic, passive outputs a chronically flaky device (e.g.
+      // one that hangs and reconnects on its own) would otherwise spam repeatedly.
+      if (!this._isExcludedFromUnavailable(device.id)) {
+        this._recordEvent('unavailable', { device: device.name, zone: zoneName, detail: device.lastSeenAt || null });
+        this._queueUnavailableSummary(device.name || '');
+      }
     }
 
     if (wasAvailable !== isAvailable) {
@@ -268,10 +274,15 @@ class DeviceWatchdogApp extends Homey.App {
 
   _countUnavailable() {
     let count = 0;
-    for (const available of this._availabilityMap.values()) {
-      if (available === false) count += 1;
+    for (const [deviceId, available] of this._availabilityMap.entries()) {
+      if (available === false && !this._isExcludedFromUnavailable(deviceId)) count += 1;
     }
     return count;
+  }
+
+  _isExcludedFromUnavailable(deviceId) {
+    const { rule } = scanner.findRule({ id: deviceId }, this.rules);
+    return !!rule?.excludeFromUnavailable;
   }
 
   // Pushes counts to the virtual "Watchdog status" device (drivers/watchdog), if the
@@ -366,6 +377,7 @@ class DeviceWatchdogApp extends Homey.App {
         excludeBattery: !!rule.excludeBattery,
         onlyCheckBattery: !!rule.onlyCheckBattery,
         excludeAll: !!rule.excludeAll,
+        excludeFromUnavailable: !!rule.excludeFromUnavailable,
       }));
       this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
     }

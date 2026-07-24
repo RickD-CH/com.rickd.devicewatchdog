@@ -228,7 +228,7 @@
     }
     .device-advanced.open { display: flex; }
     .device-advanced .f { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--color-muted); }
-    .device-advanced .f.chk { flex-direction: row; align-items: center; gap: 6px; }
+    .device-advanced .f.chk { flex-direction: row; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap; }
     .device-advanced input[type=number] { width: 90px; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; }
     .device-info { width: 100%; display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 12px; color: var(--color-muted); margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--color-border); }
     .device-info b { color: #212121; font-weight: 600; }
@@ -521,6 +521,7 @@
             id: genId(), matchType: 'id', matchValue: id, label: name,
             notReportingHours: null, batteryThreshold: null,
             excludeBattery: false, onlyCheckBattery: false, excludeAll: false,
+            excludeFromUnavailable: false,
           };
           state.rules.push(rule);
         }
@@ -531,7 +532,7 @@
         var rule = getDeviceRule(id);
         if (!rule) return;
         var isEmpty = !rule.excludeAll && rule.notReportingHours == null && rule.batteryThreshold == null
-          && !rule.excludeBattery && !rule.onlyCheckBattery;
+          && !rule.excludeBattery && !rule.onlyCheckBattery && !rule.excludeFromUnavailable;
         if (isEmpty) state.rules = state.rules.filter(function (r) { return r !== rule; });
       }
 
@@ -632,6 +633,7 @@
               '<option value="d"' + (state.hoursUnit[view.device.id] === 'd' ? ' selected' : '') + '>' + Homey.__('units.days') + '</option>' +
             '</select>' +
           '</div></div>' +
+          '<label class="f chk" title="' + escapeHtml(Homey.__('advanced.excludeFromUnavailableHint')) + '"><input type="checkbox" data-field="excludeFromUnavailable" data-id="' + view.device.id + '"' + (r.excludeFromUnavailable ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeFromUnavailable') + '</label>' +
           (view.device.hasBattery ? '' +
             '<div class="f"><label>' + Homey.__('advanced.batteryThreshold') + '</label><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" data-id="' + view.device.id + '" value="' + (r.batteryThreshold == null ? '' : r.batteryThreshold) + '" placeholder="' + placeholderDefault + '" /></div>' +
             '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + view.device.id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.onlyBattery') + '</label>' +
@@ -644,7 +646,7 @@
       function hasSpecialRules(view) {
         var r = view.rule;
         return !!(r && (r.notReportingHours != null || r.batteryThreshold != null
-          || r.excludeBattery || r.onlyCheckBattery));
+          || r.excludeBattery || r.onlyCheckBattery || r.excludeFromUnavailable));
       }
 
       function availDotHtml(d) {
@@ -897,6 +899,7 @@
               rule.batteryThreshold = null;
               rule.excludeBattery = false;
               rule.onlyCheckBattery = false;
+              rule.excludeFromUnavailable = false;
               cleanupDeviceRule(e.target.dataset.id);
               scheduleAutoSave(true);
               renderDevices();

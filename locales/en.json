@@ -76,6 +76,8 @@
     "placeholderDefault": "Default",
     "onlyBattery": "Only check battery",
     "excludeBattery": "Ignore battery",
+    "excludeFromUnavailable": "Ignore unavailable",
+    "excludeFromUnavailableHint": "Only affects the summary trigger, timeline, log, and the virtual device's counter. The per-device Flow trigger still works.",
     "detailsButton": "Details",
     "resetButton": "Reset"
   },

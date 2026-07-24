@@ -76,6 +76,8 @@
     "placeholderDefault": "Standard",
     "onlyBattery": "Nur Batterie prüfen",
     "excludeBattery": "Batterie ignorieren",
+    "excludeFromUnavailable": "Nicht erreichbar ignorieren",
+    "excludeFromUnavailableHint": "Betrifft nur Sammelmeldung, Zeitleiste, Verlauf und den Zähler im virtuellen Gerät. Die Pro-Gerät-Flow-Karte funktioniert weiterhin.",
     "detailsButton": "Details",
     "resetButton": "Zurücksetzen"
   },
