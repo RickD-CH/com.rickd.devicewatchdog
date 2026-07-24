@@ -338,6 +338,23 @@
       </div>
       <p class="hint" id="hint-timeline-notifications">Schreibt einen Eintrag in Homeys Zeitleiste, sobald ein Scan neu ein Gerät mit niedrigem Akku, "meldet sich nicht" oder nicht erreichbar findet. Einmalig pro Zustandswechsel, kein Spam bei anhaltendem Problem.</p>
     </div>
+
+    <div class="card">
+      <h2 id="h2-vd-alarm">Alarm des virtuellen Geräts</h2>
+      <p class="hint" id="hint-vd-alarm">Die Zähler im virtuellen Watchdog-Gerät zeigen immer die echten Werte. Hier legst du nur fest, welche davon den Sammel-Alarm (alarm_generic) auslösen.</p>
+      <div class="field-row toggle-row">
+        <label for="cfg-alarm-unavailable" id="lbl-alarm-unavailable">Nicht erreichbar einbeziehen</label>
+        <label class="switch"><input type="checkbox" id="cfg-alarm-unavailable" /><span class="slider"></span></label>
+      </div>
+      <div class="field-row toggle-row">
+        <label for="cfg-alarm-not-reporting" id="lbl-alarm-not-reporting">Meldet sich nicht einbeziehen</label>
+        <label class="switch"><input type="checkbox" id="cfg-alarm-not-reporting" /><span class="slider"></span></label>
+      </div>
+      <div class="field-row toggle-row">
+        <label for="cfg-alarm-low-battery" id="lbl-alarm-low-battery">Niedriger Akku einbeziehen</label>
+        <label class="switch"><input type="checkbox" id="cfg-alarm-low-battery" /><span class="slider"></span></label>
+      </div>
+    </div>
   </div>
 
   <!-- ============ TAB: VERLAUF ============ -->
@@ -397,6 +414,11 @@
         document.getElementById('h2-notifications').textContent = Homey.__('settingsTab.notificationsTitle');
         document.getElementById('lbl-timeline-notifications').textContent = Homey.__('settingsTab.timelineLabel');
         document.getElementById('hint-timeline-notifications').textContent = Homey.__('settingsTab.timelineHint');
+        document.getElementById('h2-vd-alarm').textContent = Homey.__('settingsTab.vdAlarmTitle');
+        document.getElementById('hint-vd-alarm').textContent = Homey.__('settingsTab.vdAlarmHint');
+        document.getElementById('lbl-alarm-unavailable').textContent = Homey.__('settingsTab.vdAlarmUnavailable');
+        document.getElementById('lbl-alarm-not-reporting').textContent = Homey.__('settingsTab.vdAlarmNotReporting');
+        document.getElementById('lbl-alarm-low-battery').textContent = Homey.__('settingsTab.vdAlarmLowBattery');
       }
       applyStaticTranslations();
 
@@ -494,6 +516,9 @@
         document.getElementById('cfg-not-reporting-hours').value = hoursToDisplay(c.notReportingThresholdHours, state.hoursUnitGlobal);
         document.getElementById('cfg-battery-threshold').value = c.batteryThresholdPercent;
         document.getElementById('cfg-timeline-notifications').checked = !!c.timelineNotifications;
+        document.getElementById('cfg-alarm-unavailable').checked = c.alarmIncludesUnavailable !== false;
+        document.getElementById('cfg-alarm-not-reporting').checked = c.alarmIncludesNotReporting !== false;
+        document.getElementById('cfg-alarm-low-battery').checked = c.alarmIncludesLowBattery !== false;
         document.getElementById('row-interval-minutes').style.display = c.scanIntervalEnabled ? '' : 'none';
       }
 
@@ -504,6 +529,9 @@
           notReportingThresholdHours: displayToHours(document.getElementById('cfg-not-reporting-hours').value, state.hoursUnitGlobal) || 24,
           batteryThresholdPercent: Number(document.getElementById('cfg-battery-threshold').value) || 30,
           timelineNotifications: document.getElementById('cfg-timeline-notifications').checked,
+          alarmIncludesUnavailable: document.getElementById('cfg-alarm-unavailable').checked,
+          alarmIncludesNotReporting: document.getElementById('cfg-alarm-not-reporting').checked,
+          alarmIncludesLowBattery: document.getElementById('cfg-alarm-low-battery').checked,
         };
       }
 

@@ -99,7 +99,12 @@
     "batteryHint": "Gilt für alle Geräte ohne eigene Regel.",
     "notificationsTitle": "Benachrichtigungen",
     "timelineLabel": "Zeitleisten-Meldung bei neuen Problemen",
-    "timelineHint": "Schreibt einen Eintrag in Homeys Zeitleiste, sobald ein Scan neu ein Gerät mit niedrigem Akku, \"meldet sich nicht\" oder nicht erreichbar findet. Einmalig pro Zustandswechsel, kein Spam bei anhaltendem Problem."
+    "timelineHint": "Schreibt einen Eintrag in Homeys Zeitleiste, sobald ein Scan neu ein Gerät mit niedrigem Akku, \"meldet sich nicht\" oder nicht erreichbar findet. Einmalig pro Zustandswechsel, kein Spam bei anhaltendem Problem.",
+    "vdAlarmTitle": "Alarm des virtuellen Geräts",
+    "vdAlarmHint": "Die Zähler im virtuellen Watchdog-Gerät zeigen immer die echten Werte. Hier legst du nur fest, welche davon den Sammel-Alarm (alarm_generic) auslösen.",
+    "vdAlarmUnavailable": "Nicht erreichbar einbeziehen",
+    "vdAlarmNotReporting": "Meldet sich nicht einbeziehen",
+    "vdAlarmLowBattery": "Niedriger Akku einbeziehen"
   },
   "log": {
     "count": "__count__ Eintrag/Einträge",

@@ -99,7 +99,12 @@
     "batteryHint": "Applies to all devices without their own rule.",
     "notificationsTitle": "Notifications",
     "timelineLabel": "Timeline entry on new problems",
-    "timelineHint": "Writes an entry to Homey's timeline as soon as a scan newly finds a device with low battery, not reporting, or unavailable. Once per state change, no spam while a problem persists."
+    "timelineHint": "Writes an entry to Homey's timeline as soon as a scan newly finds a device with low battery, not reporting, or unavailable. Once per state change, no spam while a problem persists.",
+    "vdAlarmTitle": "Virtual device alarm",
+    "vdAlarmHint": "The counters on the virtual Watchdog device always show the real numbers. This only controls which of them trip the summary alarm (alarm_generic).",
+    "vdAlarmUnavailable": "Include unavailable",
+    "vdAlarmNotReporting": "Include not reporting",
+    "vdAlarmLowBattery": "Include low battery"
   },
   "log": {
     "count": "__count__ entr(y/ies)",

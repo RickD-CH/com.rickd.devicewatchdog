@@ -47,14 +47,19 @@ class WatchdogDevice extends Homey.Device {
     if (unavailableCount !== undefined) this._counts.unavailable = unavailableCount;
     if (lowBatteryCount !== undefined) this._counts.lowBattery = lowBatteryCount;
 
+    // The counts themselves always reflect the real numbers - only which of them can
+    // flip the aggregate alarm is configurable (Einstellungen tab). Undefined (not yet
+    // saved by an older config) defaults to included, matching the previous behaviour.
+    const { config } = this.homey.app;
+    const alarm = (config.alarmIncludesNotReporting !== false && this._counts.notReporting > 0)
+      || (config.alarmIncludesUnavailable !== false && this._counts.unavailable > 0)
+      || (config.alarmIncludesLowBattery !== false && this._counts.lowBattery > 0);
+
     const updates = [
       this.setCapabilityValue('devices_not_reporting_count', this._counts.notReporting),
       this.setCapabilityValue('devices_unavailable_count', this._counts.unavailable),
       this.setCapabilityValue('devices_low_battery_count', this._counts.lowBattery),
-      this.setCapabilityValue(
-        'alarm_generic',
-        this._counts.notReporting > 0 || this._counts.unavailable > 0 || this._counts.lowBattery > 0,
-      ),
+      this.setCapabilityValue('alarm_generic', alarm),
     ];
 
     await Promise.all(updates).catch((err) => this.error('Capability-Update fehlgeschlagen:', err));
