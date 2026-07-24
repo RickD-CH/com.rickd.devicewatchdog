@@ -21,6 +21,18 @@
     "homey:manager:api"
   ],
   "support": "mailto:ric.dubs@gmail.com",
+  "source": "https://github.com/RickD-CH/com.rickd.devicewatchdog",
+  "bugs": {
+    "url": "https://github.com/RickD-CH/com.rickd.devicewatchdog/issues"
+  },
+  "homeyCommunityTopicId": 157537,
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "RickDch"
+      }
+    }
+  },
   "images": {
     "small": "/assets/images/small.png",
     "large": "/assets/images/large.png",
