@@ -33,10 +33,11 @@ const REALTIME_HEALTHCHECK_MS = 5 * 60 * 1000;
 // still reflects the true total, this is purely about keeping the text usable.
 const MAX_NAMES_IN_LIST = 10;
 
-function formatNameList(names) {
+function formatNameList(names, homey) {
   if (names.length <= MAX_NAMES_IN_LIST) return names.join(', ');
   const shown = names.slice(0, MAX_NAMES_IN_LIST);
-  return `${shown.join(', ')} … und ${names.length - MAX_NAMES_IN_LIST} weitere`;
+  const more = homey.__('backend.andMore', { count: names.length - MAX_NAMES_IN_LIST });
+  return `${shown.join(', ')} … ${more}`;
 }
 
 function generateId() {
@@ -312,13 +313,13 @@ class DeviceWatchdogApp extends Homey.App {
       this._unavailableBatch.clear();
       this._unavailableBatchTimer = null;
 
-      const devicesList = formatNameList(names);
+      const devicesList = formatNameList(names, this.homey);
 
       this._triggerUnavailableSummary
         ?.trigger({ count: names.length, devices: devicesList })
         .catch((err) => this.error('Trigger devices_unavailable_summary fehlgeschlagen:', err));
 
-      this._notifyTimeline(`🔌 ${names.length} Gerät(e) nicht erreichbar: ${devicesList}`);
+      this._notifyTimeline(this.homey.__('backend.timelineUnavailable', { count: names.length, devices: devicesList }));
     }, 3000);
   }
 
@@ -465,16 +466,16 @@ class DeviceWatchdogApp extends Homey.App {
     await this._ensureApi();
 
     const device = await this.api.devices.getDevice({ id: deviceId });
-    if (!device) throw new Error('Gerät nicht gefunden');
+    if (!device) throw new Error(this.homey.__('backend.deviceNotFound'));
 
     const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
 
     try {
       const capabilityId = TESTABLE_CAPABILITIES.find((id) => (device.capabilities || []).includes(id));
-      if (!capabilityId) throw new Error('Keine testbare Capability (onoff/dim) vorhanden');
+      if (!capabilityId) throw new Error(this.homey.__('backend.noTestableCapability'));
 
       const currentValue = device.capabilitiesObj?.[capabilityId]?.value;
-      if (currentValue === undefined || currentValue === null) throw new Error('Kein aktueller Wert verfügbar');
+      if (currentValue === undefined || currentValue === null) throw new Error(this.homey.__('backend.noCurrentValue'));
 
       await device.setCapabilityValue({ capabilityId, value: currentValue });
 
@@ -579,23 +580,23 @@ class DeviceWatchdogApp extends Homey.App {
     }
 
     if (newlyNotReporting.length) {
-      const devicesList = formatNameList(newlyNotReporting.map((d) => d.name));
+      const devicesList = formatNameList(newlyNotReporting.map((d) => d.name), this.homey);
 
       await this._triggerNotReportingSummary
         ?.trigger({ count: newlyNotReporting.length, devices: devicesList })
         .catch((err) => this.error('Trigger devices_not_reporting_summary fehlgeschlagen:', err));
 
-      this._notifyTimeline(`📡 ${newlyNotReporting.length} Gerät(e) melden sich nicht mehr: ${devicesList}`);
+      this._notifyTimeline(this.homey.__('backend.timelineNotReporting', { count: newlyNotReporting.length, devices: devicesList }));
     }
 
     if (newlyLowBattery.length) {
-      const devicesList = formatNameList(newlyLowBattery.map((d) => d.name));
+      const devicesList = formatNameList(newlyLowBattery.map((d) => d.name), this.homey);
 
       await this._triggerBatteryLowSummary
         ?.trigger({ count: newlyLowBattery.length, devices: devicesList })
         .catch((err) => this.error('Trigger devices_low_battery_summary fehlgeschlagen:', err));
 
-      this._notifyTimeline(`🔋 ${newlyLowBattery.length} Gerät(e) haben niedrigen Akkustand: ${devicesList}`);
+      this._notifyTimeline(this.homey.__('backend.timelineLowBattery', { count: newlyLowBattery.length, devices: devicesList }));
     }
 
     this.flagState = {

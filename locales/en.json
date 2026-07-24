@@ -119,5 +119,14 @@
     "savedAt": "Saved at __time__",
     "error": "Error while saving",
     "saveFailed": "Save failed: __error__"
+  },
+  "backend": {
+    "timelineUnavailable": "🔌 __count__ device(s) unavailable: __devices__",
+    "timelineNotReporting": "📡 __count__ device(s) not reporting: __devices__",
+    "timelineLowBattery": "🔋 __count__ device(s) have low battery: __devices__",
+    "andMore": "and __count__ more",
+    "deviceNotFound": "Device not found",
+    "noTestableCapability": "No testable capability (onoff/dim) available",
+    "noCurrentValue": "No current value available"
   }
 }
