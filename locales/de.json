@@ -6,8 +6,7 @@
   "tabs": {
     "devices": "Geräte",
     "log": "Verlauf",
-    "settings": "Einstellungen",
-    "save": "Speichern"
+    "settings": "Einstellungen"
   },
   "devices": {
     "scanNow": "Scan jetzt ausführen",
@@ -114,8 +113,6 @@
     "savingRefresh": "Gespeichert, aktualisiere Status…",
     "savedAt": "Gespeichert um __time__",
     "error": "Fehler beim Speichern",
-    "saveFailed": "Speichern fehlgeschlagen: __error__",
-    "unsaved": "● Ungespeicherte Änderungen",
-    "unsavedConfirm": "Es gibt ungespeicherte Änderungen. Seite trotzdem verlassen?"
+    "saveFailed": "Speichern fehlgeschlagen: __error__"
   }
 }

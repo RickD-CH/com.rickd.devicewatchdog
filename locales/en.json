@@ -6,8 +6,7 @@
   "tabs": {
     "devices": "Devices",
     "log": "Log",
-    "settings": "Settings",
-    "save": "Save"
+    "settings": "Settings"
   },
   "devices": {
     "scanNow": "Run scan now",
@@ -114,8 +113,6 @@
     "savingRefresh": "Saved, refreshing status…",
     "savedAt": "Saved at __time__",
     "error": "Error while saving",
-    "saveFailed": "Save failed: __error__",
-    "unsaved": "● Unsaved changes",
-    "unsavedConfirm": "There are unsaved changes. Leave the page anyway?"
+    "saveFailed": "Save failed: __error__"
   }
 }

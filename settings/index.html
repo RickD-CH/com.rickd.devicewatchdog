@@ -66,7 +66,6 @@
     }
     .tabs .spacer { flex: 1; }
     #save-status { color: var(--color-muted); font-size: 12px; }
-    .dirty-indicator { color: var(--color-warn); font-size: 12px; font-weight: 600; display: none; }
     .tab-btn {
       border: none;
       background: none;
@@ -265,9 +264,7 @@
   <div class="tab-panel active" id="tab-devices">
     <div class="toolbar">
       <button class="btn primary" id="btn-run-scan">Scan jetzt ausführen</button>
-      <button class="btn" id="btn-save">Speichern</button>
       <span id="save-status"></span>
-      <span id="dirty-indicator" class="dirty-indicator">●&nbsp;Ungespeicherte Änderungen</span>
       <div class="search-wrap">
         <input type="text" class="search-input" id="device-search" placeholder="Gerät suchen…" />
         <button class="search-clear" id="btn-clear-search" title="Suche löschen" style="display:none;">✕</button>
@@ -293,9 +290,7 @@
   <!-- ============ TAB: EINSTELLUNGEN ============ -->
   <div class="tab-panel" id="tab-settings">
     <div class="toolbar">
-      <button class="btn primary" id="btn-save-settings">Speichern</button>
       <span id="save-status-settings"></span>
-      <span id="dirty-indicator-settings" class="dirty-indicator">●&nbsp;Ungespeicherte Änderungen</span>
     </div>
     <div class="card">
       <h2 id="h2-autoscan">Automatischer Scan</h2>
@@ -357,7 +352,6 @@
         log: [],
         filterMode: null,
         zoneOpenOverride: {},
-        dirty: false,
       };
 
       // ---------------------------------------------------------------
@@ -372,8 +366,6 @@
         document.getElementById('tab-btn-log').textContent = Homey.__('tabs.log');
         document.getElementById('tab-btn-settings').textContent = Homey.__('tabs.settings');
         document.getElementById('btn-clear-log').textContent = Homey.__('log.clearButton');
-        document.getElementById('btn-save').textContent = Homey.__('tabs.save');
-        document.getElementById('btn-save-settings').textContent = Homey.__('tabs.save');
         document.getElementById('btn-clear-search').title = Homey.__('devices.clearSearch');
         document.getElementById('btn-run-scan').textContent = Homey.__('devices.scanNow');
         document.getElementById('device-search').placeholder = Homey.__('devices.searchPlaceholder');
@@ -424,29 +416,24 @@
         });
       }
 
-      // Unsaved-changes warning: a visible hint next to both Save buttons, plus a
-      // browser-level prompt if the user tries to leave the settings page.
-      function updateDirtyIndicator() {
-        ['dirty-indicator', 'dirty-indicator-settings'].forEach(function (id) {
-          var el = document.getElementById(id);
-          el.textContent = Homey.__('save.unsaved');
-          el.style.display = state.dirty ? '' : 'none';
-        });
+      // Auto-save: there's no reliable way to catch Homey's native "X" close button
+      // (it's part of Homey's own app chrome, not something this page's beforeunload
+      // can intercept), so instead of warning about unsaved changes, there simply never
+      // are any - every edit saves itself. Toggles/checkboxes/dropdowns save right away
+      // (discrete actions), text/number fields debounce briefly so typing doesn't fire
+      // a request per keystroke.
+      var autoSaveTimer = null;
+      function scheduleAutoSave(immediate) {
+        if (autoSaveTimer) {
+          clearTimeout(autoSaveTimer);
+          autoSaveTimer = null;
+        }
+        if (immediate) {
+          saveAll();
+        } else {
+          autoSaveTimer = setTimeout(saveAll, 700);
+        }
       }
-      function markDirty() {
-        state.dirty = true;
-        updateDirtyIndicator();
-      }
-      function markClean() {
-        state.dirty = false;
-        updateDirtyIndicator();
-      }
-      window.addEventListener('beforeunload', function (e) {
-        if (!state.dirty) return;
-        e.preventDefault();
-        e.returnValue = Homey.__('save.unsavedConfirm');
-        return e.returnValue;
-      });
 
       // ---------------------------------------------------------------
       // Tabs
@@ -740,7 +727,7 @@
           rule.excludeAll = !monitored;
           cleanupDeviceRule(d.id);
         });
-        markDirty();
+        scheduleAutoSave(true);
         renderDevices();
       }
 
@@ -865,7 +852,7 @@
               rule.excludeBattery = false;
               rule.onlyCheckBattery = false;
               cleanupDeviceRule(e.target.dataset.id);
-              markDirty();
+              scheduleAutoSave(true);
               renderDevices();
             }
           }
@@ -875,12 +862,14 @@
           var id = e.target.dataset.id;
           if (!id) return;
 
-          markDirty();
-
           if (e.target.classList.contains('monitor-toggle')) {
             var rule = ensureDeviceRule(id, e.target.dataset.name);
             rule.excludeAll = !e.target.checked;
             cleanupDeviceRule(id);
+            // 'change' (not 'input') only fires once a value is committed (on blur/Enter
+            // for text/number fields, immediately for checkboxes) - already a natural
+            // debounce point, no need to delay further.
+            scheduleAutoSave(true);
             renderDevices();
             return;
           }
@@ -894,6 +883,7 @@
             r[field] = e.target.value === '' ? null : Number(e.target.value);
           }
           cleanupDeviceRule(id);
+          scheduleAutoSave(true);
         });
       }
 
@@ -971,10 +961,12 @@
         document.getElementById('row-interval-minutes').style.display = e.target.checked ? '' : 'none';
       });
 
-      // Any real user edit within the Einstellungen tab counts as dirty - programmatic
+      // Any real user edit within the Einstellungen tab auto-saves - programmatic
       // updates from fillSettingsTab() (.value/.checked assignment) don't fire these.
-      document.getElementById('tab-settings').addEventListener('input', markDirty);
-      document.getElementById('tab-settings').addEventListener('change', markDirty);
+      // 'input' (debounced) covers typing in number fields; 'change' (immediate) covers
+      // checkboxes/toggles/selects, which don't need a delay.
+      document.getElementById('tab-settings').addEventListener('input', function () { scheduleAutoSave(false); });
+      document.getElementById('tab-settings').addEventListener('change', function () { scheduleAutoSave(true); });
 
       document.getElementById('stat-grid').addEventListener('click', function (e) {
         var card = e.target.closest('.stat');
@@ -1007,17 +999,26 @@
       // Save (button lives in both the Geräte- and Einstellungen-Tab toolbar,
       // since either tab can hold unsaved changes - one shared handler for both).
       // ---------------------------------------------------------------
+      // Guards against overlapping saves (e.g. an edit landing while the previous
+      // save's two sequential requests are still in flight) - queues one re-run
+      // instead of firing a second, potentially out-of-order request in parallel.
+      var saveInFlight = false;
+      var saveAgainNeeded = false;
+
       function saveAll() {
+        if (saveInFlight) {
+          saveAgainNeeded = true;
+          return;
+        }
+        saveInFlight = true;
+
         var payload = { config: readSettingsTab(), rules: state.rules };
-        var buttons = [document.getElementById('btn-save'), document.getElementById('btn-save-settings')];
-        buttons.forEach(function (btn) { btn.disabled = true; });
         setSaveStatus(Homey.__('save.saving'), false);
 
         apiCall('POST', '/config', payload).then(function (saved) {
           state.config = saved.config;
           state.rules = saved.rules;
           fillSettingsTab();
-          markClean();
           // Gespeicherte Regeln (z.B. "Batterie ignorieren") wirken sich auf den Status aus -
           // ohne frischen Scan wuerde die Liste noch die alten Badges/Filter-Zugehoerigkeiten zeigen.
           setSaveStatus(Homey.__('save.savingRefresh'), false);
@@ -1030,12 +1031,13 @@
           setSaveStatus(Homey.__('save.error'), true);
           Homey.alert(Homey.__('save.saveFailed', { error: err && err.message ? err.message : err }));
         }).finally(function () {
-          buttons.forEach(function (btn) { btn.disabled = false; });
+          saveInFlight = false;
+          if (saveAgainNeeded) {
+            saveAgainNeeded = false;
+            saveAll();
+          }
         });
       }
-
-      document.getElementById('btn-save').addEventListener('click', saveAll);
-      document.getElementById('btn-save-settings').addEventListener('click', saveAll);
 
       // ---------------------------------------------------------------
       // Initial load
