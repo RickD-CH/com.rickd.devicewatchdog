@@ -5,6 +5,7 @@
   },
   "tabs": {
     "devices": "Geräte",
+    "log": "Verlauf",
     "settings": "Einstellungen",
     "save": "Speichern"
   },
@@ -12,6 +13,7 @@
     "scanNow": "Scan jetzt ausführen",
     "scanning": "Scan läuft…",
     "searchPlaceholder": "Gerät suchen…",
+    "clearSearch": "Suche löschen",
     "sortPriority": "Sortierung: Status zuerst",
     "sortName": "Sortierung: Name (A-Z)",
     "unmonitoredSummary": "__count__ Gerät(e) nicht überwacht",
@@ -23,7 +25,6 @@
     "testButton": "Testen",
     "testHint": "Sendet den aktuellen Wert erneut ans Gerät, um Erreichbarkeit zu prüfen (kein sichtbarer Zustandswechsel).",
     "testRunning": "Teste…",
-    "testOk": "✓ Erreichbar",
     "testFailed": "✗ Fehlgeschlagen"
   },
   "stats": {
@@ -68,12 +69,13 @@
     "unavailable": "nicht erreichbar"
   },
   "advanced": {
-    "daysUntilOffline": "Tage bis \"offline\"",
+    "hoursUntilOffline": "Stunden bis \"offline\"",
     "batteryThreshold": "Batterie-Schwelle %",
     "placeholderDefault": "Standard",
     "onlyBattery": "Nur Batterie prüfen",
     "excludeBattery": "Batterie ignorieren",
-    "detailsButton": "Details"
+    "detailsButton": "Details",
+    "resetButton": "Zurücksetzen"
   },
   "zone": {
     "none": "Ohne Zone",
@@ -88,15 +90,32 @@
     "intervalMinutes": "Scan-Intervall (Minuten)",
     "thresholdsTitle": "Standard-Schwellenwerte",
     "notReportingLabel": "Stunden ohne Meldung bis \"offline\"",
-    "notReportingHint": "Pro Gerät via \"Details\" überschreibbar (dort in Tagen).",
+    "notReportingHint": "Pro Gerät via \"Details\" überschreibbar.",
     "batteryLabel": "Batteriewarnung ab (%)",
-    "batteryHint": "Gilt für alle Geräte ohne eigene Regel."
+    "batteryHint": "Gilt für alle Geräte ohne eigene Regel.",
+    "notificationsTitle": "Benachrichtigungen",
+    "timelineLabel": "Zeitleisten-Meldung bei neuen Problemen",
+    "timelineHint": "Schreibt einen Eintrag in Homeys Zeitleiste, sobald ein Scan neu ein Gerät mit niedrigem Akku, \"meldet sich nicht\" oder nicht erreichbar findet. Einmalig pro Zustandswechsel, kein Spam bei anhaltendem Problem."
+  },
+  "log": {
+    "count": "__count__ Eintrag/Einträge",
+    "empty": "Noch keine Ereignisse aufgezeichnet.",
+    "notReporting": "__device__ meldet sich nicht mehr",
+    "lowBattery": "__device__ hat niedrigen Akkustand (__battery__)",
+    "unavailable": "__device__ ist nicht erreichbar geworden",
+    "testSuccess": "__device__ erfolgreich getestet (erreichbar)",
+    "testFailure": "__device__ Test fehlgeschlagen (__error__)",
+    "clearButton": "Verlauf leeren",
+    "clearConfirm": "Verlauf wirklich unwiderruflich löschen?",
+    "clearFailed": "Leeren fehlgeschlagen: __error__"
   },
   "save": {
     "saving": "Speichern…",
     "savingRefresh": "Gespeichert, aktualisiere Status…",
     "savedAt": "Gespeichert um __time__",
     "error": "Fehler beim Speichern",
-    "saveFailed": "Speichern fehlgeschlagen: __error__"
+    "saveFailed": "Speichern fehlgeschlagen: __error__",
+    "unsaved": "● Ungespeicherte Änderungen",
+    "unsavedConfirm": "Es gibt ungespeicherte Änderungen. Seite trotzdem verlassen?"
   }
 }

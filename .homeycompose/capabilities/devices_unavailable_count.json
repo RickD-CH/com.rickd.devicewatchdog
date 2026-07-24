@@ -1,0 +1,15 @@
+{
+  "type": "number",
+  "title": { "en": "Devices unavailable", "de": "Geräte nicht erreichbar" },
+  "desc": {
+    "en": "How many devices Homey currently reports as unavailable, updated in realtime.",
+    "de": "Wie viele Geräte Homey aktuell als nicht erreichbar meldet, in Echtzeit aktualisiert."
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "units": { "en": "", "de": "" },
+  "decimals": 0,
+  "min": 0,
+  "icon": "/assets/capabilities/devices_unavailable_count.svg"
+}

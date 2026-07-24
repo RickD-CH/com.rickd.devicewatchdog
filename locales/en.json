@@ -5,6 +5,7 @@
   },
   "tabs": {
     "devices": "Devices",
+    "log": "Log",
     "settings": "Settings",
     "save": "Save"
   },
@@ -12,6 +13,7 @@
     "scanNow": "Run scan now",
     "scanning": "Scanning…",
     "searchPlaceholder": "Search device…",
+    "clearSearch": "Clear search",
     "sortPriority": "Sort: status first",
     "sortName": "Sort: name (A-Z)",
     "unmonitoredSummary": "__count__ device(s) not monitored",
@@ -23,7 +25,6 @@
     "testButton": "Test",
     "testHint": "Resends the current value to the device to check reachability (no visible state change).",
     "testRunning": "Testing…",
-    "testOk": "✓ Reachable",
     "testFailed": "✗ Failed"
   },
   "stats": {
@@ -68,12 +69,13 @@
     "unavailable": "not reachable"
   },
   "advanced": {
-    "daysUntilOffline": "Days until \"offline\"",
+    "hoursUntilOffline": "Hours until \"offline\"",
     "batteryThreshold": "Battery threshold %",
     "placeholderDefault": "Default",
     "onlyBattery": "Only check battery",
     "excludeBattery": "Ignore battery",
-    "detailsButton": "Details"
+    "detailsButton": "Details",
+    "resetButton": "Reset"
   },
   "zone": {
     "none": "No zone",
@@ -88,15 +90,32 @@
     "intervalMinutes": "Scan interval (minutes)",
     "thresholdsTitle": "Default thresholds",
     "notReportingLabel": "Hours without update until \"offline\"",
-    "notReportingHint": "Overridable per device via \"Details\" (in days there).",
+    "notReportingHint": "Overridable per device via \"Details\".",
     "batteryLabel": "Battery warning at (%)",
-    "batteryHint": "Applies to all devices without their own rule."
+    "batteryHint": "Applies to all devices without their own rule.",
+    "notificationsTitle": "Notifications",
+    "timelineLabel": "Timeline entry on new problems",
+    "timelineHint": "Writes an entry to Homey's timeline as soon as a scan newly finds a device with low battery, not reporting, or unavailable. Once per state change, no spam while a problem persists."
+  },
+  "log": {
+    "count": "__count__ entr(y/ies)",
+    "empty": "No events recorded yet.",
+    "notReporting": "__device__ stopped reporting",
+    "lowBattery": "__device__ has low battery (__battery__)",
+    "unavailable": "__device__ became unavailable",
+    "testSuccess": "__device__ tested successfully (reachable)",
+    "testFailure": "__device__ test failed (__error__)",
+    "clearButton": "Clear log",
+    "clearConfirm": "Really delete the log? This can't be undone.",
+    "clearFailed": "Clearing failed: __error__"
   },
   "save": {
     "saving": "Saving…",
     "savingRefresh": "Saved, refreshing status…",
     "savedAt": "Saved at __time__",
     "error": "Error while saving",
-    "saveFailed": "Save failed: __error__"
+    "saveFailed": "Save failed: __error__",
+    "unsaved": "● Unsaved changes",
+    "unsavedConfirm": "There are unsaved changes. Leave the page anyway?"
   }
 }

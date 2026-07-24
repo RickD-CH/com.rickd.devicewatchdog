@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.rickd.devicewatchdog",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -55,6 +55,14 @@
     "testDevice": {
       "method": "post",
       "path": "/devices/:id/test"
+    },
+    "getLog": {
+      "method": "get",
+      "path": "/log"
+    },
+    "clearLog": {
+      "method": "delete",
+      "path": "/log"
     }
   },
   "flow": {
@@ -66,13 +74,27 @@
           "de": "Ein Gerät hat eine niedrige Batterie"
         },
         "titleFormatted": {
-          "en": "[[device]]'s battery gets low",
-          "de": "[[device]] hat eine niedrige Batterie"
+          "en": "[[target_device]]'s battery gets low",
+          "de": "[[target_device]] hat eine niedrige Batterie"
         },
         "hint": {
-          "en": "Fires when a scan (interval or manual) newly detects that a device's battery dropped to/below its threshold, or reports a battery alarm.",
-          "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass die Batterie eines Geräts die Schwelle unterschreitet oder einen Batterie-Alarm meldet."
+          "en": "Fires when a scan (interval or manual) newly detects that the selected device's battery dropped to/below its threshold, or reports a battery alarm. For any device instead of one specific one, use \"Devices with low battery are newly found\".",
+          "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass die Batterie des gewählten Geräts die Schwelle unterschreitet oder einen Batterie-Alarm meldet. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte mit niedrigem Akku gefunden\" verwenden."
         },
+        "args": [
+          {
+            "name": "target_device",
+            "type": "autocomplete",
+            "title": {
+              "en": "Device",
+              "de": "Gerät"
+            },
+            "placeholder": {
+              "en": "Choose a device",
+              "de": "Gerät wählen"
+            }
+          }
+        ],
         "tokens": [
           {
             "name": "device",
@@ -119,13 +141,27 @@
           "de": "Ein Gerät meldet sich nicht mehr"
         },
         "titleFormatted": {
-          "en": "[[device]] stops reporting",
-          "de": "[[device]] meldet sich nicht mehr"
+          "en": "[[target_device]] stops reporting",
+          "de": "[[target_device]] meldet sich nicht mehr"
         },
         "hint": {
-          "en": "Fires when a scan (interval or manual) newly detects that a device hasn't reported within its configured threshold.",
-          "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass sich ein Gerät nicht mehr innerhalb der konfigurierten Schwelle gemeldet hat."
+          "en": "Fires when a scan (interval or manual) newly detects that the selected device hasn't reported within its configured threshold. For any device instead of one specific one, use \"Devices are newly found not reporting\".",
+          "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass sich das gewählte Gerät nicht mehr innerhalb der konfigurierten Schwelle gemeldet hat. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte gefunden, die sich nicht mehr melden\" verwenden."
         },
+        "args": [
+          {
+            "name": "target_device",
+            "type": "autocomplete",
+            "title": {
+              "en": "Device",
+              "de": "Gerät"
+            },
+            "placeholder": {
+              "en": "Choose a device",
+              "de": "Gerät wählen"
+            }
+          }
+        ],
         "tokens": [
           {
             "name": "device",
@@ -172,13 +208,27 @@
           "de": "Ein Gerät wird nicht erreichbar"
         },
         "titleFormatted": {
-          "en": "[[device]] becomes unavailable",
-          "de": "[[device]] wird nicht erreichbar"
+          "en": "[[target_device]] becomes unavailable",
+          "de": "[[target_device]] wird nicht erreichbar"
         },
         "hint": {
-          "en": "Fires in realtime, directly via Homey's device availability event - independent of the interval scan and the settings toggle for it.",
-          "de": "Wird in Echtzeit über Homeys Geräte-Verfügbarkeits-Event ausgelöst - unabhängig vom Intervall-Scan und dessen Einstellungs-Schalter."
+          "en": "Fires in realtime for the selected device, directly via Homey's device availability event - independent of the interval scan and the settings toggle for it. For any device instead of one specific one, use \"Devices newly become unavailable\".",
+          "de": "Wird in Echtzeit für das gewählte Gerät über Homeys Geräte-Verfügbarkeits-Event ausgelöst - unabhängig vom Intervall-Scan und dessen Einstellungs-Schalter. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte nicht erreichbar\" verwenden."
         },
+        "args": [
+          {
+            "name": "target_device",
+            "type": "autocomplete",
+            "title": {
+              "en": "Device",
+              "de": "Gerät"
+            },
+            "placeholder": {
+              "en": "Choose a device",
+              "de": "Gerät wählen"
+            }
+          }
+        ],
         "tokens": [
           {
             "name": "device",
@@ -205,6 +255,209 @@
             }
           }
         ]
+      },
+      {
+        "id": "devices_low_battery_summary",
+        "title": {
+          "en": "Devices with low battery are newly found",
+          "de": "Es werden neu Geräte mit niedrigem Akku gefunden"
+        },
+        "titleFormatted": {
+          "en": "Devices with low battery are newly found",
+          "de": "Es werden neu Geräte mit niedrigem Akku gefunden"
+        },
+        "hint": {
+          "en": "Fires once per scan, bundling every device that newly dropped to/below its battery threshold in that scan into a single trigger - instead of firing \"A device's battery gets low\" once per device.",
+          "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die in diesem Scan neu die Akku-Schwelle unterschritten haben, in einem einzigen Trigger - statt \"Ein Gerät hat eine niedrige Batterie\" einzeln pro Gerät auszulösen."
+        },
+        "tokens": [
+          {
+            "name": "count",
+            "type": "number",
+            "title": {
+              "en": "Count",
+              "de": "Anzahl"
+            },
+            "example": 2
+          },
+          {
+            "name": "devices",
+            "type": "string",
+            "title": {
+              "en": "Devices",
+              "de": "Geräte"
+            },
+            "example": {
+              "en": "Garage sensor, Garden sensor",
+              "de": "Garage Sensor, Garten Sensor"
+            }
+          }
+        ]
+      },
+      {
+        "id": "devices_not_reporting_summary",
+        "title": {
+          "en": "Devices are newly found not reporting",
+          "de": "Es werden neu Geräte gefunden, die sich nicht mehr melden"
+        },
+        "titleFormatted": {
+          "en": "Devices are newly found not reporting",
+          "de": "Es werden neu Geräte gefunden, die sich nicht mehr melden"
+        },
+        "hint": {
+          "en": "Fires once per scan, bundling every device that newly stopped reporting in that scan into a single trigger - instead of firing \"A device stops reporting\" once per device.",
+          "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die in diesem Scan neu als 'meldet sich nicht' erkannt wurden, in einem einzigen Trigger - statt \"Ein Gerät meldet sich nicht mehr\" einzeln pro Gerät auszulösen."
+        },
+        "tokens": [
+          {
+            "name": "count",
+            "type": "number",
+            "title": {
+              "en": "Count",
+              "de": "Anzahl"
+            },
+            "example": 2
+          },
+          {
+            "name": "devices",
+            "type": "string",
+            "title": {
+              "en": "Devices",
+              "de": "Geräte"
+            },
+            "example": {
+              "en": "Garage sensor, Garden sensor",
+              "de": "Garage Sensor, Garten Sensor"
+            }
+          }
+        ]
+      },
+      {
+        "id": "devices_unavailable_summary",
+        "title": {
+          "en": "Devices newly become unavailable",
+          "de": "Es werden neu Geräte nicht erreichbar"
+        },
+        "titleFormatted": {
+          "en": "Devices newly become unavailable",
+          "de": "Es werden neu Geräte nicht erreichbar"
+        },
+        "hint": {
+          "en": "Fires in realtime, bundling every device that becomes unavailable within a few seconds of each other into a single trigger (e.g. after a mesh network hiccup) - instead of firing \"A device becomes unavailable\" once per device.",
+          "de": "Wird in Echtzeit ausgelöst und bündelt alle Geräte, die innerhalb weniger Sekunden nacheinander nicht erreichbar werden (z.B. nach einem Mesh-Netzwerk-Aussetzer), in einem einzigen Trigger - statt \"Ein Gerät wird nicht erreichbar\" einzeln pro Gerät auszulösen."
+        },
+        "tokens": [
+          {
+            "name": "count",
+            "type": "number",
+            "title": {
+              "en": "Count",
+              "de": "Anzahl"
+            },
+            "example": 2
+          },
+          {
+            "name": "devices",
+            "type": "string",
+            "title": {
+              "en": "Devices",
+              "de": "Geräte"
+            },
+            "example": {
+              "en": "Front door lock, Garden sensor",
+              "de": "Haustürschloss, Garten Sensor"
+            }
+          }
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "id": "device_has_low_battery",
+        "title": {
+          "en": "!{{Device has|Device doesn't have}} low battery",
+          "de": "!{{Gerät hat einen niedrigen Akkustand|Gerät hat keinen niedrigen Akkustand}}"
+        },
+        "titleFormatted": {
+          "en": "[[device]] !{{has|doesn't have}} low battery",
+          "de": "[[device]] !{{hat einen niedrigen Akkustand|hat keinen niedrigen Akkustand}}"
+        },
+        "hint": {
+          "en": "Checks whether a specific device was flagged with a low or alarming battery in the last scan.",
+          "de": "Prüft, ob ein bestimmtes Gerät im letzten Scan mit niedrigem Akkustand oder Batterie-Alarm markiert wurde."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "autocomplete",
+            "title": {
+              "en": "Device",
+              "de": "Gerät"
+            },
+            "placeholder": {
+              "en": "Choose a device",
+              "de": "Gerät wählen"
+            }
+          }
+        ]
+      },
+      {
+        "id": "device_is_not_reporting",
+        "title": {
+          "en": "!{{Device isn't|Device is}} reporting",
+          "de": "!{{Gerät meldet sich nicht|Gerät meldet sich}}"
+        },
+        "titleFormatted": {
+          "en": "[[device]] !{{isn't|is}} reporting",
+          "de": "[[device]] !{{meldet sich nicht|meldet sich}}"
+        },
+        "hint": {
+          "en": "Checks whether a specific device was flagged as not reporting in the last scan.",
+          "de": "Prüft, ob ein bestimmtes Gerät im letzten Scan als 'meldet sich nicht' markiert wurde."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "autocomplete",
+            "title": {
+              "en": "Device",
+              "de": "Gerät"
+            },
+            "placeholder": {
+              "en": "Choose a device",
+              "de": "Gerät wählen"
+            }
+          }
+        ]
+      },
+      {
+        "id": "device_is_unavailable",
+        "title": {
+          "en": "!{{Device is|Device isn't}} unavailable",
+          "de": "!{{Gerät ist nicht erreichbar|Gerät ist erreichbar}}"
+        },
+        "titleFormatted": {
+          "en": "[[device]] !{{is|isn't}} unavailable",
+          "de": "[[device]] !{{ist nicht erreichbar|ist erreichbar}}"
+        },
+        "hint": {
+          "en": "Checks a specific device's live availability, as reported directly by Homey - independent of the interval scan.",
+          "de": "Prüft die Live-Erreichbarkeit eines bestimmten Geräts, wie direkt von Homey gemeldet - unabhängig vom Intervall-Scan."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "autocomplete",
+            "title": {
+              "en": "Device",
+              "de": "Gerät"
+            },
+            "placeholder": {
+              "en": "Choose a device",
+              "de": "Gerät wählen"
+            }
+          }
+        ]
       }
     ],
     "actions": [
@@ -224,5 +477,107 @@
         }
       }
     ]
+  },
+  "drivers": [
+    {
+      "id": "watchdog",
+      "name": {
+        "en": "Watchdog status",
+        "de": "Watchdog-Status"
+      },
+      "class": "sensor",
+      "capabilities": [
+        "alarm_generic",
+        "devices_not_reporting_count",
+        "devices_unavailable_count",
+        "devices_low_battery_count"
+      ],
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [],
+      "images": {
+        "small": "/drivers/watchdog/assets/images/small.png",
+        "large": "/drivers/watchdog/assets/images/large.png"
+      },
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ]
+    }
+  ],
+  "capabilities": {
+    "devices_low_battery_count": {
+      "type": "number",
+      "title": {
+        "en": "Devices with low battery",
+        "de": "Geräte mit niedrigem Akku"
+      },
+      "desc": {
+        "en": "How many monitored devices had a low or alarming battery in the last scan.",
+        "de": "Wie viele überwachte Geräte im letzten Scan einen niedrigen oder alarmierenden Akkustand hatten."
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "units": {
+        "en": "",
+        "de": ""
+      },
+      "decimals": 0,
+      "min": 0,
+      "icon": "/assets/capabilities/devices_low_battery_count.svg"
+    },
+    "devices_not_reporting_count": {
+      "type": "number",
+      "title": {
+        "en": "Devices not reporting",
+        "de": "Geräte melden sich nicht"
+      },
+      "desc": {
+        "en": "How many monitored devices were flagged as not reporting in the last scan.",
+        "de": "Wie viele überwachte Geräte im letzten Scan als 'meldet sich nicht' markiert wurden."
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "units": {
+        "en": "",
+        "de": ""
+      },
+      "decimals": 0,
+      "min": 0,
+      "icon": "/assets/capabilities/devices_not_reporting_count.svg"
+    },
+    "devices_unavailable_count": {
+      "type": "number",
+      "title": {
+        "en": "Devices unavailable",
+        "de": "Geräte nicht erreichbar"
+      },
+      "desc": {
+        "en": "How many devices Homey currently reports as unavailable, updated in realtime.",
+        "de": "Wie viele Geräte Homey aktuell als nicht erreichbar meldet, in Echtzeit aktualisiert."
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "units": {
+        "en": "",
+        "de": ""
+      },
+      "decimals": 0,
+      "min": 0,
+      "icon": "/assets/capabilities/devices_unavailable_count.svg"
+    }
   }
 }

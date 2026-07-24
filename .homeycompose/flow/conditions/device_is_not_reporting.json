@@ -1,0 +1,23 @@
+{
+  "id": "device_is_not_reporting",
+  "title": {
+    "en": "!{{Device isn't|Device is}} reporting",
+    "de": "!{{Gerät meldet sich nicht|Gerät meldet sich}}"
+  },
+  "titleFormatted": {
+    "en": "[[device]] !{{isn't|is}} reporting",
+    "de": "[[device]] !{{meldet sich nicht|meldet sich}}"
+  },
+  "hint": {
+    "en": "Checks whether a specific device was flagged as not reporting in the last scan.",
+    "de": "Prüft, ob ein bestimmtes Gerät im letzten Scan als 'meldet sich nicht' markiert wurde."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "autocomplete",
+      "title": { "en": "Device", "de": "Gerät" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+    }
+  ]
+}

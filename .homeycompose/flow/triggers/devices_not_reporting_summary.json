@@ -1,0 +1,29 @@
+{
+  "id": "devices_not_reporting_summary",
+  "title": {
+    "en": "Devices are newly found not reporting",
+    "de": "Es werden neu Geräte gefunden, die sich nicht mehr melden"
+  },
+  "titleFormatted": {
+    "en": "Devices are newly found not reporting",
+    "de": "Es werden neu Geräte gefunden, die sich nicht mehr melden"
+  },
+  "hint": {
+    "en": "Fires once per scan, bundling every device that newly stopped reporting in that scan into a single trigger - instead of firing \"A device stops reporting\" once per device.",
+    "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die in diesem Scan neu als 'meldet sich nicht' erkannt wurden, in einem einzigen Trigger - statt \"Ein Gerät meldet sich nicht mehr\" einzeln pro Gerät auszulösen."
+  },
+  "tokens": [
+    {
+      "name": "count",
+      "type": "number",
+      "title": { "en": "Count", "de": "Anzahl" },
+      "example": 2
+    },
+    {
+      "name": "devices",
+      "type": "string",
+      "title": { "en": "Devices", "de": "Geräte" },
+      "example": { "en": "Garage sensor, Garden sensor", "de": "Garage Sensor, Garten Sensor" }
+    }
+  ]
+}

@@ -9,14 +9,64 @@ const SETTINGS_KEY_CONFIG = 'config';
 const SETTINGS_KEY_RULES = 'rules';
 const SETTINGS_KEY_FLAG_STATE = 'flagState';
 const SETTINGS_KEY_LAST_SCAN = 'lastScan';
+const SETTINGS_KEY_EVENT_LOG = 'eventLog';
 
 // Capabilities safe to re-set with their own current value as a reachability test:
 // this round-trips to the hardware (so a failure means the device is truly unreachable)
 // without producing a perceptible state change, unlike toggling on/off for real.
 const TESTABLE_CAPABILITIES = ['onoff', 'dim'];
 
+// Rolling cap for the Verlauf/log tab - keeps homey.settings from growing unbounded.
+const MAX_LOG_ENTRIES = 200;
+
+// How often to check the HomeyAPI realtime socket and resync availability, independent
+// of the scan interval (which the user can disable entirely) - see _checkRealtimeConnection.
+const REALTIME_HEALTHCHECK_MS = 5 * 60 * 1000;
+
+// Caps how many device names are spelled out in a summary trigger's "devices" token /
+// timeline excerpt. There's no known hard limit on Flow token length, but an unbounded
+// comma list (e.g. 80 devices going offline at once) is unreadable either way - `count`
+// still reflects the true total, this is purely about keeping the text usable.
+const MAX_NAMES_IN_LIST = 10;
+
+function formatNameList(names) {
+  if (names.length <= MAX_NAMES_IN_LIST) return names.join(', ');
+  const shown = names.slice(0, MAX_NAMES_IN_LIST);
+  return `${shown.join(', ')} … und ${names.length - MAX_NAMES_IN_LIST} weitere`;
+}
+
 function generateId() {
   return `r-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// The Settings UI's <input min="..."> is a client-side hint only - it doesn't stop a
+// negative/NaN value from being typed or POSTed directly. These guard the numbers that
+// feed threshold math in lib/scanner.js, where e.g. a negative "hours" would make a
+// device permanently show as not-reporting regardless of when it last updated.
+function positiveNumberOrDefault(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+function positiveNumberOrNull(value) {
+  if (value === '' || value === undefined || value === null) return null;
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function percentOrNull(value) {
+  if (value === '' || value === undefined || value === null) return null;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  return Math.min(100, Math.max(0, n));
+}
+
+// One-time migration: the per-device override used to be "days until offline"
+// (notReportingDays), now it's hours (notReportingHours) to match the base threshold.
+function migrateRuleToHours(rule) {
+  if (rule.notReportingDays == null) return rule;
+  const { notReportingDays, ...rest } = rule;
+  return { ...rest, notReportingHours: notReportingDays * 24 };
 }
 
 class DeviceWatchdogApp extends Homey.App {
@@ -25,14 +75,18 @@ class DeviceWatchdogApp extends Homey.App {
     this.log('Device Watchdog initialized');
 
     this.config = { ...DEFAULT_CONFIG, ...(this.homey.settings.get(SETTINGS_KEY_CONFIG) || {}) };
-    this.rules = this.homey.settings.get(SETTINGS_KEY_RULES) || DEFAULT_RULES;
+    this.rules = (this.homey.settings.get(SETTINGS_KEY_RULES) || DEFAULT_RULES).map(migrateRuleToHours);
+    this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
     this.flagState = this.homey.settings.get(SETTINGS_KEY_FLAG_STATE) || { notReporting: [], lowBattery: [] };
     this.lastScan = this.homey.settings.get(SETTINGS_KEY_LAST_SCAN) || null;
+    this.eventLog = this.homey.settings.get(SETTINGS_KEY_EVENT_LOG) || [];
 
     this._zoneMap = {};
     this._availabilityMap = new Map();
     this._intervalTimer = null;
     this._scanPromise = null;
+    this._unavailableBatch = new Set();
+    this._unavailableBatchTimer = null;
 
     this._registerFlowCards();
 
@@ -46,6 +100,39 @@ class DeviceWatchdogApp extends Homey.App {
     }
 
     this._scheduleInterval({ runImmediately: true });
+
+    // Independent safety net for the realtime socket: runs regardless of whether the
+    // interval scan is enabled, so "unavailable" tracking stays correct even with
+    // automatic scanning turned off. See _checkRealtimeConnection for what it catches.
+    this.homey.setInterval(() => {
+      this._checkRealtimeConnection().catch((err) => this.error('Realtime-Healthcheck fehlgeschlagen:', err));
+    }, REALTIME_HEALTHCHECK_MS);
+  }
+
+  // The homey-api socket does auto-reconnect at the transport level, but that's opaque
+  // to us and never replays events missed while disconnected. This periodically (a)
+  // makes sure we're actually connected, reconnecting explicitly if not, and (b) always
+  // re-syncs availability afterwards so a silently-missed transition still gets caught -
+  // both cheaper and more reliable than trying to hook into internal socket events.
+  async _checkRealtimeConnection() {
+    if (!this.api) return;
+
+    if (!this.api.devices.isConnected()) {
+      this.log('Realtime-Verbindung getrennt, verbinde neu...');
+      await this.api.devices.connect();
+    }
+
+    await this._reconcileAvailability();
+  }
+
+  // Re-checks every device's availability against our cached map and fires the same
+  // edge-trigger logic as a live realtime event for anything that changed while we
+  // weren't watching (missed socket event, or the socket having been down).
+  async _reconcileAvailability() {
+    const devices = await this.api.devices.getDevices();
+    for (const device of Object.values(devices)) {
+      this._handleDeviceUpdate(device);
+    }
   }
 
   // ---------------------------------------------------------------------
@@ -58,9 +145,78 @@ class DeviceWatchdogApp extends Homey.App {
       return true;
     });
 
-    this._triggerNotReporting = this.homey.flow.getTriggerCard('device_not_reporting');
-    this._triggerBatteryLow = this.homey.flow.getTriggerCard('device_battery_low');
-    this._triggerUnavailable = this.homey.flow.getTriggerCard('device_unavailable');
+    this._triggerNotReporting = this.homey.flow.getTriggerCard('device_not_reporting')
+      .registerRunListener(this._deviceArgMatches)
+      .registerArgumentAutocompleteListener('target_device', this._deviceAutocomplete.bind(this));
+    this._triggerBatteryLow = this.homey.flow.getTriggerCard('device_battery_low')
+      .registerRunListener(this._deviceArgMatches)
+      .registerArgumentAutocompleteListener('target_device', this._deviceAutocomplete.bind(this));
+    this._triggerUnavailable = this.homey.flow.getTriggerCard('device_unavailable')
+      .registerRunListener(this._deviceArgMatches)
+      .registerArgumentAutocompleteListener('target_device', this._deviceAutocomplete.bind(this));
+
+    // Summary triggers: fire once per batch (scan, or realtime debounce window) with
+    // every newly-affected device bundled into count/devices tokens, so a Flow doesn't
+    // fire N times in a row when N devices break at once.
+    this._triggerNotReportingSummary = this.homey.flow.getTriggerCard('devices_not_reporting_summary');
+    this._triggerBatteryLowSummary = this.homey.flow.getTriggerCard('devices_low_battery_summary');
+    this._triggerUnavailableSummary = this.homey.flow.getTriggerCard('devices_unavailable_summary');
+
+    this.homey.flow.getConditionCard('device_is_unavailable')
+      .registerRunListener(async (args) => this._availabilityMap.get(args.device.id) === false)
+      .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
+
+    this.homey.flow.getConditionCard('device_is_not_reporting')
+      .registerRunListener(async (args) => (this.lastScan?.notReporting || []).some((d) => d.id === args.device.id))
+      .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
+
+    this.homey.flow.getConditionCard('device_has_low_battery')
+      .registerRunListener(async (args) => (this.lastScan?.lowBattery || []).some((d) => d.id === args.device.id))
+      .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
+  }
+
+  // Required device-picker arg shared by the per-device triggers: fires only for the
+  // selected device. Broadcasting to any device is handled by the separate summary
+  // triggers (devices_*_summary) instead, so there's no ambiguous "leave it empty" mode.
+  async _deviceArgMatches(args, state) {
+    return args.target_device.id === state.deviceId;
+  }
+
+  async _deviceAutocomplete(query) {
+    await this._ensureApi();
+    const devices = await this.api.devices.getDevices();
+    const q = (query || '').toLowerCase();
+
+    return Object.values(devices)
+      .filter((d) => !q || d.name.toLowerCase().includes(q))
+      .map((d) => ({ id: d.id, name: d.name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  _notifyTimeline(excerpt) {
+    if (!this.config.timelineNotifications) return;
+    this.homey.notifications.createNotification({ excerpt })
+      .catch((err) => this.error('Timeline-Meldung fehlgeschlagen:', err));
+  }
+
+  // Verlauf-Tab: records the same edge-triggered events that already fire the Flow
+  // triggers / timeline notice, so problems can be traced back after the fact.
+  _recordEvent(type, { device, zone, detail } = {}) {
+    this.eventLog.unshift({
+      ts: Date.now(), type, device: device || '', zone: zone || '', detail: detail || null,
+    });
+    if (this.eventLog.length > MAX_LOG_ENTRIES) this.eventLog.length = MAX_LOG_ENTRIES;
+    this.homey.settings.set(SETTINGS_KEY_EVENT_LOG, this.eventLog);
+  }
+
+  getLog() {
+    return this.eventLog;
+  }
+
+  clearLog() {
+    this.eventLog = [];
+    this.homey.settings.set(SETTINGS_KEY_EVENT_LOG, this.eventLog);
+    return this.eventLog;
   }
 
   // ---------------------------------------------------------------------
@@ -93,9 +249,62 @@ class DeviceWatchdogApp extends Homey.App {
     if (wasAvailable === true && isAvailable === false) {
       const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
       this._triggerUnavailable
-        ?.trigger({ device: device.name || '', zone: zoneName || '' })
+        ?.trigger({ device: device.name || '', zone: zoneName || '' }, { deviceId: device.id })
         .catch((err) => this.error('Trigger device_unavailable fehlgeschlagen:', err));
+
+      this._recordEvent('unavailable', { device: device.name, zone: zoneName });
+      this._queueUnavailableSummary(device.name || '');
     }
+
+    if (wasAvailable !== isAvailable) {
+      this._updateWatchdogDevice({ unavailableCount: this._countUnavailable() })
+        .catch((err) => this.error('Watchdog-Gerät-Update fehlgeschlagen:', err));
+    }
+  }
+
+  _countUnavailable() {
+    let count = 0;
+    for (const available of this._availabilityMap.values()) {
+      if (available === false) count += 1;
+    }
+    return count;
+  }
+
+  // Pushes counts to the virtual "Watchdog status" device (drivers/watchdog), if the
+  // user has paired one - so they show up in Homey Insights/dashboards and are usable
+  // in Flows without our own cards. A no-op (not an error) if none has been added yet.
+  async _updateWatchdogDevice(counts) {
+    let devices;
+    try {
+      devices = this.homey.drivers.getDriver('watchdog').getDevices();
+    } catch (err) {
+      return; // driver not ready yet (e.g. called during very early onInit)
+    }
+
+    await Promise.all(devices.map((device) => device.updateCounts(counts)))
+      .catch((err) => this.error('Watchdog-Gerät-Update fehlgeschlagen:', err));
+  }
+
+  // Bundles devices that go unavailable within a few seconds of each other (e.g. a
+  // mesh network hiccup) into a single summary trigger + timeline entry, instead of
+  // firing/notifying once per device.
+  _queueUnavailableSummary(name) {
+    this._unavailableBatch.add(name);
+    if (this._unavailableBatchTimer) return;
+
+    this._unavailableBatchTimer = this.homey.setTimeout(() => {
+      const names = Array.from(this._unavailableBatch);
+      this._unavailableBatch.clear();
+      this._unavailableBatchTimer = null;
+
+      const devicesList = formatNameList(names);
+
+      this._triggerUnavailableSummary
+        ?.trigger({ count: names.length, devices: devicesList })
+        .catch((err) => this.error('Trigger devices_unavailable_summary fehlgeschlagen:', err));
+
+      this._notifyTimeline(`🔌 ${names.length} Gerät(e) nicht erreichbar: ${devicesList}`);
+    }, 3000);
   }
 
   // ---------------------------------------------------------------------
@@ -130,7 +339,15 @@ class DeviceWatchdogApp extends Homey.App {
 
   async saveConfig({ config, rules } = {}) {
     if (config && typeof config === 'object') {
-      this.config = { ...DEFAULT_CONFIG, ...config };
+      this.config = {
+        ...DEFAULT_CONFIG,
+        ...config,
+        notReportingThresholdHours: positiveNumberOrDefault(
+          config.notReportingThresholdHours, DEFAULT_CONFIG.notReportingThresholdHours,
+        ),
+        batteryThresholdPercent: percentOrNull(config.batteryThresholdPercent) ?? DEFAULT_CONFIG.batteryThresholdPercent,
+        scanIntervalMinutes: positiveNumberOrDefault(config.scanIntervalMinutes, DEFAULT_CONFIG.scanIntervalMinutes),
+      };
       this.homey.settings.set(SETTINGS_KEY_CONFIG, this.config);
     }
 
@@ -140,10 +357,8 @@ class DeviceWatchdogApp extends Homey.App {
         matchType: rule.matchType,
         matchValue: rule.matchValue,
         label: rule.label || '',
-        notReportingDays: rule.notReportingDays === '' || rule.notReportingDays === undefined
-          ? null : Number(rule.notReportingDays),
-        batteryThreshold: rule.batteryThreshold === '' || rule.batteryThreshold === undefined
-          ? null : Number(rule.batteryThreshold),
+        notReportingHours: positiveNumberOrNull(rule.notReportingHours),
+        batteryThreshold: percentOrNull(rule.batteryThreshold),
         excludeBattery: !!rule.excludeBattery,
         onlyCheckBattery: !!rule.onlyCheckBattery,
         excludeAll: !!rule.excludeAll,
@@ -235,15 +450,23 @@ class DeviceWatchdogApp extends Homey.App {
     const device = await this.api.devices.getDevice({ id: deviceId });
     if (!device) throw new Error('Gerät nicht gefunden');
 
-    const capabilityId = TESTABLE_CAPABILITIES.find((id) => (device.capabilities || []).includes(id));
-    if (!capabilityId) throw new Error('Keine testbare Capability (onoff/dim) vorhanden');
+    const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
 
-    const currentValue = device.capabilitiesObj?.[capabilityId]?.value;
-    if (currentValue === undefined || currentValue === null) throw new Error('Kein aktueller Wert verfügbar');
+    try {
+      const capabilityId = TESTABLE_CAPABILITIES.find((id) => (device.capabilities || []).includes(id));
+      if (!capabilityId) throw new Error('Keine testbare Capability (onoff/dim) vorhanden');
 
-    await device.setCapabilityValue({ capabilityId, value: currentValue });
+      const currentValue = device.capabilitiesObj?.[capabilityId]?.value;
+      if (currentValue === undefined || currentValue === null) throw new Error('Kein aktueller Wert verfügbar');
 
-    return { ok: true, capabilityId, value: currentValue };
+      await device.setCapabilityValue({ capabilityId, value: currentValue });
+
+      this._recordEvent('testSuccess', { device: device.name, zone: zoneName });
+      return { ok: true, capabilityId, value: currentValue };
+    } catch (err) {
+      this._recordEvent('testFailure', { device: device.name, zone: zoneName, detail: err.message });
+      throw err;
+    }
   }
 
   getStatus() {
@@ -273,9 +496,20 @@ class DeviceWatchdogApp extends Homey.App {
 
     this.log(`Starte Scan (Quelle: ${source})`);
 
-    const devices = await this.api.devices.getDevices();
+    // $cache: false - once realtime-connected, getDevices() normally just returns the
+    // in-memory cache and relies entirely on realtime events to keep it fresh. A missed
+    // event (seen with a Bluetooth-relayed device) then leaves it stale forever, and a
+    // "scan" would silently re-check the same stale snapshot. A scan should always see
+    // the real current state, so this bypasses that cache explicitly.
+    const devices = await this.api.devices.getDevices({ $cache: false });
     const zones = await this.api.zones.getZones();
     this._zoneMap = Object.fromEntries(Object.values(zones).map((z) => [z.id, z.name]));
+
+    // Extra safety net on top of _checkRealtimeConnection: catches a missed transition
+    // immediately on every scan instead of waiting for the next healthcheck tick.
+    for (const device of Object.values(devices)) {
+      this._handleDeviceUpdate(device);
+    }
 
     const result = scanner.runScan({
       devices, zones, rules: this.rules, config: this.config,
@@ -283,6 +517,11 @@ class DeviceWatchdogApp extends Homey.App {
 
     this.lastScan = { ...result, source };
     this.homey.settings.set(SETTINGS_KEY_LAST_SCAN, this.lastScan);
+
+    await this._updateWatchdogDevice({
+      notReportingCount: result.notReporting.length,
+      lowBatteryCount: result.lowBattery.length,
+    });
 
     await this._fireEdgeTriggers(result);
 
@@ -304,8 +543,10 @@ class DeviceWatchdogApp extends Homey.App {
           device: device.name || '',
           zone: device.zone || '',
           last_updated: device.lastUpdated || '',
-        })
+        }, { deviceId: device.id })
         .catch((err) => this.error('Trigger device_not_reporting fehlgeschlagen:', err));
+
+      this._recordEvent('notReporting', { device: device.name, zone: device.zone, detail: device.lastUpdated });
     }
 
     for (const device of newlyLowBattery) {
@@ -314,8 +555,30 @@ class DeviceWatchdogApp extends Homey.App {
           device: device.name || '',
           zone: device.zone || '',
           battery: device.battery || '',
-        })
+        }, { deviceId: device.id })
         .catch((err) => this.error('Trigger device_battery_low fehlgeschlagen:', err));
+
+      this._recordEvent('lowBattery', { device: device.name, zone: device.zone, detail: device.battery });
+    }
+
+    if (newlyNotReporting.length) {
+      const devicesList = formatNameList(newlyNotReporting.map((d) => d.name));
+
+      await this._triggerNotReportingSummary
+        ?.trigger({ count: newlyNotReporting.length, devices: devicesList })
+        .catch((err) => this.error('Trigger devices_not_reporting_summary fehlgeschlagen:', err));
+
+      this._notifyTimeline(`📡 ${newlyNotReporting.length} Gerät(e) melden sich nicht mehr: ${devicesList}`);
+    }
+
+    if (newlyLowBattery.length) {
+      const devicesList = formatNameList(newlyLowBattery.map((d) => d.name));
+
+      await this._triggerBatteryLowSummary
+        ?.trigger({ count: newlyLowBattery.length, devices: devicesList })
+        .catch((err) => this.error('Trigger devices_low_battery_summary fehlgeschlagen:', err));
+
+      this._notifyTimeline(`🔋 ${newlyLowBattery.length} Gerät(e) haben niedrigen Akkustand: ${devicesList}`);
     }
 
     this.flagState = {

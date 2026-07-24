@@ -1,5 +1,10 @@
 {
+  "1.1.0": {
+    "en": "New: history log, Homey Timeline notifications, a manual reachability test per device, summary Flow triggers and condition cards for individual devices, and a more robust realtime connection. Plus various settings UI fixes.",
+    "de": "Neu: Verlauf-Protokoll, Homey-Zeitleisten-Meldungen, manueller Erreichbarkeits-Test pro Gerät, Sammel-Flow-Trigger sowie Bedingungskarten für einzelne Geräte, und eine robustere Echtzeit-Verbindung. Dazu diverse Verbesserungen an der Einstellungs-Oberfläche."
+  },
   "1.0.0": {
-    "en": "First version!"
+    "en": "First version!",
+    "de": "Erste Version!"
   }
 }

@@ -1,0 +1,29 @@
+{
+  "id": "devices_unavailable_summary",
+  "title": {
+    "en": "Devices newly become unavailable",
+    "de": "Es werden neu Geräte nicht erreichbar"
+  },
+  "titleFormatted": {
+    "en": "Devices newly become unavailable",
+    "de": "Es werden neu Geräte nicht erreichbar"
+  },
+  "hint": {
+    "en": "Fires in realtime, bundling every device that becomes unavailable within a few seconds of each other into a single trigger (e.g. after a mesh network hiccup) - instead of firing \"A device becomes unavailable\" once per device.",
+    "de": "Wird in Echtzeit ausgelöst und bündelt alle Geräte, die innerhalb weniger Sekunden nacheinander nicht erreichbar werden (z.B. nach einem Mesh-Netzwerk-Aussetzer), in einem einzigen Trigger - statt \"Ein Gerät wird nicht erreichbar\" einzeln pro Gerät auszulösen."
+  },
+  "tokens": [
+    {
+      "name": "count",
+      "type": "number",
+      "title": { "en": "Count", "de": "Anzahl" },
+      "example": 2
+    },
+    {
+      "name": "devices",
+      "type": "string",
+      "title": { "en": "Devices", "de": "Geräte" },
+      "example": { "en": "Front door lock, Garden sensor", "de": "Haustürschloss, Garten Sensor" }
+    }
+  ]
+}

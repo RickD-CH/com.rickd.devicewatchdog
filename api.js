@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
   async getConfig({ homey }) {
     return homey.app.getConfig();
@@ -21,5 +23,13 @@ module.exports = {
 
   async testDevice({ homey, params }) {
     return homey.app.testDevice(params.id);
+  },
+
+  async getLog({ homey }) {
+    return homey.app.getLog();
+  },
+
+  async clearLog({ homey }) {
+    return homey.app.clearLog();
   },
 };

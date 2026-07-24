@@ -1,0 +1,28 @@
+{
+  "id": "watchdog",
+  "name": { "en": "Watchdog status", "de": "Watchdog-Status" },
+  "class": "sensor",
+  "capabilities": [
+    "alarm_generic",
+    "devices_not_reporting_count",
+    "devices_unavailable_count",
+    "devices_low_battery_count"
+  ],
+  "platforms": ["local"],
+  "connectivity": [],
+  "images": {
+    "small": "/drivers/watchdog/assets/images/small.png",
+    "large": "/drivers/watchdog/assets/images/large.png"
+  },
+  "pair": [
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": { "next": "add_devices" }
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ]
+}

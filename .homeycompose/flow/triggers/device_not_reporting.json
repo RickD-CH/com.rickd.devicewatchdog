@@ -5,13 +5,21 @@
     "de": "Ein Gerät meldet sich nicht mehr"
   },
   "titleFormatted": {
-    "en": "[[device]] stops reporting",
-    "de": "[[device]] meldet sich nicht mehr"
+    "en": "[[target_device]] stops reporting",
+    "de": "[[target_device]] meldet sich nicht mehr"
   },
   "hint": {
-    "en": "Fires when a scan (interval or manual) newly detects that a device hasn't reported within its configured threshold.",
-    "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass sich ein Gerät nicht mehr innerhalb der konfigurierten Schwelle gemeldet hat."
+    "en": "Fires when a scan (interval or manual) newly detects that the selected device hasn't reported within its configured threshold. For any device instead of one specific one, use \"Devices are newly found not reporting\".",
+    "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass sich das gewählte Gerät nicht mehr innerhalb der konfigurierten Schwelle gemeldet hat. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte gefunden, die sich nicht mehr melden\" verwenden."
   },
+  "args": [
+    {
+      "name": "target_device",
+      "type": "autocomplete",
+      "title": { "en": "Device", "de": "Gerät" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+    }
+  ],
   "tokens": [
     {
       "name": "device",

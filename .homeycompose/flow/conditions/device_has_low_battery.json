@@ -1,0 +1,23 @@
+{
+  "id": "device_has_low_battery",
+  "title": {
+    "en": "!{{Device has|Device doesn't have}} low battery",
+    "de": "!{{Gerät hat einen niedrigen Akkustand|Gerät hat keinen niedrigen Akkustand}}"
+  },
+  "titleFormatted": {
+    "en": "[[device]] !{{has|doesn't have}} low battery",
+    "de": "[[device]] !{{hat einen niedrigen Akkustand|hat keinen niedrigen Akkustand}}"
+  },
+  "hint": {
+    "en": "Checks whether a specific device was flagged with a low or alarming battery in the last scan.",
+    "de": "Prüft, ob ein bestimmtes Gerät im letzten Scan mit niedrigem Akkustand oder Batterie-Alarm markiert wurde."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "autocomplete",
+      "title": { "en": "Device", "de": "Gerät" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+    }
+  ]
+}

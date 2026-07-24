@@ -5,13 +5,21 @@
     "de": "Ein Gerät hat eine niedrige Batterie"
   },
   "titleFormatted": {
-    "en": "[[device]]'s battery gets low",
-    "de": "[[device]] hat eine niedrige Batterie"
+    "en": "[[target_device]]'s battery gets low",
+    "de": "[[target_device]] hat eine niedrige Batterie"
   },
   "hint": {
-    "en": "Fires when a scan (interval or manual) newly detects that a device's battery dropped to/below its threshold, or reports a battery alarm.",
-    "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass die Batterie eines Geräts die Schwelle unterschreitet oder einen Batterie-Alarm meldet."
+    "en": "Fires when a scan (interval or manual) newly detects that the selected device's battery dropped to/below its threshold, or reports a battery alarm. For any device instead of one specific one, use \"Devices with low battery are newly found\".",
+    "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass die Batterie des gewählten Geräts die Schwelle unterschreitet oder einen Batterie-Alarm meldet. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte mit niedrigem Akku gefunden\" verwenden."
   },
+  "args": [
+    {
+      "name": "target_device",
+      "type": "autocomplete",
+      "title": { "en": "Device", "de": "Gerät" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+    }
+  ],
   "tokens": [
     {
       "name": "device",

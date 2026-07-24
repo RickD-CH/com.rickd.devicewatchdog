@@ -1,0 +1,23 @@
+{
+  "id": "device_is_unavailable",
+  "title": {
+    "en": "!{{Device is|Device isn't}} unavailable",
+    "de": "!{{Gerät ist nicht erreichbar|Gerät ist erreichbar}}"
+  },
+  "titleFormatted": {
+    "en": "[[device]] !{{is|isn't}} unavailable",
+    "de": "[[device]] !{{ist nicht erreichbar|ist erreichbar}}"
+  },
+  "hint": {
+    "en": "Checks a specific device's live availability, as reported directly by Homey - independent of the interval scan.",
+    "de": "Prüft die Live-Erreichbarkeit eines bestimmten Geräts, wie direkt von Homey gemeldet - unabhängig vom Intervall-Scan."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "autocomplete",
+      "title": { "en": "Device", "de": "Gerät" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "id": "com.rickd.devicewatchdog",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -54,6 +54,14 @@
     "testDevice": {
       "method": "post",
       "path": "/devices/:id/test"
+    },
+    "getLog": {
+      "method": "get",
+      "path": "/log"
+    },
+    "clearLog": {
+      "method": "delete",
+      "path": "/log"
     }
   }
 }

@@ -66,6 +66,7 @@
     }
     .tabs .spacer { flex: 1; }
     #save-status { color: var(--color-muted); font-size: 12px; }
+    .dirty-indicator { color: var(--color-warn); font-size: 12px; font-weight: 600; display: none; }
     .tab-btn {
       border: none;
       background: none;
@@ -104,7 +105,15 @@
     }
     .field-row.toggle-row label { margin-bottom: 0; }
     .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
-    @media (max-width: 420px) { .field-grid { grid-template-columns: 1fr; } }
+    /* Labels can wrap to two lines in narrow columns (e.g. long German text) while their
+       sibling column's label stays on one line - without this, the inputs below end up
+       at different heights. Fix line-height explicitly (rather than relying on the
+       browser default, which varies) so two reserved lines are always exactly 2.6em. */
+    .field-grid .field-row label { line-height: 1.3; min-height: 2.6em; }
+    @media (max-width: 420px) {
+      .field-grid { grid-template-columns: 1fr; }
+      .field-grid .field-row label { min-height: 0; }
+    }
     .hint { color: var(--color-muted); font-size: 12px; margin: 0 0 14px; line-height: 1.4; }
     table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
     th, td { border-bottom: 1px solid var(--color-border); padding: 6px 6px; text-align: left; vertical-align: middle; }
@@ -154,6 +163,14 @@
       font-size: 13px; min-width: 220px; background: var(--color-input-bg); color: var(--color-text);
     }
     .select-input { min-width: 150px; }
+    .search-wrap { position: relative; display: inline-flex; }
+    .search-wrap .search-input { padding-right: 28px; }
+    .search-clear {
+      position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+      border: none; background: none; color: var(--color-muted); cursor: pointer;
+      font-size: 13px; line-height: 1; padding: 4px 6px; border-radius: 4px;
+    }
+    .search-clear:hover { color: var(--color-text); background: var(--color-bg-alt); }
 
     /* Zone groups */
     .zone-group {
@@ -195,13 +212,14 @@
 
     /* Device list */
     .device-list { border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-card-bg); }
-    .device-row { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-bottom: 1px solid var(--color-border); }
+    .device-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 9px 12px; border-bottom: 1px solid var(--color-border); }
     .device-list > .device-row:last-child { border-bottom: none; }
     .device-row.dimmed .device-name { color: var(--color-muted); }
-    .device-main { flex: 1; min-width: 0; }
-    .device-name { font-weight: 600; }
-    .device-zone { color: var(--color-muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
+    .device-main { flex: 1 1 160px; min-width: 160px; }
+    .device-name { font-weight: 600; overflow-wrap: break-word; }
+    .device-zone { color: var(--color-muted); font-weight: 400; font-size: 12px; margin-left: 6px; white-space: nowrap; }
     .device-meta { color: var(--color-muted); font-size: 12px; margin-top: 2px; }
+    .device-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
     .device-advanced {
       display: none; padding: 12px 12px 16px 62px; background: var(--color-bg-alt);
       border-bottom: 1px solid var(--color-border); gap: 16px; flex-wrap: wrap; align-items: center;
@@ -212,7 +230,14 @@
     .device-advanced input[type=number] { width: 90px; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; }
     .device-info { width: 100%; display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 12px; color: var(--color-muted); margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--color-border); }
     .device-info b { color: #212121; font-weight: 600; }
-    .badge-group { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+    /* Log tab */
+    .log-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--color-border); }
+    .log-list > .log-row:last-child { border-bottom: none; }
+    .log-row .log-icon { font-size: 16px; }
+    .log-row .log-text { flex: 1; min-width: 0; }
+    .log-row .log-zone { color: var(--color-muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
+    .log-row .log-time { color: var(--color-muted); font-size: 12px; white-space: nowrap; }
+    .log-empty { padding: 16px 12px; color: var(--color-muted); font-size: 13px; }
 
     details.unmon-block { border-top: 1px solid var(--color-border); padding: 10px 12px; }
     details.unmon-block summary { cursor: pointer; color: var(--color-muted); font-size: 12.5px; }
@@ -232,17 +257,21 @@
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="devices" id="tab-btn-devices">Geräte</button>
+    <button class="tab-btn" data-tab="log" id="tab-btn-log">Verlauf</button>
     <button class="tab-btn" data-tab="settings" id="tab-btn-settings">Einstellungen</button>
-    <span class="spacer"></span>
-    <span id="save-status"></span>
-    <button class="btn primary" id="btn-save">Speichern</button>
   </div>
 
   <!-- ============ TAB: GERÄTE ============ -->
   <div class="tab-panel active" id="tab-devices">
     <div class="toolbar">
       <button class="btn primary" id="btn-run-scan">Scan jetzt ausführen</button>
-      <input type="text" class="search-input" id="device-search" placeholder="Gerät suchen…" />
+      <button class="btn" id="btn-save">Speichern</button>
+      <span id="save-status"></span>
+      <span id="dirty-indicator" class="dirty-indicator">●&nbsp;Ungespeicherte Änderungen</span>
+      <div class="search-wrap">
+        <input type="text" class="search-input" id="device-search" placeholder="Gerät suchen…" />
+        <button class="search-clear" id="btn-clear-search" title="Suche löschen" style="display:none;">✕</button>
+      </div>
       <select class="select-input" id="device-sort">
         <option value="priority" id="opt-sort-priority">Sortierung: Status zuerst</option>
         <option value="name" id="opt-sort-name">Sortierung: Name (A-Z)</option>
@@ -263,6 +292,11 @@
 
   <!-- ============ TAB: EINSTELLUNGEN ============ -->
   <div class="tab-panel" id="tab-settings">
+    <div class="toolbar">
+      <button class="btn primary" id="btn-save-settings">Speichern</button>
+      <span id="save-status-settings"></span>
+      <span id="dirty-indicator-settings" class="dirty-indicator">●&nbsp;Ungespeicherte Änderungen</span>
+    </div>
     <div class="card">
       <h2 id="h2-autoscan">Automatischer Scan</h2>
       <div class="field-row toggle-row">
@@ -291,6 +325,25 @@
         </div>
       </div>
     </div>
+
+    <div class="card">
+      <h2 id="h2-notifications">Benachrichtigungen</h2>
+      <div class="field-row toggle-row">
+        <label for="cfg-timeline-notifications" id="lbl-timeline-notifications">Zeitleisten-Meldung bei neuen Problemen</label>
+        <label class="switch"><input type="checkbox" id="cfg-timeline-notifications" /><span class="slider"></span></label>
+      </div>
+      <p class="hint" id="hint-timeline-notifications">Schreibt einen Eintrag in Homeys Zeitleiste, sobald ein Scan neu ein Gerät mit niedrigem Akku, "meldet sich nicht" oder nicht erreichbar findet. Einmalig pro Zustandswechsel, kein Spam bei anhaltendem Problem.</p>
+    </div>
+  </div>
+
+  <!-- ============ TAB: VERLAUF ============ -->
+  <div class="tab-panel" id="tab-log">
+    <div class="toolbar">
+      <span id="log-info" class="hint" style="margin:0;"></span>
+      <span class="spacer"></span>
+      <button class="btn small" id="btn-clear-log">Verlauf leeren</button>
+    </div>
+    <div id="log-list" class="device-list"></div>
   </div>
 
   <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
@@ -301,8 +354,10 @@
         rules: [],
         devices: [],
         lastScan: null,
+        log: [],
         filterMode: null,
         zoneOpenOverride: {},
+        dirty: false,
       };
 
       // ---------------------------------------------------------------
@@ -314,8 +369,12 @@
         document.getElementById('app-title').textContent = Homey.__('app.title');
         document.getElementById('app-subtitle').textContent = Homey.__('app.subtitle');
         document.getElementById('tab-btn-devices').textContent = Homey.__('tabs.devices');
+        document.getElementById('tab-btn-log').textContent = Homey.__('tabs.log');
         document.getElementById('tab-btn-settings').textContent = Homey.__('tabs.settings');
+        document.getElementById('btn-clear-log').textContent = Homey.__('log.clearButton');
         document.getElementById('btn-save').textContent = Homey.__('tabs.save');
+        document.getElementById('btn-save-settings').textContent = Homey.__('tabs.save');
+        document.getElementById('btn-clear-search').title = Homey.__('devices.clearSearch');
         document.getElementById('btn-run-scan').textContent = Homey.__('devices.scanNow');
         document.getElementById('device-search').placeholder = Homey.__('devices.searchPlaceholder');
         document.getElementById('opt-sort-priority').textContent = Homey.__('devices.sortPriority');
@@ -329,6 +388,9 @@
         document.getElementById('hint-not-reporting').textContent = Homey.__('settingsTab.notReportingHint');
         document.getElementById('lbl-battery-threshold').textContent = Homey.__('settingsTab.batteryLabel');
         document.getElementById('hint-battery-threshold').textContent = Homey.__('settingsTab.batteryHint');
+        document.getElementById('h2-notifications').textContent = Homey.__('settingsTab.notificationsTitle');
+        document.getElementById('lbl-timeline-notifications').textContent = Homey.__('settingsTab.timelineLabel');
+        document.getElementById('hint-timeline-notifications').textContent = Homey.__('settingsTab.timelineHint');
       }
       applyStaticTranslations();
 
@@ -355,10 +417,36 @@
       }
 
       function setSaveStatus(text, isError) {
-        var el = document.getElementById('save-status');
-        el.textContent = text;
-        el.style.color = isError ? 'var(--color-nok)' : 'var(--color-muted)';
+        ['save-status', 'save-status-settings'].forEach(function (id) {
+          var el = document.getElementById(id);
+          el.textContent = text;
+          el.style.color = isError ? 'var(--color-nok)' : 'var(--color-muted)';
+        });
       }
+
+      // Unsaved-changes warning: a visible hint next to both Save buttons, plus a
+      // browser-level prompt if the user tries to leave the settings page.
+      function updateDirtyIndicator() {
+        ['dirty-indicator', 'dirty-indicator-settings'].forEach(function (id) {
+          var el = document.getElementById(id);
+          el.textContent = Homey.__('save.unsaved');
+          el.style.display = state.dirty ? '' : 'none';
+        });
+      }
+      function markDirty() {
+        state.dirty = true;
+        updateDirtyIndicator();
+      }
+      function markClean() {
+        state.dirty = false;
+        updateDirtyIndicator();
+      }
+      window.addEventListener('beforeunload', function (e) {
+        if (!state.dirty) return;
+        e.preventDefault();
+        e.returnValue = Homey.__('save.unsavedConfirm');
+        return e.returnValue;
+      });
 
       // ---------------------------------------------------------------
       // Tabs
@@ -384,6 +472,7 @@
         document.getElementById('cfg-interval-minutes').value = c.scanIntervalMinutes;
         document.getElementById('cfg-not-reporting-hours').value = c.notReportingThresholdHours;
         document.getElementById('cfg-battery-threshold').value = c.batteryThresholdPercent;
+        document.getElementById('cfg-timeline-notifications').checked = !!c.timelineNotifications;
         document.getElementById('row-interval-minutes').style.display = c.scanIntervalEnabled ? '' : 'none';
       }
 
@@ -393,6 +482,7 @@
           scanIntervalMinutes: Number(document.getElementById('cfg-interval-minutes').value) || 60,
           notReportingThresholdHours: Number(document.getElementById('cfg-not-reporting-hours').value) || 24,
           batteryThresholdPercent: Number(document.getElementById('cfg-battery-threshold').value) || 30,
+          timelineNotifications: document.getElementById('cfg-timeline-notifications').checked,
         };
       }
 
@@ -408,7 +498,7 @@
         if (!rule) {
           rule = {
             id: genId(), matchType: 'id', matchValue: id, label: name,
-            notReportingDays: null, batteryThreshold: null,
+            notReportingHours: null, batteryThreshold: null,
             excludeBattery: false, onlyCheckBattery: false, excludeAll: false,
           };
           state.rules.push(rule);
@@ -419,7 +509,7 @@
       function cleanupDeviceRule(id) {
         var rule = getDeviceRule(id);
         if (!rule) return;
-        var isEmpty = !rule.excludeAll && rule.notReportingDays == null && rule.batteryThreshold == null
+        var isEmpty = !rule.excludeAll && rule.notReportingHours == null && rule.batteryThreshold == null
           && !rule.excludeBattery && !rule.onlyCheckBattery;
         if (isEmpty) state.rules = state.rules.filter(function (r) { return r !== rule; });
       }
@@ -451,15 +541,14 @@
         return '<span class="badge">' + Homey.__('badge.noStatus') + '</span>';
       }
 
-      // Separate battery-% badge, shown independently of the connectivity badge above
-      // (so you can see the charge level even for a device that's also flagged offline).
-      function batteryBadgeHtml(view) {
+      // Routine battery % is shown inline in the meta line, next to the last-update text.
+      // Low/alarm battery is intentionally NOT repeated here - it's already surfaced as
+      // the warning badge in the actions column, so it stays a status, not device info.
+      function batteryMetaHtml(view) {
         if (!view.scanEntry) return '';
         var b = view.scanEntry.battery;
-        if (!b || b === 'N/A' || b === 'EXCL') return '';
-        if (b === 'ALARM') return '<span class="badge nok">' + Homey.__('badge.batteryAlarm') + '</span>';
-        if (view.isLowBattery) return '';  // already shown by badgeHtml above in this case
-        return '<span class="badge">🔋 ' + escapeHtml(b) + '</span>';
+        if (!b || b === 'N/A' || b === 'EXCL' || b === 'ALARM' || view.isLowBattery) return '';
+        return ' · 🔋 ' + escapeHtml(b);
       }
 
       function metaHtml(view) {
@@ -514,16 +603,17 @@
         return '' +
           '<div class="device-advanced" id="adv-' + view.device.id + '">' +
           deviceInfoHtml(view) +
-          '<div class="f"><label>' + Homey.__('advanced.daysUntilOffline') + '</label><input type="number" min="0" step="1" data-field="notReportingDays" data-id="' + view.device.id + '" value="' + (r.notReportingDays == null ? '' : r.notReportingDays) + '" placeholder="' + placeholderDefault + '" /></div>' +
+          '<div class="f"><label>' + Homey.__('advanced.hoursUntilOffline') + '</label><input type="number" min="0" step="1" data-field="notReportingHours" data-id="' + view.device.id + '" value="' + (r.notReportingHours == null ? '' : r.notReportingHours) + '" placeholder="' + placeholderDefault + '" /></div>' +
           '<div class="f"><label>' + Homey.__('advanced.batteryThreshold') + '</label><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" data-id="' + view.device.id + '" value="' + (r.batteryThreshold == null ? '' : r.batteryThreshold) + '" placeholder="' + placeholderDefault + '" /></div>' +
           '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + view.device.id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.onlyBattery') + '</label>' +
           '<label class="f chk"><input type="checkbox" data-field="excludeBattery" data-id="' + view.device.id + '"' + (r.excludeBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeBattery') + '</label>' +
+          (hasSpecialRules(view) ? '<button class="btn small link" data-action="reset-rule" data-id="' + view.device.id + '">' + Homey.__('advanced.resetButton') + '</button>' : '') +
           '</div>';
       }
 
       function hasSpecialRules(view) {
         var r = view.rule;
-        return !!(r && (r.notReportingDays != null || r.batteryThreshold != null
+        return !!(r && (r.notReportingHours != null || r.batteryThreshold != null
           || r.excludeBattery || r.onlyCheckBattery));
       }
 
@@ -541,11 +631,13 @@
           '<label class="switch"><input type="checkbox" class="monitor-toggle" data-id="' + d.id + '" data-name="' + escapeHtml(d.name) + '"' + (view.monitored ? ' checked' : '') + '><span class="slider"></span></label>' +
           '<div class="device-main">' +
           '<div class="device-name"><span class="device-class-icon">' + classIcon(d.class) + '</span>' + availDotHtml(d) + escapeHtml(d.name) + (d.zone ? '<span class="device-zone">' + escapeHtml(d.zone) + '</span>' : '') + '</div>' +
-          '<div class="device-meta">' + metaHtml(view) + '</div>' +
+          '<div class="device-meta">' + metaHtml(view) + batteryMetaHtml(view) + '</div>' +
           '</div>' +
-          '<div class="badge-group">' + badgeHtml(view) + batteryBadgeHtml(view) + '</div>' +
+          '<div class="device-actions">' +
+          badgeHtml(view) +
           (d.testCapability ? '<button class="btn small link" data-action="test-device" data-id="' + d.id + '" title="' + escapeHtml(Homey.__('devices.testHint')) + '">' + Homey.__('devices.testButton') + '</button>' : '') +
           '<button class="btn small link" data-action="toggle-advanced" data-id="' + d.id + '" data-name="' + escapeHtml(d.name) + '">' + Homey.__('advanced.detailsButton') + (hasAdvanced ? ' ●' : '') + '</button>' +
+          '</div>' +
           '</div>' +
           deviceAdvancedHtml(view);
       }
@@ -648,6 +740,7 @@
           rule.excludeAll = !monitored;
           cleanupDeviceRule(d.id);
         });
+        markDirty();
         renderDevices();
       }
 
@@ -682,7 +775,7 @@
         var unmonitoredTotal = state.rules.filter(function (r) { return r.matchType === 'id' && r.excludeAll; }).length;
         var specialRulesTotal = state.rules.filter(function (r) {
           return r.matchType === 'id' && !r.excludeAll
-            && (r.notReportingDays != null || r.batteryThreshold != null || r.excludeBattery || r.onlyCheckBattery);
+            && (r.notReportingHours != null || r.batteryThreshold != null || r.excludeBattery || r.onlyCheckBattery);
         }).length;
 
         function statCard(filterKey, num, color, label) {
@@ -712,16 +805,29 @@
         btn.disabled = true;
         btn.textContent = Homey.__('devices.testRunning');
 
+        var device = state.devices.find(function (dv) { return dv.id === id; });
+
         apiCall('POST', '/devices/' + id + '/test', {})
           .then(function () {
-            btn.textContent = Homey.__('devices.testOk');
-            btn.title = '';
+            // A successful test proves the device is reachable right now - reflect that
+            // immediately in the badge instead of waiting for the next full scan.
+            if (device) device.available = true;
+            if (state.lastScan) {
+              var entry = state.lastScan.all.find(function (se) { return se.id === id; });
+              if (entry) entry.status = 'OK';
+              state.lastScan.notReporting = state.lastScan.notReporting.filter(function (se) { return se.id !== id; });
+            }
+            state.log.unshift({ ts: Date.now(), type: 'testSuccess', device: device ? device.name : '', zone: device ? device.zone : '' });
+            renderDevices();
+            renderLog();
           })
           .catch(function (err) {
             btn.textContent = Homey.__('devices.testFailed');
             btn.title = (err && err.message) || '';
-          })
-          .finally(function () {
+            state.log.unshift({
+              ts: Date.now(), type: 'testFailure', device: device ? device.name : '', zone: device ? device.zone : '', detail: (err && err.message) || '',
+            });
+            renderLog();
             setTimeout(function () {
               btn.disabled = false;
               btn.textContent = originalText;
@@ -749,11 +855,27 @@
             e.stopPropagation();
             runDeviceTest(e.target);
           }
+          if (e.target.dataset.action === 'reset-rule') {
+            e.preventDefault();
+            e.stopPropagation();
+            var rule = getDeviceRule(e.target.dataset.id);
+            if (rule) {
+              rule.notReportingHours = null;
+              rule.batteryThreshold = null;
+              rule.excludeBattery = false;
+              rule.onlyCheckBattery = false;
+              cleanupDeviceRule(e.target.dataset.id);
+              markDirty();
+              renderDevices();
+            }
+          }
         });
 
         container.addEventListener('change', function (e) {
           var id = e.target.dataset.id;
           if (!id) return;
+
+          markDirty();
 
           if (e.target.classList.contains('monitor-toggle')) {
             var rule = ensureDeviceRule(id, e.target.dataset.name);
@@ -778,11 +900,81 @@
       bindDeviceListEvents('device-list-monitored');
       bindDeviceListEvents('device-list-unmonitored');
 
-      document.getElementById('device-search').addEventListener('input', renderDevices);
+      // ---------------------------------------------------------------
+      // Verlauf-Tab: chronological log of edge-triggered events (same
+      // detections that already fire the Flow triggers / timeline notice).
+      // ---------------------------------------------------------------
+      var LOG_ICONS = {
+        notReporting: '📡', lowBattery: '🔋', unavailable: '🔌', testSuccess: '✅', testFailure: '❌',
+      };
+
+      function logEntryText(entry) {
+        switch (entry.type) {
+          case 'notReporting': return Homey.__('log.notReporting', { device: entry.device });
+          case 'lowBattery': return Homey.__('log.lowBattery', { device: entry.device, battery: entry.detail || '' });
+          case 'unavailable': return Homey.__('log.unavailable', { device: entry.device });
+          case 'testSuccess': return Homey.__('log.testSuccess', { device: entry.device });
+          case 'testFailure': return Homey.__('log.testFailure', { device: entry.device, error: entry.detail || '' });
+          default: return entry.device;
+        }
+      }
+
+      function renderLog() {
+        var list = document.getElementById('log-list');
+        document.getElementById('log-info').textContent = Homey.__('log.count', { count: state.log.length });
+
+        if (!state.log.length) {
+          list.innerHTML = '<div class="log-empty">' + Homey.__('log.empty') + '</div>';
+          return;
+        }
+
+        list.innerHTML = state.log.map(function (entry) {
+          return '' +
+            '<div class="log-row">' +
+            '<span class="log-icon">' + (LOG_ICONS[entry.type] || '•') + '</span>' +
+            '<span class="log-text">' + escapeHtml(logEntryText(entry)) + (entry.zone ? '<span class="log-zone">' + escapeHtml(entry.zone) + '</span>' : '') + '</span>' +
+            '<span class="log-time">' + new Date(entry.ts).toLocaleString() + '</span>' +
+            '</div>';
+        }).join('');
+      }
+
+      document.getElementById('btn-clear-log').addEventListener('click', function () {
+        Homey.confirm(Homey.__('log.clearConfirm'), null, function (err, confirmed) {
+          if (err || !confirmed) return;
+
+          var btn = document.getElementById('btn-clear-log');
+          btn.disabled = true;
+          apiCall('DELETE', '/log').then(function (log) {
+            state.log = log;
+            renderLog();
+          }).catch(function (apiErr) {
+            Homey.alert(Homey.__('log.clearFailed', { error: apiErr && apiErr.message ? apiErr.message : apiErr }));
+          }).finally(function () {
+            btn.disabled = false;
+          });
+        });
+      });
+
+      document.getElementById('device-search').addEventListener('input', function (e) {
+        document.getElementById('btn-clear-search').style.display = e.target.value ? '' : 'none';
+        renderDevices();
+      });
+      document.getElementById('btn-clear-search').addEventListener('click', function () {
+        var input = document.getElementById('device-search');
+        input.value = '';
+        this.style.display = 'none';
+        input.focus();
+        renderDevices();
+      });
       document.getElementById('device-sort').addEventListener('change', renderDevices);
       document.getElementById('cfg-interval-enabled').addEventListener('change', function (e) {
         document.getElementById('row-interval-minutes').style.display = e.target.checked ? '' : 'none';
       });
+
+      // Any real user edit within the Einstellungen tab counts as dirty - programmatic
+      // updates from fillSettingsTab() (.value/.checked assignment) don't fire these.
+      document.getElementById('tab-settings').addEventListener('input', markDirty);
+      document.getElementById('tab-settings').addEventListener('change', markDirty);
 
       document.getElementById('stat-grid').addEventListener('click', function (e) {
         var card = e.target.closest('.stat');
@@ -812,18 +1004,20 @@
       });
 
       // ---------------------------------------------------------------
-      // Save
+      // Save (button lives in both the Geräte- and Einstellungen-Tab toolbar,
+      // since either tab can hold unsaved changes - one shared handler for both).
       // ---------------------------------------------------------------
-      document.getElementById('btn-save').addEventListener('click', function () {
+      function saveAll() {
         var payload = { config: readSettingsTab(), rules: state.rules };
-        var btn = document.getElementById('btn-save');
-        btn.disabled = true;
+        var buttons = [document.getElementById('btn-save'), document.getElementById('btn-save-settings')];
+        buttons.forEach(function (btn) { btn.disabled = true; });
         setSaveStatus(Homey.__('save.saving'), false);
 
         apiCall('POST', '/config', payload).then(function (saved) {
           state.config = saved.config;
           state.rules = saved.rules;
           fillSettingsTab();
+          markClean();
           // Gespeicherte Regeln (z.B. "Batterie ignorieren") wirken sich auf den Status aus -
           // ohne frischen Scan wuerde die Liste noch die alten Badges/Filter-Zugehoerigkeiten zeigen.
           setSaveStatus(Homey.__('save.savingRefresh'), false);
@@ -836,9 +1030,12 @@
           setSaveStatus(Homey.__('save.error'), true);
           Homey.alert(Homey.__('save.saveFailed', { error: err && err.message ? err.message : err }));
         }).finally(function () {
-          btn.disabled = false;
+          buttons.forEach(function (btn) { btn.disabled = false; });
         });
-      });
+      }
+
+      document.getElementById('btn-save').addEventListener('click', saveAll);
+      document.getElementById('btn-save-settings').addEventListener('click', saveAll);
 
       // ---------------------------------------------------------------
       // Initial load
@@ -847,14 +1044,17 @@
         apiCall('GET', '/config'),
         apiCall('GET', '/status'),
         apiCall('GET', '/devices/raw'),
+        apiCall('GET', '/log'),
       ]).then(function (results) {
         state.config = results[0].config;
         state.rules = results[0].rules;
         state.lastScan = results[1].lastScan;
         state.devices = results[2];
+        state.log = results[3];
 
         fillSettingsTab();
         renderDevices();
+        renderLog();
         Homey.ready();
       }).catch(function (err) {
         Homey.alert(Homey.__('devices.loadFailed', { error: err && err.message ? err.message : err }));

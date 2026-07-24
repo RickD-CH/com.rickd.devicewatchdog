@@ -1,0 +1,29 @@
+{
+  "id": "devices_low_battery_summary",
+  "title": {
+    "en": "Devices with low battery are newly found",
+    "de": "Es werden neu Geräte mit niedrigem Akku gefunden"
+  },
+  "titleFormatted": {
+    "en": "Devices with low battery are newly found",
+    "de": "Es werden neu Geräte mit niedrigem Akku gefunden"
+  },
+  "hint": {
+    "en": "Fires once per scan, bundling every device that newly dropped to/below its battery threshold in that scan into a single trigger - instead of firing \"A device's battery gets low\" once per device.",
+    "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die in diesem Scan neu die Akku-Schwelle unterschritten haben, in einem einzigen Trigger - statt \"Ein Gerät hat eine niedrige Batterie\" einzeln pro Gerät auszulösen."
+  },
+  "tokens": [
+    {
+      "name": "count",
+      "type": "number",
+      "title": { "en": "Count", "de": "Anzahl" },
+      "example": 2
+    },
+    {
+      "name": "devices",
+      "type": "string",
+      "title": { "en": "Devices", "de": "Geräte" },
+      "example": { "en": "Garage sensor, Garden sensor", "de": "Garage Sensor, Garten Sensor" }
+    }
+  ]
+}

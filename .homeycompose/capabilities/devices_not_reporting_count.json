@@ -1,0 +1,15 @@
+{
+  "type": "number",
+  "title": { "en": "Devices not reporting", "de": "Geräte melden sich nicht" },
+  "desc": {
+    "en": "How many monitored devices were flagged as not reporting in the last scan.",
+    "de": "Wie viele überwachte Geräte im letzten Scan als 'meldet sich nicht' markiert wurden."
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "units": { "en": "", "de": "" },
+  "decimals": 0,
+  "min": 0,
+  "icon": "/assets/capabilities/devices_not_reporting_count.svg"
+}
