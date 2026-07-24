@@ -162,6 +162,9 @@
       font-size: 13px; min-width: 220px; background: var(--color-input-bg); color: var(--color-text);
     }
     .select-input { min-width: 150px; }
+    .unit-field { display: flex; gap: 6px; align-items: center; }
+    .unit-field input[type=number] { width: 90px; }
+    .unit-select { padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-input-bg); color: var(--color-text); font-size: 13px; }
     .search-wrap { position: relative; display: inline-flex; }
     .search-wrap .search-input { padding-right: 28px; }
     .search-clear {
@@ -310,8 +313,14 @@
       <div class="field-grid">
         <div class="field-row">
           <label for="cfg-not-reporting-hours" id="lbl-not-reporting">Stunden ohne Meldung bis "offline"</label>
-          <input type="number" id="cfg-not-reporting-hours" min="1" step="1" />
-          <p class="hint" id="hint-not-reporting">Pro Gerät via "Details" überschreibbar (dort in Tagen).</p>
+          <div class="unit-field">
+            <input type="number" id="cfg-not-reporting-hours" min="0" step="any" />
+            <select id="cfg-not-reporting-unit" class="unit-select">
+              <option value="h" id="opt-unit-hours-global">Stunden</option>
+              <option value="d" id="opt-unit-days-global">Tage</option>
+            </select>
+          </div>
+          <p class="hint" id="hint-not-reporting">Pro Gerät via "Details" überschreibbar.</p>
         </div>
         <div class="field-row">
           <label for="cfg-battery-threshold" id="lbl-battery-threshold">Batteriewarnung ab (%)</label>
@@ -352,6 +361,9 @@
         log: [],
         filterMode: null,
         zoneOpenOverride: {},
+        openAdvanced: {},
+        hoursUnit: {},
+        hoursUnitGlobal: 'h',
       };
 
       // ---------------------------------------------------------------
@@ -371,6 +383,8 @@
         document.getElementById('device-search').placeholder = Homey.__('devices.searchPlaceholder');
         document.getElementById('opt-sort-priority').textContent = Homey.__('devices.sortPriority');
         document.getElementById('opt-sort-name').textContent = Homey.__('devices.sortName');
+        document.getElementById('opt-unit-hours-global').textContent = Homey.__('units.hours');
+        document.getElementById('opt-unit-days-global').textContent = Homey.__('units.days');
         document.getElementById('h2-autoscan').textContent = Homey.__('settingsTab.autoScanTitle');
         document.getElementById('lbl-interval-enabled').textContent = Homey.__('settingsTab.intervalEnabled');
         document.getElementById('hint-interval').textContent = Homey.__('settingsTab.intervalHint');
@@ -397,6 +411,23 @@
 
       function genId() {
         return 'r-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+      }
+
+      // Hours are always what's stored/sent to the server (matches lib/scanner.js) -
+      // these only convert what's shown/typed in the field, so e.g. "1 Woche" can be
+      // entered as 7 days without doing the ×24 math in your head.
+      function hoursToDisplay(hours, unit) {
+        if (hours == null || hours === '') return '';
+        var n = Number(hours);
+        if (!Number.isFinite(n)) return '';
+        var display = unit === 'd' ? n / 24 : n;
+        return Math.round(display * 100) / 100;
+      }
+      function displayToHours(value, unit) {
+        if (value === '' || value == null) return null;
+        var n = Number(value);
+        if (!Number.isFinite(n)) return null;
+        return unit === 'd' ? n * 24 : n;
       }
 
       function apiCall(method, path, body) {
@@ -457,7 +488,8 @@
         var c = state.config;
         document.getElementById('cfg-interval-enabled').checked = !!c.scanIntervalEnabled;
         document.getElementById('cfg-interval-minutes').value = c.scanIntervalMinutes;
-        document.getElementById('cfg-not-reporting-hours').value = c.notReportingThresholdHours;
+        document.getElementById('cfg-not-reporting-unit').value = state.hoursUnitGlobal;
+        document.getElementById('cfg-not-reporting-hours').value = hoursToDisplay(c.notReportingThresholdHours, state.hoursUnitGlobal);
         document.getElementById('cfg-battery-threshold').value = c.batteryThresholdPercent;
         document.getElementById('cfg-timeline-notifications').checked = !!c.timelineNotifications;
         document.getElementById('row-interval-minutes').style.display = c.scanIntervalEnabled ? '' : 'none';
@@ -467,7 +499,7 @@
         return {
           scanIntervalEnabled: document.getElementById('cfg-interval-enabled').checked,
           scanIntervalMinutes: Number(document.getElementById('cfg-interval-minutes').value) || 60,
-          notReportingThresholdHours: Number(document.getElementById('cfg-not-reporting-hours').value) || 24,
+          notReportingThresholdHours: displayToHours(document.getElementById('cfg-not-reporting-hours').value, state.hoursUnitGlobal) || 24,
           batteryThresholdPercent: Number(document.getElementById('cfg-battery-threshold').value) || 30,
           timelineNotifications: document.getElementById('cfg-timeline-notifications').checked,
         };
@@ -587,13 +619,22 @@
       function deviceAdvancedHtml(view) {
         var r = view.rule || {};
         var placeholderDefault = Homey.__('advanced.placeholderDefault');
+        var isOpen = !!state.openAdvanced[view.device.id];
         return '' +
-          '<div class="device-advanced" id="adv-' + view.device.id + '">' +
+          '<div class="device-advanced' + (isOpen ? ' open' : '') + '" id="adv-' + view.device.id + '">' +
           deviceInfoHtml(view) +
-          '<div class="f"><label>' + Homey.__('advanced.hoursUntilOffline') + '</label><input type="number" min="0" step="1" data-field="notReportingHours" data-id="' + view.device.id + '" value="' + (r.notReportingHours == null ? '' : r.notReportingHours) + '" placeholder="' + placeholderDefault + '" /></div>' +
-          '<div class="f"><label>' + Homey.__('advanced.batteryThreshold') + '</label><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" data-id="' + view.device.id + '" value="' + (r.batteryThreshold == null ? '' : r.batteryThreshold) + '" placeholder="' + placeholderDefault + '" /></div>' +
-          '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + view.device.id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.onlyBattery') + '</label>' +
-          '<label class="f chk"><input type="checkbox" data-field="excludeBattery" data-id="' + view.device.id + '"' + (r.excludeBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeBattery') + '</label>' +
+          '<div class="f"><label>' + Homey.__('advanced.hoursUntilOffline') + '</label><div class="unit-field">' +
+            '<input type="number" min="0" step="any" data-field="notReportingHours" data-id="' + view.device.id + '" value="' + hoursToDisplay(r.notReportingHours, state.hoursUnit[view.device.id] || 'h') + '" placeholder="' + placeholderDefault + '" />' +
+            '<select class="unit-select" data-unit-for="notReportingHours" data-id="' + view.device.id + '">' +
+              '<option value="h"' + ((state.hoursUnit[view.device.id] || 'h') === 'h' ? ' selected' : '') + '>' + Homey.__('units.hours') + '</option>' +
+              '<option value="d"' + (state.hoursUnit[view.device.id] === 'd' ? ' selected' : '') + '>' + Homey.__('units.days') + '</option>' +
+            '</select>' +
+          '</div></div>' +
+          (view.device.hasBattery ? '' +
+            '<div class="f"><label>' + Homey.__('advanced.batteryThreshold') + '</label><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" data-id="' + view.device.id + '" value="' + (r.batteryThreshold == null ? '' : r.batteryThreshold) + '" placeholder="' + placeholderDefault + '" /></div>' +
+            '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + view.device.id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.onlyBattery') + '</label>' +
+            '<label class="f chk"><input type="checkbox" data-field="excludeBattery" data-id="' + view.device.id + '"' + (r.excludeBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeBattery') + '</label>'
+          : '') +
           (hasSpecialRules(view) ? '<button class="btn small link" data-action="reset-rule" data-id="' + view.device.id + '">' + Homey.__('advanced.resetButton') + '</button>' : '') +
           '</div>';
       }
@@ -829,7 +870,10 @@
         container.addEventListener('click', function (e) {
           if (e.target.dataset.action === 'toggle-advanced') {
             var panel = document.getElementById('adv-' + e.target.dataset.id);
-            if (panel) panel.classList.toggle('open');
+            if (panel) {
+              panel.classList.toggle('open');
+              state.openAdvanced[e.target.dataset.id] = panel.classList.contains('open');
+            }
             return;
           }
           if (e.target.dataset.action === 'zone-bulk') {
@@ -862,6 +906,17 @@
           var id = e.target.dataset.id;
           if (!id) return;
 
+          if (e.target.dataset.unitFor) {
+            // Same as the global unit select: only re-labels the displayed value,
+            // the underlying rule value (and thus nothing worth saving) doesn't change.
+            e.stopPropagation();
+            var numInput = e.target.closest('.unit-field').querySelector('input[type=number]');
+            var currentHours = displayToHours(numInput.value, state.hoursUnit[id] || 'h');
+            state.hoursUnit[id] = e.target.value;
+            numInput.value = hoursToDisplay(currentHours, state.hoursUnit[id]);
+            return;
+          }
+
           if (e.target.classList.contains('monitor-toggle')) {
             var rule = ensureDeviceRule(id, e.target.dataset.name);
             rule.excludeAll = !e.target.checked;
@@ -879,6 +934,8 @@
           var r = ensureDeviceRule(id, e.target.dataset.name || '');
           if (e.target.type === 'checkbox') {
             r[field] = e.target.checked;
+          } else if (field === 'notReportingHours') {
+            r[field] = displayToHours(e.target.value, state.hoursUnit[id] || 'h');
           } else {
             r[field] = e.target.value === '' ? null : Number(e.target.value);
           }
@@ -961,6 +1018,16 @@
         document.getElementById('row-interval-minutes').style.display = e.target.checked ? '' : 'none';
       });
 
+      // Switching the unit just re-labels the same value (converts what's displayed,
+      // not what it means), so this shouldn't itself trigger an auto-save.
+      document.getElementById('cfg-not-reporting-unit').addEventListener('change', function (e) {
+        e.stopPropagation();
+        var input = document.getElementById('cfg-not-reporting-hours');
+        var hours = displayToHours(input.value, state.hoursUnitGlobal);
+        state.hoursUnitGlobal = e.target.value;
+        input.value = hoursToDisplay(hours, state.hoursUnitGlobal);
+      });
+
       // Any real user edit within the Einstellungen tab auto-saves - programmatic
       // updates from fillSettingsTab() (.value/.checked assignment) don't fire these.
       // 'input' (debounced) covers typing in number fields; 'change' (immediate) covers
@@ -1012,6 +1079,11 @@
         }
         saveInFlight = true;
 
+        // Auto-save re-renders the device list to refresh badges - without this,
+        // that reset the scroll position too, on top of whatever detail panel you
+        // had open (now fixed separately via state.openAdvanced).
+        var scrollY = window.scrollY;
+
         var payload = { config: readSettingsTab(), rules: state.rules };
         setSaveStatus(Homey.__('save.saving'), false);
 
@@ -1026,6 +1098,7 @@
         }).then(function (scanResult) {
           state.lastScan = scanResult;
           renderDevices();
+          window.scrollTo(0, scrollY);
           setSaveStatus(Homey.__('save.savedAt', { time: new Date().toLocaleTimeString() }), false);
         }).catch(function (err) {
           setSaveStatus(Homey.__('save.error'), true);

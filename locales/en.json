@@ -3,6 +3,10 @@
     "title": "Device Watchdog",
     "subtitle": "Monitors devices for connectivity and battery status."
   },
+  "units": {
+    "hours": "Hours",
+    "days": "Days"
+  },
   "tabs": {
     "devices": "Devices",
     "log": "Log",
@@ -42,8 +46,7 @@
     "notReportingHint": "Device is connected according to Homey, but hasn't sent any new data for a while.",
     "battery": "Battery __value__",
     "ok": "ok",
-    "noStatus": "no status (filtered)",
-    "batteryAlarm": "Battery alarm"
+    "noStatus": "no status (filtered)"
   },
   "meta": {
     "noScanResult": "No scan result yet",

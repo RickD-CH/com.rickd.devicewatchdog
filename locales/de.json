@@ -3,6 +3,10 @@
     "title": "Device Watchdog",
     "subtitle": "Überwacht Geräte auf Erreichbarkeit und Batteriestand."
   },
+  "units": {
+    "hours": "Stunden",
+    "days": "Tage"
+  },
   "tabs": {
     "devices": "Geräte",
     "log": "Verlauf",
@@ -42,8 +46,7 @@
     "notReportingHint": "Gerät ist laut Homey verbunden, hat aber seit längerem keine neuen Daten mehr gesendet.",
     "battery": "Batterie __value__",
     "ok": "ok",
-    "noStatus": "kein Status (Filter)",
-    "batteryAlarm": "Batterie-Alarm"
+    "noStatus": "kein Status (Filter)"
   },
   "meta": {
     "noScanResult": "Noch kein Scan-Ergebnis",

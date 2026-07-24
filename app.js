@@ -16,6 +16,10 @@ const SETTINGS_KEY_EVENT_LOG = 'eventLog';
 // without producing a perceptible state change, unlike toggling on/off for real.
 const TESTABLE_CAPABILITIES = ['onoff', 'dim'];
 
+// Matches the capabilities lib/scanner.js itself treats as battery-relevant (percentage
+// or alarm) - used to hide battery-related settings for devices that have neither.
+const BATTERY_CAPABILITIES = ['measure_battery', 'alarm_battery'];
+
 // Rolling cap for the Verlauf/log tab - keeps homey.settings from growing unbounded.
 const MAX_LOG_ENTRIES = 200;
 
@@ -417,6 +421,7 @@ class DeviceWatchdogApp extends Homey.App {
           class: device.class || null,
           available: device.available !== false,
           testCapability: TESTABLE_CAPABILITIES.find((id) => (device.capabilities || []).includes(id)) || null,
+          hasBattery: BATTERY_CAPABILITIES.some((id) => (device.capabilities || []).includes(id)),
           ownerUri: device.ownerUri || null,
           ownerAppName: ownerAppId ? (appNameMap[ownerAppId] || null) : null,
           driverId: device.driverId || null,
