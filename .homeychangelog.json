@@ -9,5 +9,8 @@
   },
   "1.1.1": {
     "en": "minor bugfixes"
+  },
+  "1.2.0": {
+    "en": "New: \"Ignore unavailable\" per-device setting to keep a flaky device out of the summary trigger, timeline, and log (its own per-device Flow trigger still works). Unavailable log entries now show the device's last-seen time. Cleaner app icon."
   }
 }
