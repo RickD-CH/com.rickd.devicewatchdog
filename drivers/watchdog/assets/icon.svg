@@ -1,11 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- Paw print (dog) -->
-  <ellipse cx="42" cy="62" rx="19" ry="15" fill="#000000"/>
-  <ellipse cx="24" cy="40" rx="7.5" ry="9.5" transform="rotate(-24 24 40)" fill="#000000"/>
-  <ellipse cx="38" cy="27" rx="7.5" ry="9.5" transform="rotate(-6 38 27)" fill="#000000"/>
-  <ellipse cx="54" cy="27" rx="7.5" ry="9.5" transform="rotate(6 54 27)" fill="#000000"/>
-  <ellipse cx="66" cy="41" rx="7.5" ry="9.5" transform="rotate(22 66 41)" fill="#000000"/>
-  <!-- Magnifying glass (watchdog / inspection) -->
-  <circle cx="68" cy="68" r="14" fill="none" stroke="#000000" stroke-width="7"/>
-  <rect x="86" y="83" width="9" height="22" rx="4.5" transform="rotate(45 86 83)" fill="#000000"/>
+  <ellipse cx="50" cy="62" rx="24" ry="19" fill="#000000"/>
+  <ellipse cx="26" cy="34" rx="9.5" ry="12" transform="rotate(-24 26 34)" fill="#000000"/>
+  <ellipse cx="43" cy="18" rx="9.5" ry="12" transform="rotate(-6 43 18)" fill="#000000"/>
+  <ellipse cx="63" cy="18" rx="9.5" ry="12" transform="rotate(6 63 18)" fill="#000000"/>
+  <ellipse cx="80" cy="34" rx="9.5" ry="12" transform="rotate(22 80 34)" fill="#000000"/>
 </svg>

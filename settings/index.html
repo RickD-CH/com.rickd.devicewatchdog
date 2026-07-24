@@ -420,8 +420,10 @@
         if (hours == null || hours === '') return '';
         var n = Number(hours);
         if (!Number.isFinite(n)) return '';
-        var display = unit === 'd' ? n / 24 : n;
-        return Math.round(display * 100) / 100;
+        // Hours rarely divide evenly by 24 - round to whole days here (e.g. "4 hours"
+        // shown as "0.17 days" is more confusing than useful), instead of showing a
+        // fractional day count nobody would type on purpose.
+        return unit === 'd' ? Math.round(n / 24) : n;
       }
       function displayToHours(value, unit) {
         if (value === '' || value == null) return null;
