@@ -256,7 +256,7 @@ class DeviceWatchdogApp extends Homey.App {
         ?.trigger({ device: device.name || '', zone: zoneName || '' }, { deviceId: device.id })
         .catch((err) => this.error('Trigger device_unavailable fehlgeschlagen:', err));
 
-      this._recordEvent('unavailable', { device: device.name, zone: zoneName });
+      this._recordEvent('unavailable', { device: device.name, zone: zoneName, detail: device.lastSeenAt || null });
       this._queueUnavailableSummary(device.name || '');
     }
 

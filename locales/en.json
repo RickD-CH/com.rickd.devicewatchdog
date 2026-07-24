@@ -104,7 +104,7 @@
     "empty": "No events recorded yet.",
     "notReporting": "__device__ stopped reporting",
     "lowBattery": "__device__ has low battery (__battery__)",
-    "unavailable": "__device__ became unavailable",
+    "unavailable": "__device__ became unavailable (last seen: __lastSeen__)",
     "testSuccess": "__device__ tested successfully (reachable)",
     "testFailure": "__device__ test failed (__error__)",
     "clearButton": "Clear log",

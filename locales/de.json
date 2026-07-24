@@ -104,7 +104,7 @@
     "empty": "Noch keine Ereignisse aufgezeichnet.",
     "notReporting": "__device__ meldet sich nicht mehr",
     "lowBattery": "__device__ hat niedrigen Akkustand (__battery__)",
-    "unavailable": "__device__ ist nicht erreichbar geworden",
+    "unavailable": "__device__ ist nicht erreichbar geworden (zuletzt gesehen: __lastSeen__)",
     "testSuccess": "__device__ erfolgreich getestet (erreichbar)",
     "testFailure": "__device__ Test fehlgeschlagen (__error__)",
     "clearButton": "Verlauf leeren",
