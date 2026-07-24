@@ -6,5 +6,8 @@
   "1.0.0": {
     "en": "First version!",
     "de": "Erste Version!"
+  },
+  "1.1.1": {
+    "en": "minor bugfixes"
   }
 }
