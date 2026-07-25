@@ -21,6 +21,7 @@
     "clearSearch": "Clear search",
     "sortPriority": "Sort: status first",
     "sortName": "Sort: name (A-Z)",
+    "sortZoneName": "Sort: zone + name (A-Z)",
     "unmonitoredSummary": "__count__ device(s) not monitored",
     "noScanYet": "No scan run yet",
     "lastScan": "Last scan: __date__",
@@ -109,7 +110,10 @@
     "vdAlarmNotReporting": "Include not reporting",
     "vdAlarmLowBattery": "Include low battery",
     "unavailableDelayLabel": "Delay before \"unavailable\" counts",
-    "unavailableDelayHint": "0 = instant. Overridable per device via \"Details\". Delays the Flow trigger, summary trigger, timeline, log, and the virtual device's counter/alarm - not the live status shown in this UI or the condition cards."
+    "unavailableDelayHint": "0 = instant. Overridable per device via \"Details\". Delays the Flow trigger, summary trigger, timeline, log, and the virtual device's counter/alarm - not the live status shown in this UI or the condition cards.",
+    "displayTitle": "Display",
+    "highContrastLabel": "Increase text contrast (dark mode)",
+    "highContrastHint": "Lightens muted/secondary text (hints, timestamps, extra info) further in dark mode - useful in bright ambient light."
   },
   "log": {
     "count": "__count__ entr(y/ies)",

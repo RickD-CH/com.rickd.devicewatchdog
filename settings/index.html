@@ -22,6 +22,10 @@
         --color-card-bg: #1e1e20;
         --color-text: #ececec;
         --color-input-bg: #2a2a2c;
+        --color-muted: #a3a3a8;
+      }
+      :root.high-contrast {
+        --color-muted: #c8c8cc;
       }
       body { background: #131314; }
       .tabs { background: #131314; }
@@ -275,6 +279,7 @@
       <select class="select-input" id="device-sort">
         <option value="priority" id="opt-sort-priority">Sortierung: Status zuerst</option>
         <option value="name" id="opt-sort-name">Sortierung: Name (A-Z)</option>
+        <option value="zoneName" id="opt-sort-zone-name">Sortierung: Zone + Name (A-Z)</option>
       </select>
       <span class="spacer"></span>
       <span id="last-scan-info" class="hint" style="margin:0;"></span>
@@ -366,6 +371,15 @@
         <label class="switch"><input type="checkbox" id="cfg-alarm-low-battery" /><span class="slider"></span></label>
       </div>
     </div>
+
+    <div class="card">
+      <h2 id="h2-display">Darstellung</h2>
+      <div class="field-row toggle-row">
+        <label for="cfg-high-contrast" id="lbl-high-contrast">Text-Kontrast erhöhen (Dark Mode)</label>
+        <label class="switch"><input type="checkbox" id="cfg-high-contrast" /><span class="slider"></span></label>
+      </div>
+      <p class="hint" id="hint-high-contrast">Hellt grauen/gedämpften Text (Hinweise, Zeitstempel, Zusatzinfos) im Dark Mode nochmals auf - hilfreich bei viel Umgebungslicht.</p>
+    </div>
   </div>
 
   <!-- ============ TAB: VERLAUF ============ -->
@@ -413,6 +427,7 @@
         document.getElementById('device-search').placeholder = Homey.__('devices.searchPlaceholder');
         document.getElementById('opt-sort-priority').textContent = Homey.__('devices.sortPriority');
         document.getElementById('opt-sort-name').textContent = Homey.__('devices.sortName');
+        document.getElementById('opt-sort-zone-name').textContent = Homey.__('devices.sortZoneName');
         document.getElementById('opt-unit-hours-global').textContent = Homey.__('units.hours');
         document.getElementById('opt-unit-days-global').textContent = Homey.__('units.days');
         document.getElementById('h2-autoscan').textContent = Homey.__('settingsTab.autoScanTitle');
@@ -436,6 +451,9 @@
         document.getElementById('lbl-alarm-unavailable').textContent = Homey.__('settingsTab.vdAlarmUnavailable');
         document.getElementById('lbl-alarm-not-reporting').textContent = Homey.__('settingsTab.vdAlarmNotReporting');
         document.getElementById('lbl-alarm-low-battery').textContent = Homey.__('settingsTab.vdAlarmLowBattery');
+        document.getElementById('h2-display').textContent = Homey.__('settingsTab.displayTitle');
+        document.getElementById('lbl-high-contrast').textContent = Homey.__('settingsTab.highContrastLabel');
+        document.getElementById('hint-high-contrast').textContent = Homey.__('settingsTab.highContrastHint');
       }
       applyStaticTranslations();
 
@@ -553,7 +571,13 @@
         document.getElementById('cfg-alarm-unavailable').checked = c.alarmIncludesUnavailable !== false;
         document.getElementById('cfg-alarm-not-reporting').checked = c.alarmIncludesNotReporting !== false;
         document.getElementById('cfg-alarm-low-battery').checked = c.alarmIncludesLowBattery !== false;
+        document.getElementById('cfg-high-contrast').checked = !!c.highContrastText;
         document.getElementById('row-interval-minutes').style.display = c.scanIntervalEnabled ? '' : 'none';
+        applyHighContrast(!!c.highContrastText);
+      }
+
+      function applyHighContrast(enabled) {
+        document.documentElement.classList.toggle('high-contrast', enabled);
       }
 
       function readSettingsTab() {
@@ -567,6 +591,7 @@
           alarmIncludesUnavailable: document.getElementById('cfg-alarm-unavailable').checked,
           alarmIncludesNotReporting: document.getElementById('cfg-alarm-not-reporting').checked,
           alarmIncludesLowBattery: document.getElementById('cfg-alarm-low-battery').checked,
+          highContrastText: document.getElementById('cfg-high-contrast').checked,
         };
       }
 
@@ -765,7 +790,7 @@
 
       function sortViews(views, sortMode) {
         var arr = views.slice();
-        if (sortMode === 'name') {
+        if (sortMode === 'name' || sortMode === 'zoneName') {
           arr.sort(function (a, b) { return a.device.name.localeCompare(b.device.name); });
         } else {
           arr.sort(function (a, b) {
@@ -777,7 +802,7 @@
         return arr;
       }
 
-      function groupByZone(views) {
+      function groupByZone(views, sortMode) {
         var groups = {};
         var groupOrder = {};
         views.forEach(function (v) {
@@ -790,7 +815,18 @@
           }
           groups[key].push(v);
         });
-        var keys = Object.keys(groups).sort(function (a, b) { return groupOrder[a] - groupOrder[b]; });
+        var keys = Object.keys(groups);
+        if (sortMode === 'zoneName') {
+          // key is already the zone's display name (see app.js getRawDevices) - sort it
+          // directly, alphabetically, independent of Homey's own zone tree/order. No-zone
+          // ('') always last, same as the Homey-order fallback below.
+          keys.sort(function (a, b) {
+            if (!a !== !b) return a ? -1 : 1;
+            return a.localeCompare(b);
+          });
+        } else {
+          keys.sort(function (a, b) { return groupOrder[a] - groupOrder[b]; });
+        }
         return keys.map(function (key) { return { zone: key || null, views: groups[key] }; });
       }
 
@@ -823,7 +859,7 @@
           return;
         }
 
-        var groups = groupByZone(viewsList);
+        var groups = groupByZone(viewsList, sortMode);
         if (groups.length <= 1) {
           // Nur eine (oder keine) Zone im Spiel - einfache flache Liste, keine unnötige Verschachtelung.
           container.innerHTML = '<div class="device-list">' + sortViews(viewsList, sortMode).map(deviceRowHtml).join('') + '</div>';
@@ -1105,6 +1141,10 @@
       document.getElementById('device-sort').addEventListener('change', renderDevices);
       document.getElementById('cfg-interval-enabled').addEventListener('change', function (e) {
         document.getElementById('row-interval-minutes').style.display = e.target.checked ? '' : 'none';
+      });
+
+      document.getElementById('cfg-high-contrast').addEventListener('change', function (e) {
+        applyHighContrast(e.target.checked);
       });
 
       // Switching the unit just re-labels the same value (converts what's displayed,

@@ -21,6 +21,7 @@
     "clearSearch": "Suche löschen",
     "sortPriority": "Sortierung: Status zuerst",
     "sortName": "Sortierung: Name (A-Z)",
+    "sortZoneName": "Sortierung: Zone + Name (A-Z)",
     "unmonitoredSummary": "__count__ Gerät(e) nicht überwacht",
     "noScanYet": "Noch kein Scan gelaufen",
     "lastScan": "Letzter Scan: __date__",
@@ -109,7 +110,10 @@
     "vdAlarmNotReporting": "Meldet sich nicht einbeziehen",
     "vdAlarmLowBattery": "Niedriger Akku einbeziehen",
     "unavailableDelayLabel": "Verzögerung bis \"nicht erreichbar\" zählt",
-    "unavailableDelayHint": "0 = sofort. Pro Gerät via \"Details\" überschreibbar. Verzögert Flow-Trigger, Sammelmeldung, Zeitleiste, Verlauf und den Zähler/Alarm im virtuellen Gerät - nicht aber den Live-Status in dieser Oberfläche oder die Bedingungs-Karten."
+    "unavailableDelayHint": "0 = sofort. Pro Gerät via \"Details\" überschreibbar. Verzögert Flow-Trigger, Sammelmeldung, Zeitleiste, Verlauf und den Zähler/Alarm im virtuellen Gerät - nicht aber den Live-Status in dieser Oberfläche oder die Bedingungs-Karten.",
+    "displayTitle": "Darstellung",
+    "highContrastLabel": "Text-Kontrast erhöhen (Dark Mode)",
+    "highContrastHint": "Hellt grauen/gedämpften Text (Hinweise, Zeitstempel, Zusatzinfos) im Dark Mode nochmals auf - hilfreich bei viel Umgebungslicht."
   },
   "log": {
     "count": "__count__ Eintrag/Einträge",
