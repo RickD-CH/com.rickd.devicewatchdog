@@ -5,6 +5,7 @@
   <title>Device Watchdog</title>
   <style>
     :root {
+      color-scheme: light;
       --color-ok: #2e7d32;
       --color-nok: #c62828;
       --color-warn: #ef6c00;
@@ -17,6 +18,7 @@
     }
     @media (prefers-color-scheme: dark) {
       :root {
+        color-scheme: dark;
         --color-border: #3a3a3c;
         --color-bg-alt: #232325;
         --color-card-bg: #1e1e20;
@@ -165,6 +167,10 @@
       padding: 7px 10px; border: 1px solid var(--color-border); border-radius: 6px;
       font-size: 13px; min-width: 220px; background: var(--color-input-bg); color: var(--color-text);
     }
+    /* Some WebViews force their own dark-mode heuristics onto native form controls,
+       darkening the background but leaving the text color untouched - fixed colors
+       here sidestep that entirely instead of relying on the OS to get it right. */
+    .search-input { background: #fff; color: #212121; }
     .select-input { min-width: 150px; }
     .unit-field { display: flex; gap: 6px; align-items: center; }
     .unit-field input[type=number] { width: 90px; }
