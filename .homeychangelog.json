@@ -24,5 +24,8 @@
   },
   "1.5.0": {
     "en": "New \"Zone + Name (A-Z)\" device sort option. Improved dark mode text contrast, plus an optional setting to increase it further."
+  },
+  "1.5.1": {
+    "en": "minor bugfix"
   }
 }
