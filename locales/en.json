@@ -5,7 +5,9 @@
   },
   "units": {
     "hours": "Hours",
-    "days": "Days"
+    "days": "Days",
+    "seconds": "Seconds",
+    "minutes": "Minutes"
   },
   "tabs": {
     "devices": "Devices",
@@ -78,6 +80,7 @@
     "excludeBattery": "Ignore battery",
     "excludeFromUnavailable": "Ignore unavailable",
     "excludeFromUnavailableHint": "Only affects the summary trigger, timeline, log, and the virtual device's counter. The per-device Flow trigger still works.",
+    "unavailableDelay": "Delay before \"unavailable\" counts",
     "detailsButton": "Details",
     "resetButton": "Reset"
   },
@@ -104,7 +107,9 @@
     "vdAlarmHint": "The counters on the virtual Watchdog device always show the real numbers. This only controls which of them trip the summary alarm (alarm_generic).",
     "vdAlarmUnavailable": "Include unavailable",
     "vdAlarmNotReporting": "Include not reporting",
-    "vdAlarmLowBattery": "Include low battery"
+    "vdAlarmLowBattery": "Include low battery",
+    "unavailableDelayLabel": "Delay before \"unavailable\" counts",
+    "unavailableDelayHint": "0 = instant. Overridable per device via \"Details\". Delays the Flow trigger, summary trigger, timeline, log, and the virtual device's counter/alarm - not the live status shown in this UI or the condition cards."
   },
   "log": {
     "count": "__count__ entr(y/ies)",

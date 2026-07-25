@@ -59,6 +59,19 @@ function positiveNumberOrNull(value) {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+// Unlike positiveNumberOrDefault/positiveNumberOrNull above, 0 is a valid, meaningful
+// value here ("no delay, confirm instantly") rather than "unset".
+function nonNegativeNumberOrDefault(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+
+function nonNegativeNumberOrNull(value) {
+  if (value === '' || value === undefined || value === null) return null;
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
 function percentOrNull(value) {
   if (value === '' || value === undefined || value === null) return null;
   const n = Number(value);
@@ -92,6 +105,8 @@ class DeviceWatchdogApp extends Homey.App {
     this._scanPromise = null;
     this._unavailableBatch = new Set();
     this._unavailableBatchTimer = null;
+    this._pendingUnavailableTimers = new Map();
+    this._confirmedUnavailable = new Set();
 
     this._registerFlowCards();
 
@@ -225,7 +240,8 @@ class DeviceWatchdogApp extends Homey.App {
   }
 
   // ---------------------------------------------------------------------
-  // Realtime availability (instant "device_unavailable" trigger)
+  // Realtime availability ("device_unavailable" trigger, delayed by the
+  // configurable grace period - see _getUnavailableDelaySeconds)
   // ---------------------------------------------------------------------
 
   async _primeAvailabilityMap() {
@@ -234,8 +250,22 @@ class DeviceWatchdogApp extends Homey.App {
     this._zoneMap = Object.fromEntries(Object.values(zones).map((z) => [z.id, z.name]));
 
     this._availabilityMap.clear();
+    this._confirmedUnavailable.clear();
     for (const device of Object.values(devices)) {
-      this._availabilityMap.set(device.id, device.available !== false);
+      const isAvailable = device.available !== false;
+      this._availabilityMap.set(device.id, isAvailable);
+      if (!isAvailable) {
+        // Already down at startup - route through the same grace period a live
+        // transition would get, so a Homey/app restart doesn't instantly count devices
+        // that are simply still reconnecting. Confirmation is silent either way (no
+        // trigger/log/timeline) since this isn't a transition we actually witnessed.
+        const delaySeconds = this._getUnavailableDelaySeconds(device.id);
+        if (delaySeconds > 0) {
+          this._scheduleUnavailableConfirmation(device, delaySeconds, true);
+        } else {
+          this._confirmedUnavailable.add(device.id);
+        }
+      }
     }
   }
 
@@ -252,31 +282,81 @@ class DeviceWatchdogApp extends Homey.App {
     this._availabilityMap.set(device.id, isAvailable);
 
     if (wasAvailable === true && isAvailable === false) {
+      const delaySeconds = this._getUnavailableDelaySeconds(device.id);
+      if (delaySeconds > 0) {
+        this._scheduleUnavailableConfirmation(device, delaySeconds);
+      } else {
+        this._confirmUnavailable(device);
+      }
+    }
+
+    if (isAvailable === true) {
+      // Recovery is never delayed - if it came back before the grace period elapsed,
+      // this cancels the pending confirmation and nothing ever fired for it. If it was
+      // already confirmed, clear that immediately (good news shouldn't wait either).
+      this._cancelPendingUnavailableConfirmation(device.id);
+      if (this._confirmedUnavailable.delete(device.id)) {
+        this._updateWatchdogDevice({ unavailableCount: this._countUnavailable() })
+          .catch((err) => this.error('Watchdog-Gerät-Update fehlgeschlagen:', err));
+      }
+    }
+  }
+
+  _getUnavailableDelaySeconds(deviceId) {
+    const { rule } = scanner.findRule({ id: deviceId }, this.rules);
+    const override = rule?.unavailableDelaySeconds;
+    return (override != null ? override : this.config.unavailableDelaySeconds) || 0;
+  }
+
+  _scheduleUnavailableConfirmation(device, delaySeconds, silent) {
+    this._cancelPendingUnavailableConfirmation(device.id);
+    const timer = this.homey.setTimeout(() => {
+      this._pendingUnavailableTimers.delete(device.id);
+      // Re-check current state - only proceed if it's still down after the grace period.
+      if (this._availabilityMap.get(device.id) === false) this._confirmUnavailable(device, silent);
+    }, delaySeconds * 1000);
+    this._pendingUnavailableTimers.set(device.id, timer);
+  }
+
+  _cancelPendingUnavailableConfirmation(deviceId) {
+    const timer = this._pendingUnavailableTimers.get(deviceId);
+    if (timer) {
+      this.homey.clearTimeout(timer);
+      this._pendingUnavailableTimers.delete(deviceId);
+    }
+  }
+
+  // Everything a confirmed (grace period elapsed, or delay=0) "unavailable" produces:
+  // the per-device trigger always fires (opt-in - only noisy if the user builds a Flow
+  // around this specific device); the summary/Timeline/log/count are the automatic,
+  // passive outputs a chronically flaky device would otherwise spam repeatedly, so those
+  // additionally respect the "Ignore unavailable" per-device toggle.
+  // `silent` skips the trigger/log/timeline/summary entirely - used when priming at
+  // startup confirms a device that was already down before the grace period even
+  // started, so app restarts don't re-notify for an already-known, ongoing problem.
+  _confirmUnavailable(device, silent) {
+    this._confirmedUnavailable.add(device.id);
+
+    if (!silent) {
       const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
       this._triggerUnavailable
         ?.trigger({ device: device.name || '', zone: zoneName || '' }, { deviceId: device.id })
         .catch((err) => this.error('Trigger device_unavailable fehlgeschlagen:', err));
 
-      // The per-device trigger above always fires (it's opt-in - only produces noise if
-      // the user builds a Flow around this specific device). The summary/Timeline/log/
-      // count below are the automatic, passive outputs a chronically flaky device (e.g.
-      // one that hangs and reconnects on its own) would otherwise spam repeatedly.
       if (!this._isExcludedFromUnavailable(device.id)) {
         this._recordEvent('unavailable', { device: device.name, zone: zoneName, detail: device.lastSeenAt || null });
         this._queueUnavailableSummary(device.name || '');
       }
     }
 
-    if (wasAvailable !== isAvailable) {
-      this._updateWatchdogDevice({ unavailableCount: this._countUnavailable() })
-        .catch((err) => this.error('Watchdog-Gerät-Update fehlgeschlagen:', err));
-    }
+    this._updateWatchdogDevice({ unavailableCount: this._countUnavailable() })
+      .catch((err) => this.error('Watchdog-Gerät-Update fehlgeschlagen:', err));
   }
 
   _countUnavailable() {
     let count = 0;
-    for (const [deviceId, available] of this._availabilityMap.entries()) {
-      if (available === false && !this._isExcludedFromUnavailable(deviceId)) count += 1;
+    for (const deviceId of this._confirmedUnavailable) {
+      if (!this._isExcludedFromUnavailable(deviceId)) count += 1;
     }
     return count;
   }
@@ -363,6 +443,9 @@ class DeviceWatchdogApp extends Homey.App {
         ),
         batteryThresholdPercent: percentOrNull(config.batteryThresholdPercent) ?? DEFAULT_CONFIG.batteryThresholdPercent,
         scanIntervalMinutes: positiveNumberOrDefault(config.scanIntervalMinutes, DEFAULT_CONFIG.scanIntervalMinutes),
+        unavailableDelaySeconds: nonNegativeNumberOrDefault(
+          config.unavailableDelaySeconds, DEFAULT_CONFIG.unavailableDelaySeconds,
+        ),
       };
       this.homey.settings.set(SETTINGS_KEY_CONFIG, this.config);
     }
@@ -379,6 +462,7 @@ class DeviceWatchdogApp extends Homey.App {
         onlyCheckBattery: !!rule.onlyCheckBattery,
         excludeAll: !!rule.excludeAll,
         excludeFromUnavailable: !!rule.excludeFromUnavailable,
+        unavailableDelaySeconds: nonNegativeNumberOrNull(rule.unavailableDelaySeconds),
       }));
       this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
     }

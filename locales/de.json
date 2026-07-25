@@ -5,7 +5,9 @@
   },
   "units": {
     "hours": "Stunden",
-    "days": "Tage"
+    "days": "Tage",
+    "seconds": "Sekunden",
+    "minutes": "Minuten"
   },
   "tabs": {
     "devices": "Geräte",
@@ -78,6 +80,7 @@
     "excludeBattery": "Batterie ignorieren",
     "excludeFromUnavailable": "Nicht erreichbar ignorieren",
     "excludeFromUnavailableHint": "Betrifft nur Sammelmeldung, Zeitleiste, Verlauf und den Zähler im virtuellen Gerät. Die Pro-Gerät-Flow-Karte funktioniert weiterhin.",
+    "unavailableDelay": "Verzögerung bis \"nicht erreichbar\" zählt",
     "detailsButton": "Details",
     "resetButton": "Zurücksetzen"
   },
@@ -104,7 +107,9 @@
     "vdAlarmHint": "Die Zähler im virtuellen Watchdog-Gerät zeigen immer die echten Werte. Hier legst du nur fest, welche davon den Sammel-Alarm (alarm_generic) auslösen.",
     "vdAlarmUnavailable": "Nicht erreichbar einbeziehen",
     "vdAlarmNotReporting": "Meldet sich nicht einbeziehen",
-    "vdAlarmLowBattery": "Niedriger Akku einbeziehen"
+    "vdAlarmLowBattery": "Niedriger Akku einbeziehen",
+    "unavailableDelayLabel": "Verzögerung bis \"nicht erreichbar\" zählt",
+    "unavailableDelayHint": "0 = sofort. Pro Gerät via \"Details\" überschreibbar. Verzögert Flow-Trigger, Sammelmeldung, Zeitleiste, Verlauf und den Zähler/Alarm im virtuellen Gerät - nicht aber den Live-Status in dieser Oberfläche oder die Bedingungs-Karten."
   },
   "log": {
     "count": "__count__ Eintrag/Einträge",

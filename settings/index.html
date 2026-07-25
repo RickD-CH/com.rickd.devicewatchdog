@@ -327,6 +327,17 @@
           <input type="number" id="cfg-battery-threshold" min="0" max="100" step="1" />
           <p class="hint" id="hint-battery-threshold">Gilt für alle Geräte ohne eigene Regel.</p>
         </div>
+        <div class="field-row">
+          <label for="cfg-unavailable-delay" id="lbl-unavailable-delay">Verzögerung bis "nicht erreichbar" zählt</label>
+          <div class="unit-field">
+            <input type="number" id="cfg-unavailable-delay" min="0" step="any" />
+            <select id="cfg-unavailable-delay-unit" class="unit-select">
+              <option value="s" id="opt-unit-seconds-global">Sekunden</option>
+              <option value="m" id="opt-unit-minutes-global">Minuten</option>
+            </select>
+          </div>
+          <p class="hint" id="hint-unavailable-delay">0 = sofort. Pro Gerät via "Details" überschreibbar.</p>
+        </div>
       </div>
     </div>
 
@@ -381,6 +392,8 @@
         openAdvanced: {},
         hoursUnit: {},
         hoursUnitGlobal: 'h',
+        secondsUnit: {},
+        secondsUnitGlobal: 's',
       };
 
       // ---------------------------------------------------------------
@@ -411,6 +424,10 @@
         document.getElementById('hint-not-reporting').textContent = Homey.__('settingsTab.notReportingHint');
         document.getElementById('lbl-battery-threshold').textContent = Homey.__('settingsTab.batteryLabel');
         document.getElementById('hint-battery-threshold').textContent = Homey.__('settingsTab.batteryHint');
+        document.getElementById('lbl-unavailable-delay').textContent = Homey.__('settingsTab.unavailableDelayLabel');
+        document.getElementById('hint-unavailable-delay').textContent = Homey.__('settingsTab.unavailableDelayHint');
+        document.getElementById('opt-unit-seconds-global').textContent = Homey.__('units.seconds');
+        document.getElementById('opt-unit-minutes-global').textContent = Homey.__('units.minutes');
         document.getElementById('h2-notifications').textContent = Homey.__('settingsTab.notificationsTitle');
         document.getElementById('lbl-timeline-notifications').textContent = Homey.__('settingsTab.timelineLabel');
         document.getElementById('hint-timeline-notifications').textContent = Homey.__('settingsTab.timelineHint');
@@ -452,6 +469,21 @@
         var n = Number(value);
         if (!Number.isFinite(n)) return null;
         return unit === 'd' ? n * 24 : n;
+      }
+
+      // Same idea as hoursToDisplay/displayToHours above, for the unavailable-delay field
+      // (seconds internally, optionally shown/entered as minutes).
+      function secondsToDisplay(seconds, unit) {
+        if (seconds == null || seconds === '') return '';
+        var n = Number(seconds);
+        if (!Number.isFinite(n)) return '';
+        return unit === 'm' ? Math.round(n / 60) : n;
+      }
+      function displayToSeconds(value, unit) {
+        if (value === '' || value == null) return null;
+        var n = Number(value);
+        if (!Number.isFinite(n)) return null;
+        return unit === 'm' ? n * 60 : n;
       }
 
       function apiCall(method, path, body) {
@@ -515,6 +547,8 @@
         document.getElementById('cfg-not-reporting-unit').value = state.hoursUnitGlobal;
         document.getElementById('cfg-not-reporting-hours').value = hoursToDisplay(c.notReportingThresholdHours, state.hoursUnitGlobal);
         document.getElementById('cfg-battery-threshold').value = c.batteryThresholdPercent;
+        document.getElementById('cfg-unavailable-delay-unit').value = state.secondsUnitGlobal;
+        document.getElementById('cfg-unavailable-delay').value = secondsToDisplay(c.unavailableDelaySeconds, state.secondsUnitGlobal);
         document.getElementById('cfg-timeline-notifications').checked = !!c.timelineNotifications;
         document.getElementById('cfg-alarm-unavailable').checked = c.alarmIncludesUnavailable !== false;
         document.getElementById('cfg-alarm-not-reporting').checked = c.alarmIncludesNotReporting !== false;
@@ -528,6 +562,7 @@
           scanIntervalMinutes: Number(document.getElementById('cfg-interval-minutes').value) || 60,
           notReportingThresholdHours: displayToHours(document.getElementById('cfg-not-reporting-hours').value, state.hoursUnitGlobal) || 24,
           batteryThresholdPercent: Number(document.getElementById('cfg-battery-threshold').value) || 30,
+          unavailableDelaySeconds: displayToSeconds(document.getElementById('cfg-unavailable-delay').value, state.secondsUnitGlobal) || 0,
           timelineNotifications: document.getElementById('cfg-timeline-notifications').checked,
           alarmIncludesUnavailable: document.getElementById('cfg-alarm-unavailable').checked,
           alarmIncludesNotReporting: document.getElementById('cfg-alarm-not-reporting').checked,
@@ -549,7 +584,7 @@
             id: genId(), matchType: 'id', matchValue: id, label: name,
             notReportingHours: null, batteryThreshold: null,
             excludeBattery: false, onlyCheckBattery: false, excludeAll: false,
-            excludeFromUnavailable: false,
+            excludeFromUnavailable: false, unavailableDelaySeconds: null,
           };
           state.rules.push(rule);
         }
@@ -560,7 +595,8 @@
         var rule = getDeviceRule(id);
         if (!rule) return;
         var isEmpty = !rule.excludeAll && rule.notReportingHours == null && rule.batteryThreshold == null
-          && !rule.excludeBattery && !rule.onlyCheckBattery && !rule.excludeFromUnavailable;
+          && !rule.excludeBattery && !rule.onlyCheckBattery && !rule.excludeFromUnavailable
+          && rule.unavailableDelaySeconds == null;
         if (isEmpty) state.rules = state.rules.filter(function (r) { return r !== rule; });
       }
 
@@ -662,6 +698,13 @@
             '</select>' +
           '</div></div>' +
           '<label class="f chk" title="' + escapeHtml(Homey.__('advanced.excludeFromUnavailableHint')) + '"><input type="checkbox" data-field="excludeFromUnavailable" data-id="' + view.device.id + '"' + (r.excludeFromUnavailable ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeFromUnavailable') + '</label>' +
+          '<div class="f"><label>' + Homey.__('advanced.unavailableDelay') + '</label><div class="unit-field">' +
+            '<input type="number" min="0" step="any" data-field="unavailableDelaySeconds" data-id="' + view.device.id + '" value="' + secondsToDisplay(r.unavailableDelaySeconds, state.secondsUnit[view.device.id] || 's') + '" placeholder="' + placeholderDefault + '" />' +
+            '<select class="unit-select" data-unit-for="unavailableDelaySeconds" data-id="' + view.device.id + '">' +
+              '<option value="s"' + ((state.secondsUnit[view.device.id] || 's') === 's' ? ' selected' : '') + '>' + Homey.__('units.seconds') + '</option>' +
+              '<option value="m"' + (state.secondsUnit[view.device.id] === 'm' ? ' selected' : '') + '>' + Homey.__('units.minutes') + '</option>' +
+            '</select>' +
+          '</div></div>' +
           (view.device.hasBattery ? '' +
             '<div class="f"><label>' + Homey.__('advanced.batteryThreshold') + '</label><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" data-id="' + view.device.id + '" value="' + (r.batteryThreshold == null ? '' : r.batteryThreshold) + '" placeholder="' + placeholderDefault + '" /></div>' +
             '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + view.device.id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.onlyBattery') + '</label>' +
@@ -674,7 +717,8 @@
       function hasSpecialRules(view) {
         var r = view.rule;
         return !!(r && (r.notReportingHours != null || r.batteryThreshold != null
-          || r.excludeBattery || r.onlyCheckBattery || r.excludeFromUnavailable));
+          || r.excludeBattery || r.onlyCheckBattery || r.excludeFromUnavailable
+          || r.unavailableDelaySeconds != null));
       }
 
       function availDotHtml(d) {
@@ -928,6 +972,7 @@
               rule.excludeBattery = false;
               rule.onlyCheckBattery = false;
               rule.excludeFromUnavailable = false;
+              rule.unavailableDelaySeconds = null;
               cleanupDeviceRule(e.target.dataset.id);
               scheduleAutoSave(true);
               renderDevices();
@@ -940,13 +985,19 @@
           if (!id) return;
 
           if (e.target.dataset.unitFor) {
-            // Same as the global unit select: only re-labels the displayed value,
+            // Same as the global unit selects: only re-labels the displayed value,
             // the underlying rule value (and thus nothing worth saving) doesn't change.
             e.stopPropagation();
             var numInput = e.target.closest('.unit-field').querySelector('input[type=number]');
-            var currentHours = displayToHours(numInput.value, state.hoursUnit[id] || 'h');
-            state.hoursUnit[id] = e.target.value;
-            numInput.value = hoursToDisplay(currentHours, state.hoursUnit[id]);
+            if (e.target.dataset.unitFor === 'unavailableDelaySeconds') {
+              var currentSeconds = displayToSeconds(numInput.value, state.secondsUnit[id] || 's');
+              state.secondsUnit[id] = e.target.value;
+              numInput.value = secondsToDisplay(currentSeconds, state.secondsUnit[id]);
+            } else {
+              var currentHours = displayToHours(numInput.value, state.hoursUnit[id] || 'h');
+              state.hoursUnit[id] = e.target.value;
+              numInput.value = hoursToDisplay(currentHours, state.hoursUnit[id]);
+            }
             return;
           }
 
@@ -969,6 +1020,8 @@
             r[field] = e.target.checked;
           } else if (field === 'notReportingHours') {
             r[field] = displayToHours(e.target.value, state.hoursUnit[id] || 'h');
+          } else if (field === 'unavailableDelaySeconds') {
+            r[field] = displayToSeconds(e.target.value, state.secondsUnit[id] || 's');
           } else {
             r[field] = e.target.value === '' ? null : Number(e.target.value);
           }
@@ -1062,6 +1115,14 @@
         var hours = displayToHours(input.value, state.hoursUnitGlobal);
         state.hoursUnitGlobal = e.target.value;
         input.value = hoursToDisplay(hours, state.hoursUnitGlobal);
+      });
+
+      document.getElementById('cfg-unavailable-delay-unit').addEventListener('change', function (e) {
+        e.stopPropagation();
+        var input = document.getElementById('cfg-unavailable-delay');
+        var seconds = displayToSeconds(input.value, state.secondsUnitGlobal);
+        state.secondsUnitGlobal = e.target.value;
+        input.value = secondsToDisplay(seconds, state.secondsUnitGlobal);
       });
 
       // Any real user edit within the Einstellungen tab auto-saves - programmatic
