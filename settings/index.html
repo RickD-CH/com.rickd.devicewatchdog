@@ -333,6 +333,11 @@
           </div>
           <p class="hint" id="hint-not-reporting">Pro Gerät via "Details" überschreibbar.</p>
         </div>
+        <div class="field-row toggle-row">
+          <label for="cfg-include-last-seen" id="lbl-include-last-seen">"Zuletzt gesehen" (Homey) bei "meldet sich nicht" mitzählen</label>
+          <label class="switch"><input type="checkbox" id="cfg-include-last-seen" /><span class="slider"></span></label>
+        </div>
+        <p class="hint" id="hint-include-last-seen">Manche Geräte (z.B. Zigbee-Router, reine Ereignis-Sensoren) ändern selten einen Wert, sind aber laut Homey trotzdem aktiv verbunden. Aktiviert, zählt das ebenfalls als Lebenszeichen - dadurch werden aber verbundene Geräte mit wirklich festhängenden Daten seltener erkannt.</p>
         <div class="field-row">
           <label for="cfg-battery-threshold" id="lbl-battery-threshold">Batteriewarnung ab (%)</label>
           <input type="number" id="cfg-battery-threshold" min="0" max="100" step="1" />
@@ -443,6 +448,8 @@
         document.getElementById('h2-thresholds').textContent = Homey.__('settingsTab.thresholdsTitle');
         document.getElementById('lbl-not-reporting').textContent = Homey.__('settingsTab.notReportingLabel');
         document.getElementById('hint-not-reporting').textContent = Homey.__('settingsTab.notReportingHint');
+        document.getElementById('lbl-include-last-seen').textContent = Homey.__('settingsTab.includeLastSeenLabel');
+        document.getElementById('hint-include-last-seen').textContent = Homey.__('settingsTab.includeLastSeenHint');
         document.getElementById('lbl-battery-threshold').textContent = Homey.__('settingsTab.batteryLabel');
         document.getElementById('hint-battery-threshold').textContent = Homey.__('settingsTab.batteryHint');
         document.getElementById('lbl-unavailable-delay').textContent = Homey.__('settingsTab.unavailableDelayLabel');
@@ -570,6 +577,7 @@
         document.getElementById('cfg-interval-minutes').value = c.scanIntervalMinutes;
         document.getElementById('cfg-not-reporting-unit').value = state.hoursUnitGlobal;
         document.getElementById('cfg-not-reporting-hours').value = hoursToDisplay(c.notReportingThresholdHours, state.hoursUnitGlobal);
+        document.getElementById('cfg-include-last-seen').checked = !!c.includeLastSeenForReporting;
         document.getElementById('cfg-battery-threshold').value = c.batteryThresholdPercent;
         document.getElementById('cfg-unavailable-delay-unit').value = state.secondsUnitGlobal;
         document.getElementById('cfg-unavailable-delay').value = secondsToDisplay(c.unavailableDelaySeconds, state.secondsUnitGlobal);
@@ -591,6 +599,7 @@
           scanIntervalEnabled: document.getElementById('cfg-interval-enabled').checked,
           scanIntervalMinutes: Number(document.getElementById('cfg-interval-minutes').value) || 60,
           notReportingThresholdHours: displayToHours(document.getElementById('cfg-not-reporting-hours').value, state.hoursUnitGlobal) || 24,
+          includeLastSeenForReporting: document.getElementById('cfg-include-last-seen').checked,
           batteryThresholdPercent: Number(document.getElementById('cfg-battery-threshold').value) || 30,
           unavailableDelaySeconds: displayToSeconds(document.getElementById('cfg-unavailable-delay').value, state.secondsUnitGlobal) || 0,
           timelineNotifications: document.getElementById('cfg-timeline-notifications').checked,

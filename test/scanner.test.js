@@ -171,6 +171,33 @@ describe('computeDeviceStatus', () => {
     assert.equal(status.isReporting, false);
   });
 
+  test('a stale capability with a fresh lastSeenAt is still not reporting by default', () => {
+    const d = device({
+      capabilitiesObj: { onoff: { value: true, lastUpdated: new Date(Date.now() - 25 * HOUR).toISOString() } },
+      lastSeenAt: new Date(Date.now() - 60000).toISOString(),
+    });
+    const status = scanner.computeDeviceStatus(d, null, config);
+    assert.equal(status.isReporting, false);
+  });
+
+  test('includeLastSeenForReporting treats a fresh lastSeenAt as a sign of life', () => {
+    const d = device({
+      capabilitiesObj: { onoff: { value: true, lastUpdated: new Date(Date.now() - 25 * HOUR).toISOString() } },
+      lastSeenAt: new Date(Date.now() - 60000).toISOString(),
+    });
+    const status = scanner.computeDeviceStatus(d, null, { ...config, includeLastSeenForReporting: true });
+    assert.equal(status.isReporting, true);
+  });
+
+  test('includeLastSeenForReporting does not help if lastSeenAt is also stale', () => {
+    const d = device({
+      capabilitiesObj: { onoff: { value: true, lastUpdated: new Date(Date.now() - 25 * HOUR).toISOString() } },
+      lastSeenAt: new Date(Date.now() - 26 * HOUR).toISOString(),
+    });
+    const status = scanner.computeDeviceStatus(d, null, { ...config, includeLastSeenForReporting: true });
+    assert.equal(status.isReporting, false);
+  });
+
   test('battery percentage at/below the threshold is flagged low', () => {
     const d = device({ capabilitiesObj: { measure_battery: { value: 30 } } });
     const status = scanner.computeDeviceStatus(d, null, config);

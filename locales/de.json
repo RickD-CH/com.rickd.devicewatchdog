@@ -99,6 +99,8 @@
     "thresholdsTitle": "Standard-Schwellenwerte",
     "notReportingLabel": "Stunden ohne Meldung bis \"offline\"",
     "notReportingHint": "Pro Gerät via \"Details\" überschreibbar.",
+    "includeLastSeenLabel": "\"Zuletzt gesehen\" (Homey) bei \"meldet sich nicht\" mitzählen",
+    "includeLastSeenHint": "Manche Geräte (z.B. Zigbee-Router, reine Ereignis-Sensoren) ändern selten einen Wert, sind aber laut Homey trotzdem aktiv verbunden. Aktiviert, zählt das ebenfalls als Lebenszeichen - dadurch werden aber verbundene Geräte mit wirklich festhängenden Daten seltener erkannt.",
     "batteryLabel": "Batteriewarnung ab (%)",
     "batteryHint": "Gilt für alle Geräte ohne eigene Regel.",
     "notificationsTitle": "Benachrichtigungen",

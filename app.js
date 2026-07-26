@@ -129,6 +129,14 @@ class DeviceWatchdogApp extends Homey.App {
     }, REALTIME_HEALTHCHECK_MS);
   }
 
+  // The virtual Watchdog device itself is just another device as far as HomeyAPI is
+  // concerned - excluded everywhere devices are gathered so it never monitors itself
+  // (its own capabilities are driven purely by _updateWatchdogDevice, not real sensor
+  // data, so "not reporting"/battery checks on it would be meaningless noise).
+  _isOwnDevice(device) {
+    return !!device && device.ownerUri === `homey:app:${this.homey.manifest.id}`;
+  }
+
   // The homey-api socket does auto-reconnect at the transport level, but that's opaque
   // to us and never replays events missed while disconnected. This periodically (a)
   // makes sure we're actually connected, reconnecting explicitly if not, and (b) always
@@ -151,6 +159,7 @@ class DeviceWatchdogApp extends Homey.App {
   async _reconcileAvailability() {
     const devices = await this.api.devices.getDevices();
     for (const device of Object.values(devices)) {
+      if (this._isOwnDevice(device)) continue;
       this._handleDeviceUpdate(device);
     }
   }
@@ -208,7 +217,7 @@ class DeviceWatchdogApp extends Homey.App {
     const q = (query || '').toLowerCase();
 
     return Object.values(devices)
-      .filter((d) => !q || d.name.toLowerCase().includes(q))
+      .filter((d) => !this._isOwnDevice(d) && (!q || d.name.toLowerCase().includes(q)))
       .map((d) => ({ id: d.id, name: d.name }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
@@ -252,6 +261,7 @@ class DeviceWatchdogApp extends Homey.App {
     this._availabilityMap.clear();
     this._confirmedUnavailable.clear();
     for (const device of Object.values(devices)) {
+      if (this._isOwnDevice(device)) continue;
       const isAvailable = device.available !== false;
       this._availabilityMap.set(device.id, isAvailable);
       if (!isAvailable) {
@@ -275,7 +285,7 @@ class DeviceWatchdogApp extends Homey.App {
   }
 
   _handleDeviceUpdate(device) {
-    if (!device || !device.id) return;
+    if (!device || !device.id || this._isOwnDevice(device)) return;
 
     const wasAvailable = this._availabilityMap.get(device.id);
     const isAvailable = device.available !== false;
@@ -508,6 +518,7 @@ class DeviceWatchdogApp extends Homey.App {
     const appNameMap = await this._getAppNameMap();
 
     return Object.values(devices)
+      .filter((device) => !this._isOwnDevice(device))
       .map((device) => {
         const ownerAppId = device.ownerUri ? device.ownerUri.replace(/^homey:app:/, '') : null;
         return {
@@ -603,13 +614,16 @@ class DeviceWatchdogApp extends Homey.App {
     // event (seen with a Bluetooth-relayed device) then leaves it stale forever, and a
     // "scan" would silently re-check the same stale snapshot. A scan should always see
     // the real current state, so this bypasses that cache explicitly.
-    const devices = await this.api.devices.getDevices({ $cache: false });
+    const rawDevices = await this.api.devices.getDevices({ $cache: false });
     const zones = await this.api.zones.getZones();
     this._zoneMap = Object.fromEntries(Object.values(zones).map((z) => [z.id, z.name]));
 
     // Extra safety net on top of _checkRealtimeConnection: catches a missed transition
     // immediately on every scan instead of waiting for the next healthcheck tick.
-    for (const device of Object.values(devices)) {
+    const devices = {};
+    for (const [id, device] of Object.entries(rawDevices)) {
+      if (this._isOwnDevice(device)) continue;
+      devices[id] = device;
       this._handleDeviceUpdate(device);
     }
 
