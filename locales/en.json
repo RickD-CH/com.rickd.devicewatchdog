@@ -82,6 +82,9 @@
     "excludeFromUnavailable": "Ignore unavailable",
     "excludeFromUnavailableHint": "Only affects the summary trigger, timeline, log, and the virtual device's counter. The per-device Flow trigger still works.",
     "unavailableDelay": "Delay before \"unavailable\" counts",
+    "includeLastSeen": "Count \"last seen\" toward \"not reporting\"",
+    "optionYes": "Yes",
+    "optionNo": "No",
     "detailsButton": "Details",
     "resetButton": "Reset"
   },

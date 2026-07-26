@@ -82,6 +82,9 @@
     "excludeFromUnavailable": "Nicht erreichbar ignorieren",
     "excludeFromUnavailableHint": "Betrifft nur Sammelmeldung, Zeitleiste, Verlauf und den Zähler im virtuellen Gerät. Die Pro-Gerät-Flow-Karte funktioniert weiterhin.",
     "unavailableDelay": "Verzögerung bis \"nicht erreichbar\" zählt",
+    "includeLastSeen": "\"Zuletzt gesehen\" bei \"meldet sich nicht\" mitzählen",
+    "optionYes": "Ja",
+    "optionNo": "Nein",
     "detailsButton": "Details",
     "resetButton": "Zurücksetzen"
   },

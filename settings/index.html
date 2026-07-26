@@ -625,6 +625,7 @@
             notReportingHours: null, batteryThreshold: null,
             excludeBattery: false, onlyCheckBattery: false, excludeAll: false,
             excludeFromUnavailable: false, unavailableDelaySeconds: null,
+            includeLastSeenForReporting: null,
           };
           state.rules.push(rule);
         }
@@ -636,7 +637,7 @@
         if (!rule) return;
         var isEmpty = !rule.excludeAll && rule.notReportingHours == null && rule.batteryThreshold == null
           && !rule.excludeBattery && !rule.onlyCheckBattery && !rule.excludeFromUnavailable
-          && rule.unavailableDelaySeconds == null;
+          && rule.unavailableDelaySeconds == null && rule.includeLastSeenForReporting == null;
         if (isEmpty) state.rules = state.rules.filter(function (r) { return r !== rule; });
       }
 
@@ -737,6 +738,13 @@
               '<option value="d"' + (state.hoursUnit[view.device.id] === 'd' ? ' selected' : '') + '>' + Homey.__('units.days') + '</option>' +
             '</select>' +
           '</div></div>' +
+          '<div class="f"><label>' + Homey.__('advanced.includeLastSeen') + '</label>' +
+            '<select data-field="includeLastSeenForReporting" data-id="' + view.device.id + '">' +
+              '<option value=""' + (r.includeLastSeenForReporting == null ? ' selected' : '') + '>' + placeholderDefault + '</option>' +
+              '<option value="yes"' + (r.includeLastSeenForReporting === true ? ' selected' : '') + '>' + Homey.__('advanced.optionYes') + '</option>' +
+              '<option value="no"' + (r.includeLastSeenForReporting === false ? ' selected' : '') + '>' + Homey.__('advanced.optionNo') + '</option>' +
+            '</select>' +
+          '</div>' +
           '<label class="f chk" title="' + escapeHtml(Homey.__('advanced.excludeFromUnavailableHint')) + '"><input type="checkbox" data-field="excludeFromUnavailable" data-id="' + view.device.id + '"' + (r.excludeFromUnavailable ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeFromUnavailable') + '</label>' +
           '<div class="f"><label>' + Homey.__('advanced.unavailableDelay') + '</label><div class="unit-field">' +
             '<input type="number" min="0" step="any" data-field="unavailableDelaySeconds" data-id="' + view.device.id + '" value="' + secondsToDisplay(r.unavailableDelaySeconds, state.secondsUnit[view.device.id] || 's') + '" placeholder="' + placeholderDefault + '" />' +
@@ -758,7 +766,7 @@
         var r = view.rule;
         return !!(r && (r.notReportingHours != null || r.batteryThreshold != null
           || r.excludeBattery || r.onlyCheckBattery || r.excludeFromUnavailable
-          || r.unavailableDelaySeconds != null));
+          || r.unavailableDelaySeconds != null || r.includeLastSeenForReporting != null));
       }
 
       function availDotHtml(d) {
@@ -1024,6 +1032,7 @@
               rule.onlyCheckBattery = false;
               rule.excludeFromUnavailable = false;
               rule.unavailableDelaySeconds = null;
+              rule.includeLastSeenForReporting = null;
               cleanupDeviceRule(e.target.dataset.id);
               scheduleAutoSave(true);
               renderDevices();
@@ -1073,6 +1082,8 @@
             r[field] = displayToHours(e.target.value, state.hoursUnit[id] || 'h');
           } else if (field === 'unavailableDelaySeconds') {
             r[field] = displayToSeconds(e.target.value, state.secondsUnit[id] || 's');
+          } else if (field === 'includeLastSeenForReporting') {
+            r[field] = e.target.value === '' ? null : e.target.value === 'yes';
           } else {
             r[field] = e.target.value === '' ? null : Number(e.target.value);
           }

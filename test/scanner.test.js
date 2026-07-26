@@ -198,6 +198,37 @@ describe('computeDeviceStatus', () => {
     assert.equal(status.isReporting, false);
   });
 
+  test('a per-device includeLastSeenForReporting override of true wins over a global false', () => {
+    const d = device({
+      capabilitiesObj: { onoff: { value: true, lastUpdated: new Date(Date.now() - 25 * HOUR).toISOString() } },
+      lastSeenAt: new Date(Date.now() - 60000).toISOString(),
+    });
+    const status = scanner.computeDeviceStatus(d, { includeLastSeenForReporting: true }, config);
+    assert.equal(status.isReporting, true);
+  });
+
+  test('a per-device includeLastSeenForReporting override of false wins over a global true', () => {
+    const d = device({
+      capabilitiesObj: { onoff: { value: true, lastUpdated: new Date(Date.now() - 25 * HOUR).toISOString() } },
+      lastSeenAt: new Date(Date.now() - 60000).toISOString(),
+    });
+    const status = scanner.computeDeviceStatus(
+      d, { includeLastSeenForReporting: false }, { ...config, includeLastSeenForReporting: true },
+    );
+    assert.equal(status.isReporting, false);
+  });
+
+  test('a per-device includeLastSeenForReporting of null inherits the global setting', () => {
+    const d = device({
+      capabilitiesObj: { onoff: { value: true, lastUpdated: new Date(Date.now() - 25 * HOUR).toISOString() } },
+      lastSeenAt: new Date(Date.now() - 60000).toISOString(),
+    });
+    const status = scanner.computeDeviceStatus(
+      d, { includeLastSeenForReporting: null }, { ...config, includeLastSeenForReporting: true },
+    );
+    assert.equal(status.isReporting, true);
+  });
+
   test('battery percentage at/below the threshold is flagged low', () => {
     const d = device({ capabilitiesObj: { measure_battery: { value: 30 } } });
     const status = scanner.computeDeviceStatus(d, null, config);

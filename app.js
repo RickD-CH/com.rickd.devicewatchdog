@@ -72,6 +72,13 @@ function nonNegativeNumberOrNull(value) {
   return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
+// Tri-state per-device override for a setting that also has a global default: null
+// means "inherit the global config value", true/false explicitly overrides it.
+function boolOrNull(value) {
+  if (value === null || value === undefined || value === '') return null;
+  return !!value;
+}
+
 function percentOrNull(value) {
   if (value === '' || value === undefined || value === null) return null;
   const n = Number(value);
@@ -473,6 +480,7 @@ class DeviceWatchdogApp extends Homey.App {
         excludeAll: !!rule.excludeAll,
         excludeFromUnavailable: !!rule.excludeFromUnavailable,
         unavailableDelaySeconds: nonNegativeNumberOrNull(rule.unavailableDelaySeconds),
+        includeLastSeenForReporting: boolOrNull(rule.includeLastSeenForReporting),
       }));
       this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
     }
