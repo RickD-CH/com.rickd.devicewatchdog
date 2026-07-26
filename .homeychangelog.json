@@ -27,5 +27,8 @@
   },
   "1.5.1": {
     "en": "minor bugfix"
+  },
+  "1.6.0": {
+    "en": "new setting to include the homey own last seen"
   }
 }
