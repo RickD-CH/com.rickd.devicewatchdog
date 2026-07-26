@@ -30,5 +30,8 @@
   },
   "1.6.0": {
     "en": "new setting to include the homey own last seen"
+  },
+  "1.6.1": {
+    "en": "homey's last seen against not reporting now as individual setting"
   }
 }
