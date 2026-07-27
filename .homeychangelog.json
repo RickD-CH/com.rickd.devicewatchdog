@@ -36,5 +36,8 @@
   },
   "1.7.0": {
     "en": "per-device override for the \"last seen\" setting, a button to apply settings to all devices of the same type at once, and a \"reset to factory settings\" button. Cleaner settings layout, reduced background storage writes."
+  },
+  "1.7.1": {
+    "en": "layout improvements"
   }
 }
