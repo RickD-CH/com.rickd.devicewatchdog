@@ -87,7 +87,7 @@
     "optionNo": "Nein",
     "detailsButton": "Details",
     "resetButton": "Zurücksetzen",
-    "applyToAppButton": "Für alle __app__-Geräte übernehmen (__count__)",
+    "applyToAppButton": "Für __count__ gleichartige Geräte übernehmen",
     "applyToAppQuestion": "Diese Einstellungen auf __count__ Geräte von \"__app__\" anwenden? Bestehende Pro-Gerät-Einstellungen dieser Geräte werden dabei überschrieben.",
     "applyToAppDetailsToggle": "Welche Geräte?",
     "applyToAppConfirmBtn": "Bestätigen",

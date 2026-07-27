@@ -33,5 +33,8 @@
   },
   "1.6.1": {
     "en": "homey's last seen against not reporting now as individual setting"
+  },
+  "1.7.0": {
+    "en": "per-device override for the \"last seen\" setting, a button to apply settings to all devices of the same type at once, and a \"reset to factory settings\" button. Cleaner settings layout, reduced background storage writes."
   }
 }

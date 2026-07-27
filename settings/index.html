@@ -244,6 +244,8 @@
     .device-advanced input[type=number] { width: 90px; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; }
     .device-info { width: 100%; display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 12px; color: var(--color-muted); margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--color-border); }
     .device-info b { color: #212121; font-weight: 600; }
+    .apply-to-app-trigger { width: 100%; }
+    .apply-to-app-trigger .hint { margin: 2px 0 0; }
     .apply-to-app-confirm {
       width: 100%; background: var(--color-card-bg); border: 1px solid var(--color-border);
       border-radius: 6px; padding: 10px 12px; font-size: 12px;
@@ -765,8 +767,12 @@
         var label = appName + ' (' + view.device.driverId + ')';
 
         if (state.applyToAppConfirm !== view.device.id) {
-          return '<button class="btn small link" data-action="apply-to-app-start" data-id="' + view.device.id + '">'
-            + Homey.__('advanced.applyToAppButton', { app: label, count: siblingIds.length }) + '</button>';
+          return '' +
+            '<div class="apply-to-app-trigger">' +
+              '<button class="btn small link" data-action="apply-to-app-start" data-id="' + view.device.id + '">'
+                + Homey.__('advanced.applyToAppButton', { count: siblingIds.length }) + '</button>' +
+              '<p class="hint">' + escapeHtml(label) + '</p>' +
+            '</div>';
         }
 
         var names = siblingIds.map(function (sid) {

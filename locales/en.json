@@ -87,7 +87,7 @@
     "optionNo": "No",
     "detailsButton": "Details",
     "resetButton": "Reset",
-    "applyToAppButton": "Apply to all __app__ devices (__count__)",
+    "applyToAppButton": "Apply to __count__ devices of the same type",
     "applyToAppQuestion": "Apply these settings to __count__ devices of \"__app__\"? This overwrites those devices' existing per-device settings.",
     "applyToAppDetailsToggle": "Which devices?",
     "applyToAppConfirmBtn": "Confirm",
