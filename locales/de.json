@@ -86,7 +86,12 @@
     "optionYes": "Ja",
     "optionNo": "Nein",
     "detailsButton": "Details",
-    "resetButton": "Zurücksetzen"
+    "resetButton": "Zurücksetzen",
+    "applyToAppButton": "Für alle __app__-Geräte übernehmen (__count__)",
+    "applyToAppQuestion": "Diese Einstellungen auf __count__ Geräte von \"__app__\" anwenden? Bestehende Pro-Gerät-Einstellungen dieser Geräte werden dabei überschrieben.",
+    "applyToAppDetailsToggle": "Welche Geräte?",
+    "applyToAppConfirmBtn": "Bestätigen",
+    "applyToAppCancelBtn": "Abbrechen"
   },
   "zone": {
     "none": "Ohne Zone",
@@ -116,6 +121,11 @@
     "vdAlarmLowBattery": "Niedriger Akku einbeziehen",
     "unavailableDelayLabel": "Verzögerung bis \"nicht erreichbar\" zählt",
     "unavailableDelayHint": "0 = sofort. Pro Gerät via \"Details\" überschreibbar. Verzögert Flow-Trigger, Sammelmeldung, Zeitleiste, Verlauf und den Zähler/Alarm im virtuellen Gerät - nicht aber den Live-Status in dieser Oberfläche oder die Bedingungs-Karten.",
+    "resetTitle": "Zurücksetzen",
+    "resetHint": "Setzt alle Einstellungen (Standardwerte + Pro-Gerät-Regeln) auf die Werkseinstellungen zurück. Verlauf und letzter Scan bleiben erhalten.",
+    "resetButton": "Auf Werkseinstellungen zurücksetzen",
+    "resetConfirm": "Wirklich alle Einstellungen und Pro-Gerät-Regeln auf die Werkseinstellungen zurücksetzen? Das kann nicht rückgängig gemacht werden.",
+    "resetFailed": "Zurücksetzen fehlgeschlagen: __error__",
     "displayTitle": "Darstellung",
     "highContrastLabel": "Text-Kontrast erhöhen (Dark Mode)",
     "highContrastHint": "Hellt grauen/gedämpften Text (Hinweise, Zeitstempel, Zusatzinfos) im Dark Mode nochmals auf - hilfreich bei viel Umgebungslicht."

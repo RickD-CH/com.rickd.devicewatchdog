@@ -110,6 +110,8 @@
     }
     .field-row.toggle-row label { margin-bottom: 0; }
     .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    .field-stack .field-row { margin-bottom: 18px; }
+    .field-stack .field-row:last-child { margin-bottom: 4px; }
     /* Labels can wrap to two lines in narrow columns (e.g. long German text) while their
        sibling column's label stays on one line - without this, the inputs below end up
        at different heights. Fix line-height explicitly (rather than relying on the
@@ -242,6 +244,15 @@
     .device-advanced input[type=number] { width: 90px; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; }
     .device-info { width: 100%; display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 12px; color: var(--color-muted); margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--color-border); }
     .device-info b { color: #212121; font-weight: 600; }
+    .apply-to-app-confirm {
+      width: 100%; background: var(--color-card-bg); border: 1px solid var(--color-border);
+      border-radius: 6px; padding: 10px 12px; font-size: 12px;
+    }
+    .apply-to-app-confirm p { margin: 0 0 8px; color: var(--color-text); }
+    .apply-to-app-confirm details { margin-bottom: 8px; }
+    .apply-to-app-confirm summary { cursor: pointer; color: var(--color-muted); }
+    .apply-to-app-list { margin: 6px 0 0; padding-left: 18px; max-height: 160px; overflow-y: auto; }
+    .apply-to-app-actions { display: flex; gap: 8px; }
     /* Log tab */
     .log-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--color-border); }
     .log-list > .log-row:last-child { border-bottom: none; }
@@ -321,7 +332,7 @@
 
     <div class="card">
       <h2 id="h2-thresholds">Standard-Schwellenwerte</h2>
-      <div class="field-grid">
+      <div class="field-stack">
         <div class="field-row">
           <label for="cfg-not-reporting-hours" id="lbl-not-reporting">Stunden ohne Meldung bis "offline"</label>
           <div class="unit-field">
@@ -333,11 +344,13 @@
           </div>
           <p class="hint" id="hint-not-reporting">Pro Gerät via "Details" überschreibbar.</p>
         </div>
-        <div class="field-row toggle-row">
-          <label for="cfg-include-last-seen" id="lbl-include-last-seen">"Zuletzt gesehen" (Homey) bei "meldet sich nicht" mitzählen</label>
-          <label class="switch"><input type="checkbox" id="cfg-include-last-seen" /><span class="slider"></span></label>
+        <div class="field-row">
+          <div class="field-row toggle-row">
+            <label for="cfg-include-last-seen" id="lbl-include-last-seen">"Zuletzt gesehen" (Homey) bei "meldet sich nicht" mitzählen</label>
+            <label class="switch"><input type="checkbox" id="cfg-include-last-seen" /><span class="slider"></span></label>
+          </div>
+          <p class="hint" id="hint-include-last-seen">Manche Geräte (z.B. Zigbee-Router, reine Ereignis-Sensoren) ändern selten einen Wert, sind aber laut Homey trotzdem aktiv verbunden. Aktiviert, zählt das ebenfalls als Lebenszeichen - dadurch werden aber verbundene Geräte mit wirklich festhängenden Daten seltener erkannt.</p>
         </div>
-        <p class="hint" id="hint-include-last-seen">Manche Geräte (z.B. Zigbee-Router, reine Ereignis-Sensoren) ändern selten einen Wert, sind aber laut Homey trotzdem aktiv verbunden. Aktiviert, zählt das ebenfalls als Lebenszeichen - dadurch werden aber verbundene Geräte mit wirklich festhängenden Daten seltener erkannt.</p>
         <div class="field-row">
           <label for="cfg-battery-threshold" id="lbl-battery-threshold">Batteriewarnung ab (%)</label>
           <input type="number" id="cfg-battery-threshold" min="0" max="100" step="1" />
@@ -391,6 +404,12 @@
       </div>
       <p class="hint" id="hint-high-contrast">Hellt grauen/gedämpften Text (Hinweise, Zeitstempel, Zusatzinfos) im Dark Mode nochmals auf - hilfreich bei viel Umgebungslicht.</p>
     </div>
+
+    <div class="card">
+      <h2 id="h2-reset">Zurücksetzen</h2>
+      <p class="hint" id="hint-reset-settings">Setzt alle Einstellungen (Standardwerte + Pro-Gerät-Regeln) auf die Werkseinstellungen zurück. Verlauf und letzter Scan bleiben erhalten.</p>
+      <button class="btn small danger" id="btn-reset-settings">Auf Werkseinstellungen zurücksetzen</button>
+    </div>
   </div>
 
   <!-- ============ TAB: VERLAUF ============ -->
@@ -419,6 +438,7 @@
         hoursUnitGlobal: 'h',
         secondsUnit: {},
         secondsUnitGlobal: 's',
+        applyToAppConfirm: null,
       };
 
       // ---------------------------------------------------------------
@@ -467,6 +487,9 @@
         document.getElementById('h2-display').textContent = Homey.__('settingsTab.displayTitle');
         document.getElementById('lbl-high-contrast').textContent = Homey.__('settingsTab.highContrastLabel');
         document.getElementById('hint-high-contrast').textContent = Homey.__('settingsTab.highContrastHint');
+        document.getElementById('h2-reset').textContent = Homey.__('settingsTab.resetTitle');
+        document.getElementById('hint-reset-settings').textContent = Homey.__('settingsTab.resetHint');
+        document.getElementById('btn-reset-settings').textContent = Homey.__('settingsTab.resetButton');
       }
       applyStaticTranslations();
 
@@ -648,7 +671,7 @@
         var rule = getDeviceRule(device.id);
         var monitored = !(rule && rule.excludeAll);
         var scanEntry = state.lastScan ? state.lastScan.all.find(function (d) { return d.id === device.id; }) : null;
-        var isLowBattery = state.lastScan ? state.lastScan.lowBattery.some(function (d) { return d.id === device.id; }) : false;
+        var isLowBattery = state.lastScan ? state.lastScan.lowBattery.indexOf(device.id) !== -1 : false;
         return { device: device, rule: rule, monitored: monitored, scanEntry: scanEntry, isLowBattery: isLowBattery };
       }
 
@@ -724,6 +747,45 @@
         return '<div class="device-info">' + bits.join('') + '</div>';
       }
 
+      // Other devices of the same device type - same owning app AND same Homey driver,
+      // e.g. every "Shelly Plug S" but not every Shelly device in general (a plug and a
+      // battery-powered door sensor from the same app need very different thresholds).
+      // Used to offer "apply to all" instead of repeating the same override per device.
+      function sameDriverSiblingIds(device) {
+        if (!device.ownerUri || !device.driverId) return [];
+        return state.devices.filter(function (d) {
+          return d.id !== device.id && d.ownerUri === device.ownerUri && d.driverId === device.driverId;
+        }).map(function (d) { return d.id; });
+      }
+
+      function applyToAppButtonHtml(view) {
+        var siblingIds = sameDriverSiblingIds(view.device);
+        if (!siblingIds.length || !hasSpecialRules(view)) return '';
+        var appName = view.device.ownerAppName || (view.device.ownerUri || '').replace(/^homey:app:/, '');
+        var label = appName + ' (' + view.device.driverId + ')';
+
+        if (state.applyToAppConfirm !== view.device.id) {
+          return '<button class="btn small link" data-action="apply-to-app-start" data-id="' + view.device.id + '">'
+            + Homey.__('advanced.applyToAppButton', { app: label, count: siblingIds.length }) + '</button>';
+        }
+
+        var names = siblingIds.map(function (sid) {
+          var sibling = state.devices.find(function (d) { return d.id === sid; });
+          return sibling ? sibling.name : sid;
+        });
+        var list = '<ul class="apply-to-app-list">' + names.map(function (n) { return '<li>' + escapeHtml(n) + '</li>'; }).join('') + '</ul>';
+
+        return '' +
+          '<div class="apply-to-app-confirm">' +
+            '<p>' + Homey.__('advanced.applyToAppQuestion', { app: label, count: siblingIds.length }) + '</p>' +
+            '<details><summary>' + Homey.__('advanced.applyToAppDetailsToggle') + '</summary>' + list + '</details>' +
+            '<div class="apply-to-app-actions">' +
+              '<button class="btn small primary" data-action="apply-to-app-confirm" data-id="' + view.device.id + '">' + Homey.__('advanced.applyToAppConfirmBtn') + '</button>' +
+              '<button class="btn small link" data-action="apply-to-app-cancel" data-id="' + view.device.id + '">' + Homey.__('advanced.applyToAppCancelBtn') + '</button>' +
+            '</div>' +
+          '</div>';
+      }
+
       function deviceAdvancedHtml(view) {
         var r = view.rule || {};
         var placeholderDefault = Homey.__('advanced.placeholderDefault');
@@ -731,6 +793,7 @@
         return '' +
           '<div class="device-advanced' + (isOpen ? ' open' : '') + '" id="adv-' + view.device.id + '">' +
           deviceInfoHtml(view) +
+          applyToAppButtonHtml(view) +
           '<div class="f"><label>' + Homey.__('advanced.hoursUntilOffline') + '</label><div class="unit-field">' +
             '<input type="number" min="0" step="any" data-field="notReportingHours" data-id="' + view.device.id + '" value="' + hoursToDisplay(r.notReportingHours, state.hoursUnit[view.device.id] || 'h') + '" placeholder="' + placeholderDefault + '" />' +
             '<select class="unit-select" data-unit-for="notReportingHours" data-id="' + view.device.id + '">' +
@@ -978,7 +1041,7 @@
             if (state.lastScan) {
               var entry = state.lastScan.all.find(function (se) { return se.id === id; });
               if (entry) entry.status = 'OK';
-              state.lastScan.notReporting = state.lastScan.notReporting.filter(function (se) { return se.id !== id; });
+              state.lastScan.notReporting = state.lastScan.notReporting.filter(function (nid) { return nid !== id; });
             }
             state.log.unshift({ ts: Date.now(), type: 'testSuccess', device: device ? device.name : '', zone: device ? device.zone : '' });
             renderDevices();
@@ -997,6 +1060,47 @@
               btn.title = Homey.__('devices.testHint');
             }, 3000);
           });
+      }
+
+      // Copies the current device's overrides onto every other device of the same type
+      // (same owning app + same driver), instead of repeating the same "Details" edit
+      // per device. Deliberately excludes excludeAll (the monitored on/off toggle) -
+      // that's a more consequential, one-off decision this shouldn't silently flip.
+      // Two-step: "start" shows an inline preview (which devices, expandable), only
+      // "confirm" actually applies it - no native confirm(), so the list stays visible.
+      function startApplyToAppConfirm(id) {
+        state.applyToAppConfirm = id;
+        renderDevices();
+      }
+
+      function cancelApplyToAppConfirm() {
+        state.applyToAppConfirm = null;
+        renderDevices();
+      }
+
+      function confirmApplyToAppSiblings(id) {
+        var device = state.devices.find(function (d) { return d.id === id; });
+        state.applyToAppConfirm = null;
+        if (!device) { renderDevices(); return; }
+
+        var siblingIds = sameDriverSiblingIds(device);
+        var r = getDeviceRule(id) || {};
+
+        siblingIds.forEach(function (siblingId) {
+          var sibling = state.devices.find(function (d) { return d.id === siblingId; });
+          var sr = ensureDeviceRule(siblingId, sibling ? sibling.name : '');
+          sr.notReportingHours = r.notReportingHours != null ? r.notReportingHours : null;
+          sr.batteryThreshold = r.batteryThreshold != null ? r.batteryThreshold : null;
+          sr.excludeBattery = !!r.excludeBattery;
+          sr.onlyCheckBattery = !!r.onlyCheckBattery;
+          sr.excludeFromUnavailable = !!r.excludeFromUnavailable;
+          sr.unavailableDelaySeconds = r.unavailableDelaySeconds != null ? r.unavailableDelaySeconds : null;
+          sr.includeLastSeenForReporting = r.includeLastSeenForReporting != null ? r.includeLastSeenForReporting : null;
+          cleanupDeviceRule(siblingId);
+        });
+
+        scheduleAutoSave(true);
+        renderDevices();
       }
 
       function bindDeviceListEvents(containerId) {
@@ -1037,6 +1141,21 @@
               scheduleAutoSave(true);
               renderDevices();
             }
+          }
+          if (e.target.dataset.action === 'apply-to-app-start') {
+            e.preventDefault();
+            e.stopPropagation();
+            startApplyToAppConfirm(e.target.dataset.id);
+          }
+          if (e.target.dataset.action === 'apply-to-app-cancel') {
+            e.preventDefault();
+            e.stopPropagation();
+            cancelApplyToAppConfirm();
+          }
+          if (e.target.dataset.action === 'apply-to-app-confirm') {
+            e.preventDefault();
+            e.stopPropagation();
+            confirmApplyToAppSiblings(e.target.dataset.id);
           }
         });
 
@@ -1147,6 +1266,25 @@
             renderLog();
           }).catch(function (apiErr) {
             Homey.alert(Homey.__('log.clearFailed', { error: apiErr && apiErr.message ? apiErr.message : apiErr }));
+          }).finally(function () {
+            btn.disabled = false;
+          });
+        });
+      });
+
+      document.getElementById('btn-reset-settings').addEventListener('click', function () {
+        Homey.confirm(Homey.__('settingsTab.resetConfirm'), null, function (err, confirmed) {
+          if (err || !confirmed) return;
+
+          var btn = document.getElementById('btn-reset-settings');
+          btn.disabled = true;
+          apiCall('POST', '/settings/reset', {}).then(function (result) {
+            state.config = result.config;
+            state.rules = result.rules;
+            fillSettingsTab();
+            renderDevices();
+          }).catch(function (apiErr) {
+            Homey.alert(Homey.__('settingsTab.resetFailed', { error: apiErr && apiErr.message ? apiErr.message : apiErr }));
           }).finally(function () {
             btn.disabled = false;
           });

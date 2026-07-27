@@ -86,7 +86,12 @@
     "optionYes": "Yes",
     "optionNo": "No",
     "detailsButton": "Details",
-    "resetButton": "Reset"
+    "resetButton": "Reset",
+    "applyToAppButton": "Apply to all __app__ devices (__count__)",
+    "applyToAppQuestion": "Apply these settings to __count__ devices of \"__app__\"? This overwrites those devices' existing per-device settings.",
+    "applyToAppDetailsToggle": "Which devices?",
+    "applyToAppConfirmBtn": "Confirm",
+    "applyToAppCancelBtn": "Cancel"
   },
   "zone": {
     "none": "No zone",
@@ -116,6 +121,11 @@
     "vdAlarmLowBattery": "Include low battery",
     "unavailableDelayLabel": "Delay before \"unavailable\" counts",
     "unavailableDelayHint": "0 = instant. Overridable per device via \"Details\". Delays the Flow trigger, summary trigger, timeline, log, and the virtual device's counter/alarm - not the live status shown in this UI or the condition cards.",
+    "resetTitle": "Reset",
+    "resetHint": "Resets all settings (defaults + per-device rules) back to factory defaults. Log and last scan are kept.",
+    "resetButton": "Reset to factory settings",
+    "resetConfirm": "Really reset all settings and per-device rules to factory defaults? This cannot be undone.",
+    "resetFailed": "Reset failed: __error__",
     "displayTitle": "Display",
     "highContrastLabel": "Increase text contrast (dark mode)",
     "highContrastHint": "Lightens muted/secondary text (hints, timestamps, extra info) further in dark mode - useful in bright ambient light."

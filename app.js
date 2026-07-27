@@ -104,6 +104,9 @@ class DeviceWatchdogApp extends Homey.App {
     this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
     this.flagState = this.homey.settings.get(SETTINGS_KEY_FLAG_STATE) || { notReporting: [], lowBattery: [] };
     this.lastScan = this.homey.settings.get(SETTINGS_KEY_LAST_SCAN) || null;
+    // Seeded from whatever was already on disk, so the first scan after a restart
+    // doesn't write again if nothing actually changed while the app was down.
+    this._lastPersistedScanSignature = this._scanSignature(this.lastScan);
     this.eventLog = this.homey.settings.get(SETTINGS_KEY_EVENT_LOG) || [];
 
     this._zoneMap = {};
@@ -203,11 +206,11 @@ class DeviceWatchdogApp extends Homey.App {
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
 
     this.homey.flow.getConditionCard('device_is_not_reporting')
-      .registerRunListener(async (args) => (this.lastScan?.notReporting || []).some((d) => d.id === args.device.id))
+      .registerRunListener(async (args) => (this.lastScan?.notReporting || []).includes(args.device.id))
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
 
     this.homey.flow.getConditionCard('device_has_low_battery')
-      .registerRunListener(async (args) => (this.lastScan?.lowBattery || []).some((d) => d.id === args.device.id))
+      .registerRunListener(async (args) => (this.lastScan?.lowBattery || []).includes(args.device.id))
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
   }
 
@@ -450,6 +453,23 @@ class DeviceWatchdogApp extends Homey.App {
     return { config: this.config, rules: this.rules };
   }
 
+  // Comparable "did anything actually change" key for a persisted scan snapshot -
+  // deliberately excludes generatedAt/source, which differ on every single scan
+  // regardless of whether the actual results did.
+  _scanSignature(scan) {
+    if (!scan) return null;
+    return JSON.stringify({
+      all: scan.all, notReporting: scan.notReporting, lowBattery: scan.lowBattery,
+    });
+  }
+
+  // Resets global config and all per-device rules back to defaults - e.g. to get back
+  // to a clean slate while testing. Deliberately leaves the log/last-scan history alone,
+  // those have their own dedicated "clear" controls with different semantics.
+  async resetSettings() {
+    return this.saveConfig({ config: { ...DEFAULT_CONFIG }, rules: [] });
+  }
+
   async saveConfig({ config, rules } = {}) {
     if (config && typeof config === 'object') {
       this.config = {
@@ -639,8 +659,30 @@ class DeviceWatchdogApp extends Homey.App {
       devices, zones, rules: this.rules, config: this.config,
     });
 
-    this.lastScan = { ...result, source };
-    this.homey.settings.set(SETTINGS_KEY_LAST_SCAN, this.lastScan);
+    // Persisted/exposed scan snapshot is intentionally much leaner than `result`:
+    // the Settings UI and condition cards only ever read id/status/battery/lastUpdated
+    // per device and device ids for the not-reporting/low-battery lists - name, zone,
+    // class, availability, and the (fully derivable, unused) `excluded` list would just
+    // be duplicated write volume on every scan for no benefit. `result` itself stays
+    // full for _fireEdgeTriggers below, which does need those fields.
+    this.lastScan = {
+      generatedAt: result.generatedAt,
+      source,
+      all: result.all.map((d) => ({
+        id: d.id, status: d.status, battery: d.battery, lastUpdated: d.lastUpdated,
+      })),
+      notReporting: result.notReporting.map((d) => d.id),
+      lowBattery: result.lowBattery.map((d) => d.id),
+    };
+    // Only actually write to settings storage when the substantive result changed -
+    // the in-memory copy above is always fresh regardless (live consumers, e.g. the
+    // Settings UI's "last scan" timestamp, are unaffected), this only skips redundant
+    // disk writes when a scan finds exactly the same thing as the previous one.
+    const scanSignature = this._scanSignature(this.lastScan);
+    if (scanSignature !== this._lastPersistedScanSignature) {
+      this._lastPersistedScanSignature = scanSignature;
+      this.homey.settings.set(SETTINGS_KEY_LAST_SCAN, this.lastScan);
+    }
 
     await this._updateWatchdogDevice({
       notReportingCount: result.notReporting.length,

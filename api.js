@@ -9,6 +9,10 @@ module.exports = {
     return homey.app.saveConfig(body || {});
   },
 
+  async resetSettings({ homey }) {
+    return homey.app.resetSettings();
+  },
+
   async getStatus({ homey }) {
     return homey.app.getStatus();
   },
