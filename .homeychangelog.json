@@ -39,5 +39,8 @@
   },
   "1.7.1": {
     "en": "layout improvements"
+  },
+  "1.7.2": {
+    "en": "condition card also respects the custom values for delay. Addes checkbox when applying settings to same-type devices, so individual devices can be excluded"
   }
 }
