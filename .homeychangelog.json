@@ -42,5 +42,8 @@
   },
   "1.7.2": {
     "en": "condition card also respects the custom values for delay. Addes checkbox when applying settings to same-type devices, so individual devices can be excluded"
+  },
+  "1.8.0": {
+    "en": "Widget now available"
   }
 }

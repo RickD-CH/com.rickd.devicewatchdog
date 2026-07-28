@@ -1,6 +1,6 @@
 {
   "id": "com.rickd.devicewatchdog",
-  "version": "1.7.2",
+  "version": "1.8.0",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -16,8 +16,30 @@
     "de": "Batterie-, Erreichbarkeits- und Aktualitäts-Überwachung für alle deine Homey-Geräte."
   },
   "tags": {
-    "en": ["battery monitor", "low battery alert", "device offline", "unavailable device", "watchdog", "device health", "zigbee", "z-wave", "sensor battery", "dashboard widget"],
-    "de": ["Batterieüberwachung", "niedriger Akkustand", "Gerät offline", "nicht erreichbar", "Watchdog", "Geräteüberwachung", "Zigbee", "Z-Wave", "Batteriewarnung", "Dashboard Widget"]
+    "en": [
+      "battery monitor",
+      "low battery alert",
+      "device offline",
+      "unavailable device",
+      "watchdog",
+      "device health",
+      "zigbee",
+      "z-wave",
+      "sensor battery",
+      "dashboard widget"
+    ],
+    "de": [
+      "Batterieüberwachung",
+      "niedriger Akkustand",
+      "Gerät offline",
+      "nicht erreichbar",
+      "Watchdog",
+      "Geräteüberwachung",
+      "Zigbee",
+      "Z-Wave",
+      "Batteriewarnung",
+      "Dashboard Widget"
+    ]
   },
   "category": "tools",
   "brandColor": "#2E7D32",
