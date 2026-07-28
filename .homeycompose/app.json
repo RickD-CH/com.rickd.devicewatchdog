@@ -15,6 +15,10 @@
     "en": "Battery, connectivity, and data-freshness monitoring for all your Homey devices.",
     "de": "Batterie-, Erreichbarkeits- und Aktualitäts-Überwachung für alle deine Homey-Geräte."
   },
+  "tags": {
+    "en": ["battery monitor", "low battery alert", "device offline", "unavailable device", "watchdog", "device health", "zigbee", "z-wave", "sensor battery", "dashboard widget"],
+    "de": ["Batterieüberwachung", "niedriger Akkustand", "Gerät offline", "nicht erreichbar", "Watchdog", "Geräteüberwachung", "Zigbee", "Z-Wave", "Batteriewarnung", "Dashboard Widget"]
+  },
   "category": "tools",
   "brandColor": "#2E7D32",
   "permissions": [
