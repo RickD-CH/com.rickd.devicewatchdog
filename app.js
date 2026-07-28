@@ -355,10 +355,11 @@ class DeviceWatchdogApp extends Homey.App {
   }
 
   // Everything a confirmed (grace period elapsed, or delay=0) "unavailable" produces:
-  // the per-device trigger always fires (opt-in - only noisy if the user builds a Flow
+  // excludeAll ("monitored" off) means silent everywhere, full stop. Short of that, the
+  // per-device trigger still always fires (opt-in - only noisy if the user builds a Flow
   // around this specific device); the summary/Timeline/log/count are the automatic,
   // passive outputs a chronically flaky device would otherwise spam repeatedly, so those
-  // additionally respect the "Ignore unavailable" per-device toggle.
+  // additionally respect the narrower "Ignore unavailable" per-device toggle too.
   // `silent` skips the trigger/log/timeline/summary entirely - used when priming at
   // startup confirms a device that was already down before the grace period even
   // started, so app restarts don't re-notify for an already-known, ongoing problem.
@@ -376,9 +377,13 @@ class DeviceWatchdogApp extends Homey.App {
 
     if (!silent) {
       const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
-      this._triggerUnavailable
-        ?.trigger({ device: device.name || '', zone: zoneName || '' }, { deviceId: device.id })
-        .catch((err) => this.error('Trigger device_unavailable fehlgeschlagen:', err));
+      const { rule } = scanner.findRule({ id: device.id }, this.rules);
+
+      if (!rule?.excludeAll) {
+        this._triggerUnavailable
+          ?.trigger({ device: device.name || '', zone: zoneName || '' }, { deviceId: device.id })
+          .catch((err) => this.error('Trigger device_unavailable fehlgeschlagen:', err));
+      }
 
       if (!this._isExcludedFromUnavailable(device.id)) {
         this._recordEvent('unavailable', { device: device.name, zone: zoneName, detail: device.lastSeenAt || null });
