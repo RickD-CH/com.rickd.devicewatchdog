@@ -83,6 +83,8 @@
       { key: 'notReporting', icon: '📡', labelKey: 'widget.notReporting' },
       { key: 'unavailable', icon: '🔌', labelKey: 'widget.unavailable' },
     ];
+    var CATS_BY_KEY = {};
+    CATS.forEach(function (cat) { CATS_BY_KEY[cat.key] = cat; });
 
     // At most one category section open at a time (tap a chip to switch, tap the open
     // one again to close) - reset on every reload, doesn't need to persist across
@@ -110,24 +112,59 @@
       return '';
     }
 
-    function deviceRowHtml(Homey, catKey, entry) {
-      var sinceText = entry.since ? Homey.__('widget.since', { date: new Date(entry.since).toLocaleString() }) : '';
-      var detailText = detailLine(Homey, catKey, entry);
+    // One <div class="detail"> line per category a device is flagged in, e.g. a device
+    // that's both unavailable and not reporting (common - if Homey lost the connection
+    // it's obviously also not sending new data) gets two lines, not two separate rows.
+    function detailLinesHtml(Homey, catEntries) {
+      return catEntries.map(function (ce) {
+        var sinceText = ce.entry.since ? Homey.__('widget.since', { date: new Date(ce.entry.since).toLocaleString() }) : '';
+        var detailText = detailLine(Homey, ce.cat.key, ce.entry);
+        var parts = [ce.cat.icon + ' ' + Homey.__(ce.cat.labelKey)].concat([sinceText, detailText].filter(Boolean));
+        return '<div class="detail">' + parts.join(' · ') + '</div>';
+      }).join('');
+    }
+
+    function deviceRowHtml(Homey, name, zone, catEntries) {
       return '' +
         '<div class="device-row">' +
-          '<span class="name">' + escapeHtml(entry.name) + '</span>' +
-          (entry.zone ? ' <span class="zone">(' + escapeHtml(entry.zone) + ')</span>' : '') +
-          '<div class="detail">' + [sinceText, detailText].filter(Boolean).join(' · ') + '</div>' +
+          '<span class="name">' + escapeHtml(name) + '</span>' +
+          (zone ? ' <span class="zone">(' + escapeHtml(zone) + ')</span>' : '') +
+          detailLinesHtml(Homey, catEntries) +
         '</div>';
     }
 
     function sectionHtml(Homey, cat, count, list) {
-      var rows = list.map(function (entry) { return deviceRowHtml(Homey, cat.key, entry); }).join('');
+      var rows = list.map(function (entry) {
+        return deviceRowHtml(Homey, entry.name, entry.zone, [{ cat: cat, entry: entry }]);
+      }).join('');
       return '' +
         '<div class="section">' +
           '<h4>' + Homey.__(cat.labelKey) + '</h4>' +
           '<div class="device-list">' + rows + '</div>' +
         '</div>';
+    }
+
+    // "Show all" view (no filter): one row per unique device across every category it's
+    // flagged in, instead of one section per category (which would repeat a device that
+    // has e.g. both a low battery and is unavailable).
+    function mergedListHtml(Homey, lists) {
+      var byId = {};
+      var order = [];
+      CATS.forEach(function (cat) {
+        lists[cat.key].forEach(function (entry) {
+          if (!byId[entry.id]) {
+            byId[entry.id] = { name: entry.name, zone: entry.zone, catEntries: [] };
+            order.push(entry.id);
+          }
+          byId[entry.id].catEntries.push({ cat: cat, entry: entry });
+        });
+      });
+      order.sort(function (a, b) { return byId[a].name.localeCompare(byId[b].name); });
+      var rows = order.map(function (id) {
+        var d = byId[id];
+        return deviceRowHtml(Homey, d.name, d.zone, d.catEntries);
+      }).join('');
+      return '<div class="section"><div class="device-list">' + rows + '</div></div>';
     }
 
     function render(Homey, data) {
@@ -151,17 +188,13 @@
 
       var allOk = !counts.lowBattery && !counts.notReporting && !counts.unavailable;
 
-      // No filter tapped (the default on load) shows every non-empty category at once,
-      // so a problem is visible immediately without having to tap anything. Tapping a
-      // chip narrows it down to just that one; tapping it again goes back to "show all"
-      // rather than to nothing.
-      var sectionsHtml = allOk ? '' : CATS
-        .filter(function (cat) {
-          if (!(counts[cat.key] || 0)) return false;
-          return expandedCat ? cat.key === expandedCat : true;
-        })
-        .map(function (cat) { return sectionHtml(Homey, cat, counts[cat.key], lists[cat.key]); })
-        .join('');
+      // No filter tapped (the default on load) shows every affected device at once
+      // (merged/deduplicated - see mergedListHtml), so a problem is visible immediately
+      // without having to tap anything. Tapping a chip narrows it down to just that one
+      // category; tapping it again goes back to "show all" rather than to nothing.
+      var sectionsHtml = allOk ? '' : (expandedCat && (counts[expandedCat] || 0)
+        ? sectionHtml(Homey, CATS_BY_KEY[expandedCat], counts[expandedCat], lists[expandedCat])
+        : mergedListHtml(Homey, lists));
 
       root.innerHTML = '' +
         '<div class="counts">' + chipsHtml + '</div>' +
