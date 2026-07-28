@@ -50,7 +50,10 @@
     }
     @keyframes ww-fade-in { from { opacity: 0; } to { opacity: 1; } }
     .section h4 { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; color: var(--ww-muted); font-weight: 600; }
-    .device-list { max-height: 130px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    /* No internal cap/scroll here on purpose - the widget itself grows to fit the list
+       (see resizeToContent), so someone with many affected devices sees all of them
+       instead of scrolling inside a tiny box. */
+    .device-list { display: flex; flex-direction: column; gap: 6px; max-height: 640px; overflow-y: auto; }
     .device-row { font-size: 12px; line-height: 1.35; }
     .device-row .name { font-weight: 600; }
     .device-row .zone { color: var(--ww-muted); font-weight: 400; }
@@ -196,7 +199,9 @@
 
     function resizeToContent(Homey) {
       var root = document.getElementById('root');
-      var height = Math.min(420, root.scrollHeight + 4);
+      // Sanity ceiling only - guards against a pathological device count producing an
+      // absurdly tall widget, not a normal cap (the list itself has no cap of its own).
+      var height = Math.min(760, root.scrollHeight + 4);
       Homey.setHeight(height);
     }
 
