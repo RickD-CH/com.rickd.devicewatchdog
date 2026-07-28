@@ -646,19 +646,20 @@ class DeviceWatchdogApp extends Homey.App {
     const rawById = Object.fromEntries(rawDevices.map((d) => [d.id, d]));
     const scanById = Object.fromEntries((this.lastScan?.all || []).map((d) => [d.id, d]));
 
+    // Always one entry per flagged id, even if the device vanished from the live list
+    // between the scan/confirmation and now (renamed/removed edge case) - silently
+    // dropping it here would leave the detail list short of what the count promises.
     const buildEntries = (ids, category, extra) => ids
       .map((id) => {
-        const raw = rawById[id];
-        if (!raw) return null;
+        const raw = rawById[id] || null;
         return {
           id,
-          name: raw.name,
-          zone: raw.zone,
+          name: raw ? raw.name : id,
+          zone: raw ? raw.zone : null,
           since: this.problemSince[category][id] || null,
-          ...extra(raw),
+          ...extra(raw, id),
         };
       })
-      .filter(Boolean)
       .sort((a, b) => a.name.localeCompare(b.name));
 
     const notReportingIds = this.lastScan?.notReporting || [];
@@ -666,15 +667,18 @@ class DeviceWatchdogApp extends Homey.App {
     const unavailableIds = Array.from(this._confirmedUnavailable)
       .filter((id) => !this._isExcludedFromUnavailable(id));
 
-    const notReporting = buildEntries(notReportingIds, 'notReporting', (raw) => ({
-      lastUpdated: scanById[raw.id]?.lastUpdated || null,
+    // scanById is keyed from the same scan notReportingIds/lowBatteryIds came from, so
+    // it's looked up by the entry's own id - independent of whether the raw live device
+    // lookup above succeeded.
+    const notReporting = buildEntries(notReportingIds, 'notReporting', (raw, id) => ({
+      lastUpdated: scanById[id]?.lastUpdated || null,
     }));
-    const lowBattery = buildEntries(lowBatteryIds, 'lowBattery', (raw) => ({
-      battery: scanById[raw.id]?.battery || null,
-      batteryValue: scanById[raw.id]?.batteryValue ?? null,
+    const lowBattery = buildEntries(lowBatteryIds, 'lowBattery', (raw, id) => ({
+      battery: scanById[id]?.battery || null,
+      batteryValue: scanById[id]?.batteryValue ?? null,
     }));
     const unavailable = buildEntries(unavailableIds, 'unavailable', (raw) => ({
-      lastSeenAt: raw.lastSeenAt || null,
+      lastSeenAt: raw ? raw.lastSeenAt || null : null,
     }));
 
     const counts = {
