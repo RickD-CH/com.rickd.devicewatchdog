@@ -402,9 +402,14 @@ class DeviceWatchdogApp extends Homey.App {
     this.homey.settings.set(SETTINGS_KEY_PROBLEM_SINCE, this.problemSince);
   }
 
+  // A device with monitoring off entirely (excludeAll, the "monitored" toggle) should
+  // stay silent everywhere, not just for battery/reporting - a device the user turned
+  // monitoring off for is not supposed to trip the watchdog's "unavailable" count
+  // either. excludeFromUnavailable is the narrower opt-in for "keep monitoring
+  // battery/reporting, just not unavailable".
   _isExcludedFromUnavailable(deviceId) {
     const { rule } = scanner.findRule({ id: deviceId }, this.rules);
-    return !!rule?.excludeFromUnavailable;
+    return !!rule?.excludeAll || !!rule?.excludeFromUnavailable;
   }
 
   // Pushes counts to the virtual "Watchdog status" device (drivers/watchdog), if the

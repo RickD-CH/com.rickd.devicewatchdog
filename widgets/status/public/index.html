@@ -151,10 +151,15 @@
 
       var allOk = !counts.lowBattery && !counts.notReporting && !counts.unavailable;
 
-      // Only the one active category (if any, and still non-empty) is shown - an
-      // either/or drill-down, not an additive stack of every tapped category.
+      // No filter tapped (the default on load) shows every non-empty category at once,
+      // so a problem is visible immediately without having to tap anything. Tapping a
+      // chip narrows it down to just that one; tapping it again goes back to "show all"
+      // rather than to nothing.
       var sectionsHtml = allOk ? '' : CATS
-        .filter(function (cat) { return cat.key === expandedCat && (counts[cat.key] || 0) > 0; })
+        .filter(function (cat) {
+          if (!(counts[cat.key] || 0)) return false;
+          return expandedCat ? cat.key === expandedCat : true;
+        })
         .map(function (cat) { return sectionHtml(Homey, cat, counts[cat.key], lists[cat.key]); })
         .join('');
 
@@ -229,9 +234,15 @@
     function onHomeyReady(Homey) {
       document.getElementById('root').innerHTML = '<div class="loading">' + Homey.__('widget.loading') + '</div>';
       Homey.ready({ height: 90 });
-      fetchSummary(Homey);
-      // Widgets aren't pushed updates - only re-fetch on demand (Scan now) or here,
-      // periodically, so a dashboard left open doesn't show stale counts forever.
+      // A real scan on open (not just reading the last cached result) also re-syncs
+      // realtime availability for every device against Homey right now (see
+      // _handleDeviceUpdate in app.js) - catches a stuck "unavailable" that a missed
+      // realtime event left behind, not just stale notReporting/lowBattery numbers.
+      Homey.api('POST', '/scan')
+        .catch(function (err) { console.error(err); })
+        .then(function () { return fetchSummary(Homey); });
+      // Widgets aren't pushed updates - periodic re-fetch (no full scan) so a dashboard
+      // left open doesn't show stale counts forever either.
       refreshTimer = setInterval(function () { fetchSummary(Homey); }, 60000);
     }
   </script>
