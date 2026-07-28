@@ -202,7 +202,7 @@ class DeviceWatchdogApp extends Homey.App {
     this._triggerUnavailableSummary = this.homey.flow.getTriggerCard('devices_unavailable_summary');
 
     this.homey.flow.getConditionCard('device_is_unavailable')
-      .registerRunListener(async (args) => this._availabilityMap.get(args.device.id) === false)
+      .registerRunListener(async (args) => this._confirmedUnavailable.has(args.device.id))
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
 
     this.homey.flow.getConditionCard('device_is_not_reporting')
