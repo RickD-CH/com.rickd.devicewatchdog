@@ -530,6 +530,27 @@
       ]
     }
   ],
+  "widgets": {
+    "status": {
+      "name": {
+        "en": "Watchdog Status",
+        "de": "Watchdog Status"
+      },
+      "height": 90,
+      "api": {
+        "getSummary": {
+          "method": "GET",
+          "path": "/summary"
+        },
+        "runScan": {
+          "method": "POST",
+          "path": "/scan"
+        }
+      },
+      "id": "status",
+      "settings": []
+    }
+  },
   "capabilities": {
     "devices_low_battery_count": {
       "type": "number",

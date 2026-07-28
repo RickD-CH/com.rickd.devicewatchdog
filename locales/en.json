@@ -157,5 +157,19 @@
     "deviceNotFound": "Device not found",
     "noTestableCapability": "No testable capability (onoff/dim) available",
     "noCurrentValue": "No current value available"
+  },
+  "widget": {
+    "title": "Watchdog Status",
+    "lowBattery": "Low battery",
+    "notReporting": "Not reporting",
+    "unavailable": "Unavailable",
+    "since": "Since __date__",
+    "lastUpdated": "Last update: __date__",
+    "lastSeen": "Last seen: __date__",
+    "noProblems": "All devices OK",
+    "loading": "Loading…",
+    "scanNow": "Scan now",
+    "scanning": "Scanning…",
+    "loadFailed": "Loading failed"
   }
 }

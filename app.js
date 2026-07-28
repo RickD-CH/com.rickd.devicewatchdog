@@ -10,6 +10,7 @@ const SETTINGS_KEY_RULES = 'rules';
 const SETTINGS_KEY_FLAG_STATE = 'flagState';
 const SETTINGS_KEY_LAST_SCAN = 'lastScan';
 const SETTINGS_KEY_EVENT_LOG = 'eventLog';
+const SETTINGS_KEY_PROBLEM_SINCE = 'problemSince';
 
 // Capabilities safe to re-set with their own current value as a reachability test:
 // this round-trips to the hardware (so a failure means the device is truly unreachable)
@@ -103,6 +104,11 @@ class DeviceWatchdogApp extends Homey.App {
     this.rules = (this.homey.settings.get(SETTINGS_KEY_RULES) || DEFAULT_RULES).map(migrateRuleToHours);
     this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
     this.flagState = this.homey.settings.get(SETTINGS_KEY_FLAG_STATE) || { notReporting: [], lowBattery: [] };
+    // Since-when each device entered a problem category (widget detail view) - keyed by
+    // device id, cleared once the device leaves that category again. Separate from
+    // flagState (which only needs the current set, not when it started).
+    this.problemSince = this.homey.settings.get(SETTINGS_KEY_PROBLEM_SINCE)
+      || { notReporting: {}, lowBattery: {}, unavailable: {} };
     this.lastScan = this.homey.settings.get(SETTINGS_KEY_LAST_SCAN) || null;
     // Seeded from whatever was already on disk, so the first scan after a restart
     // doesn't write again if nothing actually changed while the app was down.
@@ -283,7 +289,7 @@ class DeviceWatchdogApp extends Homey.App {
         if (delaySeconds > 0) {
           this._scheduleUnavailableConfirmation(device, delaySeconds, true);
         } else {
-          this._confirmedUnavailable.add(device.id);
+          this._confirmUnavailable(device, true);
         }
       }
     }
@@ -316,6 +322,8 @@ class DeviceWatchdogApp extends Homey.App {
       // already confirmed, clear that immediately (good news shouldn't wait either).
       this._cancelPendingUnavailableConfirmation(device.id);
       if (this._confirmedUnavailable.delete(device.id)) {
+        delete this.problemSince.unavailable[device.id];
+        this._persistProblemSince();
         this._updateWatchdogDevice({ unavailableCount: this._countUnavailable() })
           .catch((err) => this.error('Watchdog-Gerät-Update fehlgeschlagen:', err));
       }
@@ -357,6 +365,15 @@ class DeviceWatchdogApp extends Homey.App {
   _confirmUnavailable(device, silent) {
     this._confirmedUnavailable.add(device.id);
 
+    if (!(device.id in this.problemSince.unavailable)) {
+      // Priming an already-down device at startup: lastSeenAt is the last time it was
+      // known good, a better "since" than the moment we merely noticed it on restart.
+      this.problemSince.unavailable[device.id] = (silent && device.lastSeenAt)
+        ? new Date(device.lastSeenAt).getTime()
+        : Date.now();
+      this._persistProblemSince();
+    }
+
     if (!silent) {
       const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
       this._triggerUnavailable
@@ -379,6 +396,10 @@ class DeviceWatchdogApp extends Homey.App {
       if (!this._isExcludedFromUnavailable(deviceId)) count += 1;
     }
     return count;
+  }
+
+  _persistProblemSince() {
+    this.homey.settings.set(SETTINGS_KEY_PROBLEM_SINCE, this.problemSince);
   }
 
   _isExcludedFromUnavailable(deviceId) {
@@ -617,6 +638,67 @@ class DeviceWatchdogApp extends Homey.App {
     };
   }
 
+  // Widget-facing summary: same counts/alarm as the Watchdog status device tile, plus
+  // (unlike that capability-only tile) which devices are actually affected, since when,
+  // and a category-specific detail.
+  async getWidgetSummary() {
+    const rawDevices = await this.getRawDevices();
+    const rawById = Object.fromEntries(rawDevices.map((d) => [d.id, d]));
+    const scanById = Object.fromEntries((this.lastScan?.all || []).map((d) => [d.id, d]));
+
+    const buildEntries = (ids, category, extra) => ids
+      .map((id) => {
+        const raw = rawById[id];
+        if (!raw) return null;
+        return {
+          id,
+          name: raw.name,
+          zone: raw.zone,
+          since: this.problemSince[category][id] || null,
+          ...extra(raw),
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const notReportingIds = this.lastScan?.notReporting || [];
+    const lowBatteryIds = this.lastScan?.lowBattery || [];
+    const unavailableIds = Array.from(this._confirmedUnavailable)
+      .filter((id) => !this._isExcludedFromUnavailable(id));
+
+    const notReporting = buildEntries(notReportingIds, 'notReporting', (raw) => ({
+      lastUpdated: scanById[raw.id]?.lastUpdated || null,
+    }));
+    const lowBattery = buildEntries(lowBatteryIds, 'lowBattery', (raw) => ({
+      battery: scanById[raw.id]?.battery || null,
+      batteryValue: scanById[raw.id]?.batteryValue ?? null,
+    }));
+    const unavailable = buildEntries(unavailableIds, 'unavailable', (raw) => ({
+      lastSeenAt: raw.lastSeenAt || null,
+    }));
+
+    const counts = {
+      notReporting: notReportingIds.length,
+      lowBattery: lowBatteryIds.length,
+      unavailable: unavailableIds.length,
+    };
+
+    // Same formula as WatchdogDevice.updateCounts (drivers/watchdog/device.js), so the
+    // widget's alarm state always matches the paired device tile's.
+    const alarm = (this.config.alarmIncludesNotReporting !== false && counts.notReporting > 0)
+      || (this.config.alarmIncludesUnavailable !== false && counts.unavailable > 0)
+      || (this.config.alarmIncludesLowBattery !== false && counts.lowBattery > 0);
+
+    return {
+      lastScanAt: this.lastScan?.generatedAt || null,
+      counts,
+      alarm,
+      notReporting,
+      lowBattery,
+      unavailable,
+    };
+  }
+
   // ---------------------------------------------------------------------
   // Scanning
   // ---------------------------------------------------------------------
@@ -699,9 +781,22 @@ class DeviceWatchdogApp extends Homey.App {
   async _fireEdgeTriggers(result) {
     const prevNotReporting = new Set(this.flagState.notReporting || []);
     const prevLowBattery = new Set(this.flagState.lowBattery || []);
+    const nowNotReporting = new Set(result.notReporting.map((d) => d.id));
+    const nowLowBattery = new Set(result.lowBattery.map((d) => d.id));
 
     const newlyNotReporting = result.notReporting.filter((d) => !prevNotReporting.has(d.id));
     const newlyLowBattery = result.lowBattery.filter((d) => !prevLowBattery.has(d.id));
+
+    // "Since" bookkeeping for the widget detail view - set when a device newly enters a
+    // category, cleared when it leaves again (independent of the trigger/log logic below).
+    for (const id of prevNotReporting) {
+      if (!nowNotReporting.has(id)) delete this.problemSince.notReporting[id];
+    }
+    for (const id of prevLowBattery) {
+      if (!nowLowBattery.has(id)) delete this.problemSince.lowBattery[id];
+    }
+    for (const device of newlyNotReporting) this.problemSince.notReporting[device.id] = Date.now();
+    for (const device of newlyLowBattery) this.problemSince.lowBattery[device.id] = Date.now();
 
     for (const device of newlyNotReporting) {
       await this._triggerNotReporting
@@ -752,6 +847,7 @@ class DeviceWatchdogApp extends Homey.App {
       lowBattery: result.lowBattery.map((d) => d.id),
     };
     this.homey.settings.set(SETTINGS_KEY_FLAG_STATE, this.flagState);
+    this._persistProblemSince();
   }
 
 }

@@ -157,5 +157,19 @@
     "deviceNotFound": "Gerät nicht gefunden",
     "noTestableCapability": "Keine testbare Capability (onoff/dim) vorhanden",
     "noCurrentValue": "Kein aktueller Wert verfügbar"
+  },
+  "widget": {
+    "title": "Watchdog Status",
+    "lowBattery": "Niedriger Akku",
+    "notReporting": "Meldet sich nicht",
+    "unavailable": "Nicht erreichbar",
+    "since": "Seit __date__",
+    "lastUpdated": "Letztes Update: __date__",
+    "lastSeen": "Zuletzt gesehen: __date__",
+    "noProblems": "Alle Geräte OK",
+    "loading": "Lädt…",
+    "scanNow": "Jetzt scannen",
+    "scanning": "Scanne…",
+    "loadFailed": "Laden fehlgeschlagen"
   }
 }
