@@ -35,12 +35,18 @@
       flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
       padding: 6px 4px; border-radius: 8px; background: var(--ww-chip-bg);
       border: 1px solid transparent; -webkit-tap-highlight-color: transparent;
+      transition: background-color .15s ease, border-color .15s ease;
     }
     .chip.warn { border-color: var(--ww-nok); }
+    .chip.active { background: var(--ww-border); }
     .chip .num { font-size: 17px; font-weight: 700; }
     .chip.warn .num { color: var(--ww-nok); }
     .chip .lbl { font-size: 10px; color: var(--ww-muted); text-align: center; }
-    .section { margin-top: 8px; border-top: 1px solid var(--ww-border); padding-top: 6px; }
+    .section {
+      margin-top: 8px; border-top: 1px solid var(--ww-border); padding-top: 6px;
+      animation: ww-fade-in .15s ease;
+    }
+    @keyframes ww-fade-in { from { opacity: 0; } to { opacity: 1; } }
     .section h4 { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; color: var(--ww-muted); font-weight: 600; }
     .device-list { max-height: 130px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
     .device-row { font-size: 12px; line-height: 1.35; }
@@ -54,6 +60,7 @@
     .scan-btn {
       border: none; background: var(--ww-chip-bg); color: var(--ww-text); border-radius: 6px;
       padding: 5px 10px; font-size: 12px; -webkit-tap-highlight-color: transparent;
+      transition: opacity .15s ease;
     }
     .scan-btn:disabled { opacity: .5; }
     .last-scan { font-size: 10px; color: var(--ww-muted); }
@@ -72,10 +79,14 @@
       { key: 'unavailable', icon: '🔌', labelKey: 'widget.unavailable' },
     ];
 
-    // Which category sections are expanded (tap a chip to toggle) - reset on every
-    // reload, doesn't need to persist across widget instances.
-    var expanded = {};
+    // At most one category section open at a time (tap a chip to switch, tap the open
+    // one again to close) - reset on every reload, doesn't need to persist across
+    // widget instances.
+    var expandedCat = null;
     var refreshTimer = null;
+    // Last rendered summary, so a periodic/scan re-fetch that finds nothing new skips
+    // the DOM rebuild entirely instead of a needless flicker.
+    var lastDataJson = null;
 
     function escapeHtml(str) {
       return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
@@ -125,8 +136,9 @@
 
       var chipsHtml = CATS.map(function (cat) {
         var count = counts[cat.key] || 0;
+        var classes = 'chip' + (count > 0 ? ' warn' : '') + (expandedCat === cat.key ? ' active' : '');
         return '' +
-          '<div class="chip' + (count > 0 ? ' warn' : '') + '" data-cat="' + cat.key + '">' +
+          '<div class="' + classes + '" data-cat="' + cat.key + '">' +
             '<div class="num">' + cat.icon + ' ' + count + '</div>' +
             '<div class="lbl">' + Homey.__(cat.labelKey) + '</div>' +
           '</div>';
@@ -134,8 +146,10 @@
 
       var allOk = !counts.lowBattery && !counts.notReporting && !counts.unavailable;
 
+      // Only the one active category (if any, and still non-empty) is shown - an
+      // either/or drill-down, not an additive stack of every tapped category.
       var sectionsHtml = allOk ? '' : CATS
-        .filter(function (cat) { return (counts[cat.key] || 0) > 0 && expanded[cat.key]; })
+        .filter(function (cat) { return cat.key === expandedCat && (counts[cat.key] || 0) > 0; })
         .map(function (cat) { return sectionHtml(Homey, cat, counts[cat.key], lists[cat.key]); })
         .join('');
 
@@ -153,7 +167,7 @@
           chip.addEventListener('click', function () {
             var cat = chip.getAttribute('data-cat');
             if (!(counts[cat] || 0)) return;
-            expanded[cat] = !expanded[cat];
+            expandedCat = (expandedCat === cat) ? null : cat;
             if (Homey.hapticFeedback) { try { Homey.hapticFeedback(); } catch (err) { /* no-op */ } }
             render(Homey, data);
           });
@@ -168,7 +182,10 @@
           .then(function () { return fetchSummary(Homey); })
           .catch(function (err) { console.error(err); })
           .then(function () {
-            scanBtn.disabled = false;
+            // If the fetch found nothing new, render() never re-ran and this is still
+            // the same button node - reset it directly instead of leaving it stuck.
+            var btn = document.getElementById('scan-btn');
+            if (btn) { btn.disabled = false; btn.textContent = Homey.__('widget.scanNow'); }
           });
       });
 
@@ -188,9 +205,15 @@
 
     function fetchSummary(Homey) {
       return Homey.api('GET', '/summary')
-        .then(function (data) { render(Homey, data); })
+        .then(function (data) {
+          var json = JSON.stringify(data);
+          if (json === lastDataJson) return; // nothing changed - skip the rebuild/flicker
+          lastDataJson = json;
+          render(Homey, data);
+        })
         .catch(function (err) {
           console.error(err);
+          lastDataJson = null;
           showError(Homey);
         });
     }
