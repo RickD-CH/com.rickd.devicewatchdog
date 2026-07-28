@@ -9,8 +9,8 @@
     "de": "[[target_device]] wird nicht erreichbar"
   },
   "hint": {
-    "en": "Fires in realtime for the selected device, directly via Homey's device availability event - independent of the interval scan and the settings toggle for it. For any device instead of one specific one, use \"Devices newly become unavailable\".",
-    "de": "Wird in Echtzeit für das gewählte Gerät über Homeys Geräte-Verfügbarkeits-Event ausgelöst - unabhängig vom Intervall-Scan und dessen Einstellungs-Schalter. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte nicht erreichbar\" verwenden."
+    "en": "Fires in realtime for the selected device, directly via Homey's device availability event - independent of the interval scan. Respects the device's \"monitored\" toggle (off = never fires for it); the narrower \"Ignore unavailable\" toggle doesn't affect this trigger. For any device instead of one specific one, use \"Devices newly become unavailable\".",
+    "de": "Wird in Echtzeit für das gewählte Gerät über Homeys Geräte-Verfügbarkeits-Event ausgelöst - unabhängig vom Intervall-Scan. Berücksichtigt den \"Überwacht\"-Schalter des Geräts (aus = feuert nie dafür); der feinere Schalter \"Nicht erreichbar ignorieren\" hat darauf keinen Einfluss. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte nicht erreichbar\" verwenden."
   },
   "args": [
     {

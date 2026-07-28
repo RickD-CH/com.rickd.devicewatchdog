@@ -80,7 +80,7 @@
     "onlyBattery": "Only check battery",
     "excludeBattery": "Ignore battery",
     "excludeFromUnavailable": "Ignore unavailable",
-    "excludeFromUnavailableHint": "Only affects the summary trigger, timeline, log, and the virtual device's counter. The per-device Flow trigger still works.",
+    "excludeFromUnavailableHint": "Only affects the summary trigger, timeline, log, the virtual device's counter, and the dashboard widget. The per-device Flow trigger and condition still work.",
     "unavailableDelay": "Delay before \"unavailable\" counts",
     "includeLastSeen": "Count \"last seen\" toward \"not reporting\"",
     "optionYes": "Yes",
@@ -159,7 +159,6 @@
     "noCurrentValue": "No current value available"
   },
   "widget": {
-    "title": "Watchdog Status",
     "lowBattery": "Low battery",
     "notReporting": "Not reporting",
     "unavailable": "Unavailable",

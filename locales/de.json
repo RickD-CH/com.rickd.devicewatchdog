@@ -80,7 +80,7 @@
     "onlyBattery": "Nur Batterie prüfen",
     "excludeBattery": "Batterie ignorieren",
     "excludeFromUnavailable": "Nicht erreichbar ignorieren",
-    "excludeFromUnavailableHint": "Betrifft nur Sammelmeldung, Zeitleiste, Verlauf und den Zähler im virtuellen Gerät. Die Pro-Gerät-Flow-Karte funktioniert weiterhin.",
+    "excludeFromUnavailableHint": "Betrifft nur Sammelmeldung, Zeitleiste, Verlauf, den Zähler im virtuellen Gerät und das Dashboard-Widget. Die Pro-Gerät-Flow-Karte und -Bedingung funktionieren weiterhin.",
     "unavailableDelay": "Verzögerung bis \"nicht erreichbar\" zählt",
     "includeLastSeen": "\"Zuletzt gesehen\" bei \"meldet sich nicht\" mitzählen",
     "optionYes": "Ja",
@@ -159,7 +159,6 @@
     "noCurrentValue": "Kein aktueller Wert verfügbar"
   },
   "widget": {
-    "title": "Watchdog Status",
     "lowBattery": "Niedriger Akku",
     "notReporting": "Meldet sich nicht",
     "unavailable": "Nicht erreichbar",

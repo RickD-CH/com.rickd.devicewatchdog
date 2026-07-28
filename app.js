@@ -208,7 +208,8 @@ class DeviceWatchdogApp extends Homey.App {
     this._triggerUnavailableSummary = this.homey.flow.getTriggerCard('devices_unavailable_summary');
 
     this.homey.flow.getConditionCard('device_is_unavailable')
-      .registerRunListener(async (args) => this._confirmedUnavailable.has(args.device.id))
+      .registerRunListener(async (args) => this._confirmedUnavailable.has(args.device.id)
+        && this._isMonitored(args.device.id))
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
 
     this.homey.flow.getConditionCard('device_is_not_reporting')
@@ -293,6 +294,18 @@ class DeviceWatchdogApp extends Homey.App {
         }
       }
     }
+
+    // Prune "since" bookkeeping for anything that recovered while we weren't watching
+    // (API was down, so _handleDeviceUpdate's own recovery cleanup never ran for it) -
+    // otherwise the stale timestamp from that old outage would resurface the next time
+    // this same device goes unavailable again (see _confirmUnavailable's "already
+    // tracked, don't overwrite" guard).
+    for (const id of Object.keys(this.problemSince.unavailable)) {
+      if (!this._confirmedUnavailable.has(id) && !this._pendingUnavailableTimers.has(id)) {
+        delete this.problemSince.unavailable[id];
+      }
+    }
+    this._persistProblemSince();
   }
 
   async _connectRealtime() {
@@ -377,9 +390,8 @@ class DeviceWatchdogApp extends Homey.App {
 
     if (!silent) {
       const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
-      const { rule } = scanner.findRule({ id: device.id }, this.rules);
 
-      if (!rule?.excludeAll) {
+      if (this._isMonitored(device.id)) {
         this._triggerUnavailable
           ?.trigger({ device: device.name || '', zone: zoneName || '' }, { deviceId: device.id })
           .catch((err) => this.error('Trigger device_unavailable fehlgeschlagen:', err));
@@ -407,11 +419,21 @@ class DeviceWatchdogApp extends Homey.App {
     this.homey.settings.set(SETTINGS_KEY_PROBLEM_SINCE, this.problemSince);
   }
 
-  // A device with monitoring off entirely (excludeAll, the "monitored" toggle) should
-  // stay silent everywhere, not just for battery/reporting - a device the user turned
-  // monitoring off for is not supposed to trip the watchdog's "unavailable" count
-  // either. excludeFromUnavailable is the narrower opt-in for "keep monitoring
-  // battery/reporting, just not unavailable".
+  // excludeAll ("monitored" off) - the one condition that should silence a device
+  // absolutely everywhere, including its own opt-in per-device trigger/condition. Used
+  // on its own (not via _isExcludedFromUnavailable) wherever explicit per-device Flow
+  // usage should still work under the narrower "Ignore unavailable" toggle.
+  _isMonitored(deviceId) {
+    const { rule } = scanner.findRule({ id: deviceId }, this.rules);
+    return !rule?.excludeAll;
+  }
+
+  // A device with monitoring off entirely (excludeAll) should stay silent everywhere,
+  // not just for battery/reporting - a device the user turned monitoring off for is not
+  // supposed to trip the watchdog's "unavailable" count either. excludeFromUnavailable
+  // is the narrower opt-in for "keep monitoring battery/reporting, just not unavailable"
+  // - used for the passive/aggregate outputs (count, log, summary, widget), not for
+  // explicit per-device Flow usage (see _isMonitored).
   _isExcludedFromUnavailable(deviceId) {
     const { rule } = scanner.findRule({ id: deviceId }, this.rules);
     return !!rule?.excludeAll || !!rule?.excludeFromUnavailable;

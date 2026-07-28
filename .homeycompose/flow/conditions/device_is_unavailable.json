@@ -9,8 +9,8 @@
     "de": "[[device]] !{{ist nicht erreichbar|ist erreichbar}}"
   },
   "hint": {
-    "en": "Checks a specific device's live availability, as reported directly by Homey - independent of the interval scan.",
-    "de": "Prüft die Live-Erreichbarkeit eines bestimmten Geräts, wie direkt von Homey gemeldet - unabhängig vom Intervall-Scan."
+    "en": "Checks a specific device's live availability, as reported directly by Homey - independent of the interval scan. Always false if the device's \"monitored\" toggle is off.",
+    "de": "Prüft die Live-Erreichbarkeit eines bestimmten Geräts, wie direkt von Homey gemeldet - unabhängig vom Intervall-Scan. Immer falsch, wenn der \"Überwacht\"-Schalter des Geräts aus ist."
   },
   "args": [
     {

@@ -109,32 +109,9 @@
       display: flex; align-items: center; justify-content: space-between; gap: 12px;
     }
     .field-row.toggle-row label { margin-bottom: 0; }
-    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
     .field-stack .field-row { margin-bottom: 18px; }
     .field-stack .field-row:last-child { margin-bottom: 4px; }
-    /* Labels can wrap to two lines in narrow columns (e.g. long German text) while their
-       sibling column's label stays on one line - without this, the inputs below end up
-       at different heights. Fix line-height explicitly (rather than relying on the
-       browser default, which varies) so two reserved lines are always exactly 2.6em. */
-    .field-grid .field-row label { line-height: 1.3; min-height: 2.6em; }
-    @media (max-width: 420px) {
-      .field-grid { grid-template-columns: 1fr; }
-      .field-grid .field-row label { min-height: 0; }
-    }
     .hint { color: var(--color-muted); font-size: 12px; margin: 0 0 14px; line-height: 1.4; }
-    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-    th, td { border-bottom: 1px solid var(--color-border); padding: 6px 6px; text-align: left; vertical-align: middle; }
-    th { color: var(--color-muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: .02em; }
-    td input[type="text"], td input[type="number"], td select {
-      width: 100%;
-      padding: 4px 5px;
-      border: 1px solid var(--color-border);
-      border-radius: 4px;
-      font-size: 12.5px;
-      background: var(--color-input-bg);
-      color: var(--color-text);
-    }
-    td.center, th.center { text-align: center; }
     .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #eee; color: var(--color-muted); white-space: nowrap; }
     .badge.ok { background: #e8f5e9; color: var(--color-ok); }
     .badge.nok { background: #ffebee; color: var(--color-nok); }
@@ -163,8 +140,6 @@
     .stat .num { font-size: 22px; font-weight: 700; }
     .stat .lbl { color: var(--color-muted); font-size: 11.5px; text-transform: uppercase; }
     .empty { color: var(--color-muted); font-style: italic; padding: 8px 4px; }
-    .checkbox-cell { text-align: center; }
-    .checkbox-cell input { width: auto; }
     .search-input, .select-input {
       padding: 7px 10px; border: 1px solid var(--color-border); border-radius: 6px;
       font-size: 13px; min-width: 220px; background: var(--color-input-bg); color: var(--color-text);
@@ -200,7 +175,6 @@
     .zone-group .zone-issue { color: var(--color-nok); font-weight: 600; font-size: 12px; }
     .zone-group .zone-spacer { flex: 1; }
     .zone-group .device-list { border: none; border-radius: 0; }
-    .zone-empty-hint { color: var(--color-muted); font-size: 12px; padding: 4px 2px 10px; }
 
     /* Device class icon */
     .device-class-icon { margin-right: 6px; }
@@ -257,7 +231,7 @@
     .apply-to-app-actions { display: flex; gap: 8px; }
     /* Log tab */
     .log-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--color-border); }
-    .log-list > .log-row:last-child { border-bottom: none; }
+    .device-list > .log-row:last-child { border-bottom: none; }
     .log-row .log-icon { font-size: 16px; }
     .log-row .log-text { flex: 1; min-width: 0; }
     .log-row .log-zone { color: var(--color-muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
@@ -988,11 +962,6 @@
           .map(computeDeviceView)
           .filter(matchesFilter);
 
-        if (state.filterMode === 'unmonitored') {
-          var detailsEl = document.getElementById('unmonitored-details');
-          if (detailsEl) detailsEl.open = true;
-        }
-
         var monitoredViews = views.filter(function (v) { return v.monitored; });
         var unmonitoredViews = views.filter(function (v) { return !v.monitored; });
 
@@ -1007,9 +976,13 @@
         var offline = state.lastScan ? state.lastScan.notReporting.length : 0;
         var lowBatt = state.lastScan ? state.lastScan.lowBattery.length : 0;
         var unmonitoredTotal = state.rules.filter(function (r) { return r.matchType === 'id' && r.excludeAll; }).length;
+        // Must mirror hasSpecialRules exactly (matchesFilter('specialRules') uses that
+        // for the actual filtering) - this only counted 4 of its 7 fields before, which
+        // undercounted relative to what clicking the tile then actually filtered to.
         var specialRulesTotal = state.rules.filter(function (r) {
           return r.matchType === 'id' && !r.excludeAll
-            && (r.notReportingHours != null || r.batteryThreshold != null || r.excludeBattery || r.onlyCheckBattery);
+            && (r.notReportingHours != null || r.batteryThreshold != null || r.excludeBattery || r.onlyCheckBattery
+              || r.excludeFromUnavailable || r.unavailableDelaySeconds != null || r.includeLastSeenForReporting != null);
         }).length;
 
         function statCard(filterKey, num, color, label) {
@@ -1212,8 +1185,19 @@
           var field = e.target.dataset.field;
           if (!field) return;
           var r = ensureDeviceRule(id, e.target.dataset.name || '');
+          var needsRerender = false;
           if (e.target.type === 'checkbox') {
             r[field] = e.target.checked;
+            // Mutually exclusive - combined they'd silently monitor nothing at all:
+            // onlyCheckBattery skips the reporting check, excludeBattery skips the
+            // battery check, leaving neither ever run.
+            if (field === 'onlyCheckBattery' && r.onlyCheckBattery && r.excludeBattery) {
+              r.excludeBattery = false;
+              needsRerender = true;
+            } else if (field === 'excludeBattery' && r.excludeBattery && r.onlyCheckBattery) {
+              r.onlyCheckBattery = false;
+              needsRerender = true;
+            }
           } else if (field === 'notReportingHours') {
             r[field] = displayToHours(e.target.value, state.hoursUnit[id] || 'h');
           } else if (field === 'unavailableDelaySeconds') {
@@ -1225,6 +1209,7 @@
           }
           cleanupDeviceRule(id);
           scheduleAutoSave(true);
+          if (needsRerender) renderDevices();
         });
       }
 
@@ -1358,6 +1343,14 @@
         if (!card) return;
         var key = card.dataset.filter;
         state.filterMode = (key === 'all' || state.filterMode === key) ? null : key;
+        // Only force it open on this deliberate click, not on every subsequent render
+        // while the filter stays active - otherwise a manual collapse (clicking the
+        // <summary>) would get silently undone by the next unrelated re-render (a
+        // search keystroke, sort change, autosave, ...).
+        if (state.filterMode === 'unmonitored') {
+          var detailsEl = document.getElementById('unmonitored-details');
+          if (detailsEl) detailsEl.open = true;
+        }
         renderDevices();
       });
 
