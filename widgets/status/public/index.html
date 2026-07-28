@@ -28,7 +28,7 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 13px; color: var(--ww-text); background: transparent;
-      padding: 10px 12px;
+      padding: 10px 12px 16px;
     }
     .counts { display: flex; gap: 8px; }
     .chip {
@@ -60,11 +60,11 @@
     .device-row .detail { color: var(--ww-muted); font-size: 11px; }
     .footer {
       display: flex; align-items: center; justify-content: space-between;
-      margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--ww-border);
+      margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--ww-border);
     }
     .scan-btn {
-      border: none; background: var(--ww-chip-bg); color: var(--ww-text); border-radius: 6px;
-      padding: 5px 10px; font-size: 12px; -webkit-tap-highlight-color: transparent;
+      border: none; background: var(--ww-chip-bg); color: var(--ww-text); border-radius: 8px;
+      padding: 9px 16px; font-size: 13px; -webkit-tap-highlight-color: transparent;
       transition: opacity .15s ease;
     }
     .scan-btn:disabled { opacity: .5; }
@@ -198,10 +198,11 @@
     }
 
     function resizeToContent(Homey) {
-      var root = document.getElementById('root');
-      // Sanity ceiling only - guards against a pathological device count producing an
-      // absurdly tall widget, not a normal cap (the list itself has no cap of its own).
-      var height = Math.min(760, root.scrollHeight + 4);
+      // Measured on <body>, not #root: body carries its own top/bottom padding which
+      // isn't part of #root's own scrollHeight, and leaving it out here was clipping
+      // that padding (and whatever sits right above it, e.g. the scan button) off the
+      // bottom of the widget.
+      var height = Math.min(760, document.body.scrollHeight + 2);
       Homey.setHeight(height);
     }
 
