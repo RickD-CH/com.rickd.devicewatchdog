@@ -539,7 +539,8 @@
       "connectivity": [],
       "images": {
         "small": "/drivers/watchdog/assets/images/small.png",
-        "large": "/drivers/watchdog/assets/images/large.png"
+        "large": "/drivers/watchdog/assets/images/large.png",
+        "xlarge": "/drivers/watchdog/assets/images/xlarge.png"
       },
       "pair": [
         {
