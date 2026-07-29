@@ -35,7 +35,8 @@
   },
   "stats": {
     "total": "Devices total",
-    "offline": "Offline",
+    "offline": "Not reporting",
+    "unavailable": "Not reachable",
     "lowBattery": "Low battery",
     "unmonitored": "Not monitored",
     "specialRules": "Custom rules"
@@ -47,6 +48,9 @@
     "unreachableHint": "Homey currently can't reach this device (connection lost).",
     "notReporting": "not reporting",
     "notReportingHint": "Device is connected according to Homey, but hasn't sent any new data for a while.",
+    "notReportingThresholdInfo": "Threshold: __hours__h (__source__).",
+    "thresholdCustom": "custom",
+    "thresholdGlobal": "default",
     "battery": "Battery __value__",
     "ok": "ok",
     "noStatus": "no status (filtered)"

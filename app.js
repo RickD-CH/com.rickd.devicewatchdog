@@ -415,6 +415,16 @@ class DeviceWatchdogApp extends Homey.App {
     return count;
   }
 
+  // Settings UI's own "unavailable" stat/badge (used by getWidgetSummary too, indirectly,
+  // via the same _confirmedUnavailable/_isExcludedFromUnavailable) - grace-period-confirmed
+  // and exclusion-filtered, same as the count on the virtual Watchdog device, so the
+  // Settings page can show an accurate "unavailable" count independent of the notReporting
+  // scan threshold instead of only surfacing it when a device happens to be both.
+  getUnavailableStatus() {
+    const ids = Array.from(this._confirmedUnavailable).filter((id) => !this._isExcludedFromUnavailable(id));
+    return { count: ids.length, ids };
+  }
+
   _persistProblemSince() {
     this.homey.settings.set(SETTINGS_KEY_PROBLEM_SINCE, this.problemSince);
   }

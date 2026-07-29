@@ -416,6 +416,10 @@
         secondsUnitGlobal: 's',
         applyToAppConfirm: null,
         applyToAppExcludedIds: {},
+        // Grace-period-confirmed, exclusion-filtered device ids currently "unavailable"
+        // (same data the widget/virtual device use) - independent of the notReporting
+        // scan threshold, see getUnavailableStatus() in app.js.
+        unavailableIds: [],
       };
 
       // ---------------------------------------------------------------
@@ -649,18 +653,45 @@
         var monitored = !(rule && rule.excludeAll);
         var scanEntry = state.lastScan ? state.lastScan.all.find(function (d) { return d.id === device.id; }) : null;
         var isLowBattery = state.lastScan ? state.lastScan.lowBattery.indexOf(device.id) !== -1 : false;
-        return { device: device, rule: rule, monitored: monitored, scanEntry: scanEntry, isLowBattery: isLowBattery };
+        // Grace-period-confirmed live status (see getUnavailableStatus in app.js) - not
+        // the same as the raw device.available flag, which can flicker before the
+        // configured delay elapses.
+        var unavailable = state.unavailableIds.indexOf(device.id) !== -1;
+        return {
+          device: device, rule: rule, monitored: monitored, scanEntry: scanEntry, isLowBattery: isLowBattery, unavailable: unavailable,
+        };
+      }
+
+      // Which threshold actually applies to this device's "not reporting" check right
+      // now - its own override, or the global default - so the badge tooltip can make
+      // that explicit instead of just describing the concept.
+      function effectiveNotReportingHours(view) {
+        if (view.rule && view.rule.notReportingHours != null) {
+          return { hours: view.rule.notReportingHours, individual: true };
+        }
+        return { hours: state.config.notReportingThresholdHours, individual: false };
+      }
+
+      function notReportingHintText(view) {
+        var t = effectiveNotReportingHours(view);
+        return Homey.__('badge.notReportingHint') + ' ' + Homey.__('badge.notReportingThresholdInfo', {
+          hours: t.hours,
+          source: t.individual ? Homey.__('badge.thresholdCustom') : Homey.__('badge.thresholdGlobal'),
+        });
       }
 
       function badgeHtml(view) {
         if (!view.monitored) return '<span class="badge">' + Homey.__('badge.notMonitored') + '</span>';
         if (!state.lastScan) return '<span class="badge">' + Homey.__('badge.noScan') + '</span>';
+        // Independent of the notReporting scan threshold - a device can be unavailable
+        // (live connection lost) well before it would also count as "not reporting"
+        // (e.g. it sent data minutes ago, then dropped off the network).
+        if (view.unavailable) {
+          return '<span class="badge nok" title="' + escapeHtml(Homey.__('badge.unreachableHint')) + '">' + Homey.__('badge.offline') + '</span>';
+        }
         if (view.scanEntry) {
           if (view.scanEntry.status === 'NOK') {
-            if (view.device.available === false) {
-              return '<span class="badge nok" title="' + escapeHtml(Homey.__('badge.unreachableHint')) + '">' + Homey.__('badge.offline') + '</span>';
-            }
-            return '<span class="badge warn" title="' + escapeHtml(Homey.__('badge.notReportingHint')) + '">' + Homey.__('badge.notReporting') + '</span>';
+            return '<span class="badge warn" title="' + escapeHtml(notReportingHintText(view)) + '">' + Homey.__('badge.notReporting') + '</span>';
           }
           if (view.isLowBattery) return '<span class="badge warn">' + Homey.__('badge.battery', { value: escapeHtml(view.scanEntry.battery) }) + '</span>';
           return '<span class="badge ok">' + Homey.__('badge.ok') + '</span>';
@@ -840,6 +871,7 @@
       }
 
       function priority(view) {
+        if (view.unavailable) return 0;
         if (view.scanEntry && view.scanEntry.status === 'NOK') return 0;
         if (view.isLowBattery) return 1;
         if (!view.scanEntry) return 2;
@@ -848,6 +880,7 @@
 
       function matchesFilter(view) {
         switch (state.filterMode) {
+          case 'unavailable': return view.unavailable;
           case 'offline': return !!(view.scanEntry && view.scanEntry.status === 'NOK');
           case 'lowBattery': return view.isLowBattery;
           case 'unmonitored': return !view.monitored;
@@ -974,6 +1007,7 @@
         var grid = document.getElementById('stat-grid');
         var total = state.devices.length;
         var offline = state.lastScan ? state.lastScan.notReporting.length : 0;
+        var unavailableTotal = state.unavailableIds.length;
         var lowBatt = state.lastScan ? state.lastScan.lowBattery.length : 0;
         var unmonitoredTotal = state.rules.filter(function (r) { return r.matchType === 'id' && r.excludeAll; }).length;
         // Must mirror hasSpecialRules exactly (matchesFilter('specialRules') uses that
@@ -995,6 +1029,7 @@
         grid.innerHTML =
           statCard('all', total, null, Homey.__('stats.total')) +
           statCard('offline', offline, 'var(--color-nok)', Homey.__('stats.offline')) +
+          statCard('unavailable', unavailableTotal, 'var(--color-nok)', Homey.__('stats.unavailable')) +
           statCard('lowBattery', lowBatt, 'var(--color-warn)', Homey.__('stats.lowBattery')) +
           statCard('unmonitored', unmonitoredTotal, null, Homey.__('stats.unmonitored')) +
           statCard('specialRules', specialRulesTotal, '#1a73e8', Homey.__('stats.specialRules'));
@@ -1361,9 +1396,11 @@
         Promise.all([
           apiCall('POST', '/scan'),
           apiCall('GET', '/devices/raw'),
+          apiCall('GET', '/devices/unavailable'),
         ]).then(function (results) {
           state.lastScan = results[0];
           state.devices = results[1];
+          state.unavailableIds = results[2].ids;
           renderDevices();
         }).catch(function (err) {
           Homey.alert(Homey.__('devices.scanFailed', { error: err && err.message ? err.message : err }));
@@ -1405,9 +1442,10 @@
           // Gespeicherte Regeln (z.B. "Batterie ignorieren") wirken sich auf den Status aus -
           // ohne frischen Scan wuerde die Liste noch die alten Badges/Filter-Zugehoerigkeiten zeigen.
           setSaveStatus(Homey.__('save.savingRefresh'), false);
-          return apiCall('POST', '/scan');
-        }).then(function (scanResult) {
-          state.lastScan = scanResult;
+          return Promise.all([apiCall('POST', '/scan'), apiCall('GET', '/devices/unavailable')]);
+        }).then(function (results) {
+          state.lastScan = results[0];
+          state.unavailableIds = results[1].ids;
           renderDevices();
           window.scrollTo(0, scrollY);
           setSaveStatus(Homey.__('save.savedAt', { time: new Date().toLocaleTimeString() }), false);
@@ -1431,12 +1469,14 @@
         apiCall('GET', '/status'),
         apiCall('GET', '/devices/raw'),
         apiCall('GET', '/log'),
+        apiCall('GET', '/devices/unavailable'),
       ]).then(function (results) {
         state.config = results[0].config;
         state.rules = results[0].rules;
         state.lastScan = results[1].lastScan;
         state.devices = results[2];
         state.log = results[3];
+        state.unavailableIds = results[4].ids;
 
         fillSettingsTab();
         renderDevices();

@@ -21,6 +21,10 @@ module.exports = {
     return homey.app.getRawDevices();
   },
 
+  async getUnavailableStatus({ homey }) {
+    return homey.app.getUnavailableStatus();
+  },
+
   async runScan({ homey }) {
     return homey.app.runScan('settings-ui');
   },

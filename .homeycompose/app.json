@@ -88,6 +88,10 @@
       "method": "get",
       "path": "/devices/raw"
     },
+    "getUnavailableStatus": {
+      "method": "get",
+      "path": "/devices/unavailable"
+    },
     "runScan": {
       "method": "post",
       "path": "/scan"

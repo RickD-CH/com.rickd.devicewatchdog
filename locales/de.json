@@ -35,7 +35,8 @@
   },
   "stats": {
     "total": "Geräte gesamt",
-    "offline": "Offline",
+    "offline": "Meldet sich nicht",
+    "unavailable": "Nicht erreichbar",
     "lowBattery": "Batterie niedrig",
     "unmonitored": "Nicht überwacht",
     "specialRules": "Sonderregeln"
@@ -47,6 +48,9 @@
     "unreachableHint": "Homey erreicht dieses Gerät derzeit nicht (Verbindung getrennt).",
     "notReporting": "meldet sich nicht",
     "notReportingHint": "Gerät ist laut Homey verbunden, hat aber seit längerem keine neuen Daten mehr gesendet.",
+    "notReportingThresholdInfo": "Grenzwert: __hours__h (__source__).",
+    "thresholdCustom": "individuell",
+    "thresholdGlobal": "Standard",
     "battery": "Batterie __value__",
     "ok": "ok",
     "noStatus": "kein Status (Filter)"
