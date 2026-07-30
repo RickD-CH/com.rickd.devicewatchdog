@@ -57,5 +57,8 @@
   },
   "1.8.4": {
     "en": "Shows the battery type (e.g. AA, CR2032) next to low-battery devices, in both the widget and device details, where the device's app declares it"
+  },
+  "1.8.5": {
+    "en": "Clarified that 'count last seen' only helps a minority of devices - hint text updated to set expectations correctly"
   }
 }
