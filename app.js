@@ -621,6 +621,11 @@ class DeviceWatchdogApp extends Homey.App {
           available: device.available !== false,
           testCapability: TESTABLE_CAPABILITIES.find((id) => (device.capabilities || []).includes(id)) || null,
           hasBattery: BATTERY_CAPABILITIES.some((id) => (device.capabilities || []).includes(id)),
+          // Driver-declared, not computed by Homey - many apps never set this, so it's
+          // frequently null even for a device that clearly has a battery. Raw array (one
+          // entry per physical cell, e.g. ["AA","AA"]) - left unformatted for callers to
+          // group/translate as needed.
+          batteryTypes: device.energy?.batteries || null,
           ownerUri: device.ownerUri || null,
           ownerAppName: ownerAppId ? (appNameMap[ownerAppId] || null) : null,
           driverId: device.driverId || null,
@@ -718,6 +723,7 @@ class DeviceWatchdogApp extends Homey.App {
     const lowBattery = buildEntries(lowBatteryIds, 'lowBattery', (raw, id) => ({
       battery: scanById[id]?.battery || null,
       batteryValue: scanById[id]?.batteryValue ?? null,
+      batteryTypes: raw ? raw.batteryTypes : null,
     }));
     const unavailable = buildEntries(unavailableIds, 'unavailable', (raw) => ({
       lastSeenAt: raw ? raw.lastSeenAt || null : null,

@@ -744,12 +744,27 @@
         return display;
       }
 
+      // Driver-declared battery type(s), e.g. ["AA","AA"] -> "2x AA" - not every app
+      // declares this, so it's frequently absent even for a device with a real battery.
+      function formatBatteryTypes(types) {
+        if (!Array.isArray(types) || !types.length) return '';
+        var counts = {};
+        var order = [];
+        types.forEach(function (t) {
+          if (!counts[t]) { counts[t] = 0; order.push(t); }
+          counts[t] += 1;
+        });
+        return order.map(function (t) { return (counts[t] > 1 ? counts[t] + 'x ' : '') + t; }).join(', ');
+      }
+
       function deviceInfoHtml(view) {
         var d = view.device;
         var bits = ['<span><b>' + Homey.__('info.id') + '</b> ' + escapeHtml(d.id) + '</span>'];
         var conn = connectionLabel(d.ownerUri, d.ownerAppName);
         if (conn) bits.push('<span><b>' + Homey.__('info.managedBy') + '</b> ' + escapeHtml(conn) + '</span>');
         if (d.driverId) bits.push('<span><b>' + Homey.__('info.driver') + '</b> ' + escapeHtml(d.driverId) + '</span>');
+        var batteryTypeLabel = formatBatteryTypes(d.batteryTypes);
+        if (batteryTypeLabel) bits.push('<span><b>' + Homey.__('info.batteryType') + '</b> ' + escapeHtml(batteryTypeLabel) + '</span>');
         if (d.lastSeenAt) bits.push('<span><b>' + Homey.__('info.lastSeen') + '</b> ' + new Date(d.lastSeenAt).toLocaleString() + '</span>');
         bits.push('<span><b>' + Homey.__('info.liveStatus') + '</b> ' + (d.available === false ? Homey.__('info.unavailable') : Homey.__('info.available')) + '</span>');
         return '<div class="device-info">' + bits.join('') + '</div>';

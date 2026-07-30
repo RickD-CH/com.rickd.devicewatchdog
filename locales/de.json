@@ -72,6 +72,7 @@
     "id": "Geräte-ID:",
     "managedBy": "Verwaltet von:",
     "driver": "Treiber:",
+    "batteryType": "Batterietyp:",
     "lastSeen": "Zuletzt gesehen:",
     "liveStatus": "Live-Status (Homey):",
     "available": "erreichbar",

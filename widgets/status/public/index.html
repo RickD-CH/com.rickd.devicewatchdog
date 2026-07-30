@@ -101,8 +101,24 @@
       });
     }
 
+    // Driver-declared battery type(s), e.g. ["AA","AA"] -> "2x AA" - not every app
+    // declares this, so it's frequently absent even for a device with a real battery.
+    function formatBatteryTypes(types) {
+      if (!Array.isArray(types) || !types.length) return '';
+      var counts = {};
+      var order = [];
+      types.forEach(function (t) {
+        if (!counts[t]) { counts[t] = 0; order.push(t); }
+        counts[t] += 1;
+      });
+      return order.map(function (t) { return (counts[t] > 1 ? counts[t] + 'x ' : '') + t; }).join(', ');
+    }
+
     function detailLine(Homey, catKey, entry) {
-      if (catKey === 'lowBattery') return escapeHtml(entry.battery || '');
+      if (catKey === 'lowBattery') {
+        var parts = [entry.battery || '', formatBatteryTypes(entry.batteryTypes)].filter(Boolean);
+        return escapeHtml(parts.join(' · '));
+      }
       if (catKey === 'notReporting' && entry.lastUpdated) {
         return Homey.__('widget.lastUpdated', { date: new Date(entry.lastUpdated).toLocaleString() });
       }
