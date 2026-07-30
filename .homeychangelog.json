@@ -60,5 +60,8 @@
   },
   "1.8.5": {
     "en": "Clarified that 'count last seen' only helps a minority of devices - hint text updated to set expectations correctly"
+  },
+  "1.8.6": {
+    "en": "Widget dark mode fix. Adds 'test device reachability' flow action plus 'test succeeded/failed' triggers and extends the test button to shutters, thermostats and speakers"
   }
 }
