@@ -51,5 +51,11 @@
   },
   "1.8.2": {
     "en": "store review"
+  },
+  "1.8.3": {
+    "en": "\"Settings: \"unavailable\" status now aligned with the widget.\""
+  },
+  "1.8.4": {
+    "en": "Shows the battery type (e.g. AA, CR2032) next to low-battery devices, in both the widget and device details, where the device's app declares it"
   }
 }
