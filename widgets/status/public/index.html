@@ -13,6 +13,12 @@
       --ww-nok: #d32f2f;
       --ww-chip-bg: #f2f2f2;
     }
+    /* prefers-color-scheme reads the OS theme, which isn't necessarily the same as the
+       Homey app's own theme setting - the two can disagree (e.g. phone in light mode,
+       Homey app set to dark), leaving light-mode text colors on Homey's actual dark
+       background. Homey applies its own .homey-dark-mode class based on the app's real
+       theme regardless of OS setting - that's the authoritative signal, kept here
+       alongside the media query as a fallback for contexts that don't set the class. */
     @media (prefers-color-scheme: dark) {
       :root {
         --ww-text: #f2f2f2;
@@ -22,6 +28,14 @@
         --ww-nok: #ef5350;
         --ww-chip-bg: #2a2a2a;
       }
+    }
+    .homey-dark-mode {
+      --ww-text: #f2f2f2;
+      --ww-muted: #a0a0a0;
+      --ww-border: #3a3a3a;
+      --ww-ok: #66bb6a;
+      --ww-nok: #ef5350;
+      --ww-chip-bg: #2a2a2a;
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; }

@@ -14,8 +14,11 @@ const SETTINGS_KEY_PROBLEM_SINCE = 'problemSince';
 
 // Capabilities safe to re-set with their own current value as a reachability test:
 // this round-trips to the hardware (so a failure means the device is truly unreachable)
-// without producing a perceptible state change, unlike toggling on/off for real.
-const TESTABLE_CAPABILITIES = ['onoff', 'dim'];
+// without producing a perceptible state change, unlike toggling on/off for real. Limited
+// to continuous/numeric setpoints - deliberately excludes enum-style capabilities like
+// windowcoverings_state ("up"/"down"/"idle"), where re-sending the current value isn't
+// guaranteed to be a no-op on every driver and could re-trigger real motion.
+const TESTABLE_CAPABILITIES = ['onoff', 'dim', 'windowcoverings_set', 'target_temperature', 'volume_set'];
 
 // Matches the capabilities lib/scanner.js itself treats as battery-relevant (percentage
 // or alarm) - used to hide battery-related settings for devices that have neither.
@@ -199,6 +202,19 @@ class DeviceWatchdogApp extends Homey.App {
     this._triggerUnavailable = this.homey.flow.getTriggerCard('device_unavailable')
       .registerRunListener(this._deviceArgMatches)
       .registerArgumentAutocompleteListener('target_device', this._deviceAutocomplete.bind(this));
+    this._triggerTestSucceeded = this.homey.flow.getTriggerCard('device_test_succeeded')
+      .registerRunListener(this._deviceArgMatches)
+      .registerArgumentAutocompleteListener('target_device', this._deviceAutocomplete.bind(this));
+    this._triggerTestFailed = this.homey.flow.getTriggerCard('device_test_failed')
+      .registerRunListener(this._deviceArgMatches)
+      .registerArgumentAutocompleteListener('target_device', this._deviceAutocomplete.bind(this));
+
+    this.homey.flow.getActionCard('test_device')
+      .registerRunListener(async (args) => {
+        await this.testDevice(args.device.id);
+        return true;
+      })
+      .registerArgumentAutocompleteListener('device', this._testableDeviceAutocomplete.bind(this));
 
     // Summary triggers: fire once per batch (scan, or realtime debounce window) with
     // every newly-affected device bundled into count/devices tokens, so a Flow doesn't
@@ -235,6 +251,22 @@ class DeviceWatchdogApp extends Homey.App {
 
     return Object.values(devices)
       .filter((d) => !this._isOwnDevice(d) && (!q || d.name.toLowerCase().includes(q)))
+      .map((d) => ({ id: d.id, name: d.name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  // Same as _deviceAutocomplete, but only offers devices testDevice() could actually
+  // succeed on - picking anything else from "Test device reachability" would just
+  // always fail with "no testable capability available".
+  async _testableDeviceAutocomplete(query) {
+    await this._ensureApi();
+    const devices = await this.api.devices.getDevices();
+    const q = (query || '').toLowerCase();
+
+    return Object.values(devices)
+      .filter((d) => !this._isOwnDevice(d)
+        && TESTABLE_CAPABILITIES.some((id) => (d.capabilities || []).includes(id))
+        && (!q || d.name.toLowerCase().includes(q)))
       .map((d) => ({ id: d.id, name: d.name }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
@@ -671,9 +703,15 @@ class DeviceWatchdogApp extends Homey.App {
       await device.setCapabilityValue({ capabilityId, value: currentValue });
 
       this._recordEvent('testSuccess', { device: device.name, zone: zoneName });
+      this._triggerTestSucceeded
+        ?.trigger({ device: device.name || '', zone: zoneName || '' }, { deviceId: device.id })
+        .catch((triggerErr) => this.error('Trigger device_test_succeeded fehlgeschlagen:', triggerErr));
       return { ok: true, capabilityId, value: currentValue };
     } catch (err) {
       this._recordEvent('testFailure', { device: device.name, zone: zoneName, detail: err.message });
+      this._triggerTestFailed
+        ?.trigger({ device: device.name || '', zone: zoneName || '', error: err.message || '' }, { deviceId: device.id })
+        .catch((triggerErr) => this.error('Trigger device_test_failed fehlgeschlagen:', triggerErr));
       throw err;
     }
   }

@@ -1,0 +1,43 @@
+{
+  "id": "device_test_failed",
+  "title": {
+    "en": "A device test fails",
+    "de": "Ein Geräte-Test ist fehlgeschlagen"
+  },
+  "titleFormatted": {
+    "en": "[[target_device]]'s reachability test fails",
+    "de": "Erreichbarkeitstest von [[target_device]] ist fehlgeschlagen"
+  },
+  "hint": {
+    "en": "Fires whenever a reachability test for the selected device fails - whether started manually (\"Test\" button in Settings) or via the \"Test device reachability\" action card.",
+    "de": "Wird ausgelöst, wenn ein Erreichbarkeitstest für das gewählte Gerät fehlschlägt - egal ob manuell (\"Testen\"-Button in den Einstellungen) oder über die Aktionskarte \"Geräte-Erreichbarkeit testen\" gestartet."
+  },
+  "args": [
+    {
+      "name": "target_device",
+      "type": "autocomplete",
+      "title": { "en": "Device", "de": "Gerät" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+    }
+  ],
+  "tokens": [
+    {
+      "name": "device",
+      "type": "string",
+      "title": { "en": "Device", "de": "Gerät" },
+      "example": { "en": "Front door lock", "de": "Haustürschloss" }
+    },
+    {
+      "name": "zone",
+      "type": "string",
+      "title": { "en": "Zone", "de": "Zone" },
+      "example": { "en": "Hallway", "de": "Flur" }
+    },
+    {
+      "name": "error",
+      "type": "string",
+      "title": { "en": "Error", "de": "Fehler" },
+      "example": { "en": "No testable capability available", "de": "Keine testbare Capability vorhanden" }
+    }
+  ]
+}

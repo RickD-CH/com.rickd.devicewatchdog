@@ -1,0 +1,37 @@
+{
+  "id": "device_test_succeeded",
+  "title": {
+    "en": "A device test succeeds",
+    "de": "Ein Geräte-Test ist erfolgreich"
+  },
+  "titleFormatted": {
+    "en": "[[target_device]]'s reachability test succeeds",
+    "de": "Erreichbarkeitstest von [[target_device]] ist erfolgreich"
+  },
+  "hint": {
+    "en": "Fires whenever a reachability test for the selected device succeeds - whether started manually (\"Test\" button in Settings) or via the \"Test device reachability\" action card.",
+    "de": "Wird ausgelöst, wenn ein Erreichbarkeitstest für das gewählte Gerät erfolgreich ist - egal ob manuell (\"Testen\"-Button in den Einstellungen) oder über die Aktionskarte \"Geräte-Erreichbarkeit testen\" gestartet."
+  },
+  "args": [
+    {
+      "name": "target_device",
+      "type": "autocomplete",
+      "title": { "en": "Device", "de": "Gerät" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+    }
+  ],
+  "tokens": [
+    {
+      "name": "device",
+      "type": "string",
+      "title": { "en": "Device", "de": "Gerät" },
+      "example": { "en": "Front door lock", "de": "Haustürschloss" }
+    },
+    {
+      "name": "zone",
+      "type": "string",
+      "title": { "en": "Zone", "de": "Zone" },
+      "example": { "en": "Hallway", "de": "Flur" }
+    }
+  ]
+}

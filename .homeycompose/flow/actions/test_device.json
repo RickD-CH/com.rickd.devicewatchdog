@@ -1,0 +1,23 @@
+{
+  "id": "test_device",
+  "title": {
+    "en": "Test device reachability",
+    "de": "Geräte-Erreichbarkeit testen"
+  },
+  "titleFormatted": {
+    "en": "Test [[device]]'s reachability",
+    "de": "Erreichbarkeit von [[device]] testen"
+  },
+  "hint": {
+    "en": "Re-sends the device's current value to itself as a non-intrusive reachability check (same as the \"Test\" button in Settings). Fails - stopping the flow, or following the error path in advanced flows - if the device doesn't support this or doesn't respond. Pair with \"A device test succeeds\"/\"A device test fails\" to branch on the result in a standard flow instead.",
+    "de": "Sendet den aktuellen Wert des Geräts erneut an sich selbst, als nicht-intrusive Erreichbarkeitsprüfung (wie der \"Testen\"-Button in den Einstellungen). Schlägt fehl - und stoppt den Flow bzw. folgt dem Fehler-Pfad in Advanced Flows - falls das Gerät das nicht unterstützt oder nicht antwortet. Für Verzweigung in einem Standard-Flow stattdessen mit \"Ein Geräte-Test ist erfolgreich\"/\"Ein Geräte-Test ist fehlgeschlagen\" kombinieren."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "autocomplete",
+      "title": { "en": "Device", "de": "Gerät" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+    }
+  ]
+}
