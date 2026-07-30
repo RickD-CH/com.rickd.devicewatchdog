@@ -113,7 +113,7 @@
     "notReportingLabel": "Stunden ohne Meldung bis \"offline\"",
     "notReportingHint": "Pro Gerät via \"Details\" überschreibbar.",
     "includeLastSeenLabel": "\"Zuletzt gesehen\" (Homey) bei \"meldet sich nicht\" mitzählen",
-    "includeLastSeenHint": "Manche Geräte (z.B. Zigbee-Router, reine Ereignis-Sensoren) ändern selten einen Wert, sind aber laut Homey trotzdem aktiv verbunden. Aktiviert, zählt das ebenfalls als Lebenszeichen - dadurch werden aber verbundene Geräte mit wirklich festhängenden Daten seltener erkannt.",
+    "includeLastSeenHint": "Zählt Homeys \"zuletzt gesehen\" zusätzlich als Lebenszeichen, nicht nur echte Datenänderungen. Achtung: bei den meisten Geräten bewegt sich \"zuletzt gesehen\" praktisch zeitgleich mit der letzten echten Wertänderung - hier bringt die Einstellung nichts. Sie hilft nur bei der Minderheit von Geräten, deren \"zuletzt gesehen\" unabhängig davon aktualisiert wird. Verbundene Geräte mit wirklich festhängenden Daten werden bei aktivierter Einstellung ausserdem seltener erkannt.",
     "batteryLabel": "Batteriewarnung ab (%)",
     "batteryHint": "Gilt für alle Geräte ohne eigene Regel.",
     "notificationsTitle": "Benachrichtigungen",

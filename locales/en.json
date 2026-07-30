@@ -113,7 +113,7 @@
     "notReportingLabel": "Hours without update until \"offline\"",
     "notReportingHint": "Overridable per device via \"Details\".",
     "includeLastSeenLabel": "Count Homey's \"last seen\" toward \"not reporting\"",
-    "includeLastSeenHint": "Some devices (e.g. Zigbee routers, pure event sensors) rarely change a value but are still actively connected according to Homey. When enabled, that also counts as a sign of life - but a connected device whose data is genuinely stuck will then be detected less often.",
+    "includeLastSeenHint": "Also counts Homey's \"last seen\" as a sign of life, not just real data changes. Heads up: for most devices, \"last seen\" moves in lockstep with the last actual value change anyway, so this often makes no practical difference - it only helps the minority of devices whose \"last seen\" updates independently of that. A connected device whose data is genuinely stuck will also be detected less often with this enabled.",
     "batteryLabel": "Battery warning at (%)",
     "batteryHint": "Applies to all devices without their own rule.",
     "notificationsTitle": "Notifications",
