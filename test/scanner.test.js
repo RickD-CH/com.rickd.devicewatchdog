@@ -275,6 +275,32 @@ describe('computeDeviceStatus', () => {
   });
 });
 
+describe('isRulePaused', () => {
+  test('a future pausedUntil date is paused', () => {
+    const future = new Date(Date.now() + 24 * HOUR).toISOString().slice(0, 10);
+    assert.equal(scanner.isRulePaused({ pausedUntil: future }), true);
+  });
+
+  test('a past pausedUntil date is not paused', () => {
+    const past = new Date(Date.now() - 48 * HOUR).toISOString().slice(0, 10);
+    assert.equal(scanner.isRulePaused({ pausedUntil: past }), false);
+  });
+
+  test('pausedUntil of today (the boundary day) is still paused until end of day', () => {
+    const today = new Date().toISOString().slice(0, 10);
+    assert.equal(scanner.isRulePaused({ pausedUntil: today }), true);
+  });
+
+  test('null/missing pausedUntil is not paused', () => {
+    assert.equal(scanner.isRulePaused({}), false);
+    assert.equal(scanner.isRulePaused(null), false);
+  });
+
+  test('an unparsable pausedUntil is treated as not paused, not thrown', () => {
+    assert.equal(scanner.isRulePaused({ pausedUntil: 'not-a-date' }), false);
+  });
+});
+
 describe('runScan', () => {
   const config = { notReportingThresholdHours: 24, batteryThresholdPercent: 30 };
   const zones = { zoneA: { id: 'zoneA', name: 'Living room' } };
@@ -333,5 +359,43 @@ describe('runScan', () => {
     assert.equal(result.notReporting.length, 0);
     assert.equal(result.excluded.length, 1);
     assert.equal(result.excluded[0].id, 'excludedDev');
+  });
+
+  test('a rule with a future pausedUntil removes the device from every list, like excludeAll', () => {
+    const devices = {
+      pausedDev: device({ id: 'pausedDev', name: 'Paused device' }),
+    };
+    const future = new Date(Date.now() + 24 * HOUR).toISOString().slice(0, 10);
+    const rules = [{
+      id: 'r1', matchType: 'id', matchValue: 'pausedDev', pausedUntil: future,
+    }];
+
+    const result = scanner.runScan({
+      devices, zones, rules, config,
+    });
+
+    assert.equal(result.all.length, 0);
+    assert.equal(result.excluded.length, 1);
+    assert.equal(result.excluded[0].reason, 'paused');
+  });
+
+  test('a rule with a past pausedUntil no longer excludes the device (self-resolving)', () => {
+    const devices = {
+      dev: device({
+        id: 'dev',
+        capabilitiesObj: { onoff: { value: true, lastUpdated: new Date().toISOString() } },
+      }),
+    };
+    const past = new Date(Date.now() - 48 * HOUR).toISOString().slice(0, 10);
+    const rules = [{
+      id: 'r1', matchType: 'id', matchValue: 'dev', pausedUntil: past,
+    }];
+
+    const result = scanner.runScan({
+      devices, zones, rules, config,
+    });
+
+    assert.equal(result.all.length, 1);
+    assert.equal(result.excluded.length, 0);
   });
 });

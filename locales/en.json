@@ -39,6 +39,7 @@
     "unavailable": "Not reachable",
     "lowBattery": "Low battery",
     "unmonitored": "Not monitored",
+    "paused": "Paused",
     "specialRules": "Custom rules"
   },
   "badge": {
@@ -53,7 +54,8 @@
     "thresholdGlobal": "default",
     "battery": "Battery __value__",
     "ok": "ok",
-    "noStatus": "no status (filtered)"
+    "noStatus": "no status (filtered)",
+    "paused": "paused until __date__"
   },
   "meta": {
     "noScanResult": "No scan result yet",
@@ -96,7 +98,11 @@
     "applyToAppQuestion": "Apply these settings to __count__ devices of \"__app__\"? This overwrites those devices' existing per-device settings.",
     "applyToAppDetailsToggle": "Which devices?",
     "applyToAppConfirmBtn": "Confirm",
-    "applyToAppCancelBtn": "Cancel"
+    "applyToAppCancelBtn": "Cancel",
+    "pausedUntil": "Paused until",
+    "pausedUntilHint": "Device is skipped entirely (like \"not monitored\") until this date, then resumes automatically on the next scan.",
+    "clearPauseButton": "Clear pause",
+    "applyToAppIncludePause": "Also apply the pause date"
   },
   "zone": {
     "none": "No zone",

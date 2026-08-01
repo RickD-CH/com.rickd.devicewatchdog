@@ -150,6 +150,7 @@
     .search-input { background: #fff; color: #212121; }
     .select-input { min-width: 150px; }
     .unit-field { display: flex; gap: 6px; align-items: center; }
+    .pause-field { display: flex; gap: 6px; align-items: center; }
     .unit-field input[type=number] { width: 90px; }
     .unit-select { padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-input-bg); color: var(--color-text); font-size: 13px; }
     .search-wrap { position: relative; display: inline-flex; }
@@ -416,6 +417,7 @@
         secondsUnitGlobal: 's',
         applyToAppConfirm: null,
         applyToAppExcludedIds: {},
+        applyToAppIncludePause: true,
         // Grace-period-confirmed, exclusion-filtered device ids currently "unavailable"
         // (same data the widget/virtual device use) - independent of the notReporting
         // scan threshold, see getUnavailableStatus() in app.js.
@@ -519,6 +521,17 @@
         var n = Number(value);
         if (!Number.isFinite(n)) return null;
         return unit === 'm' ? n * 60 : n;
+      }
+
+      // Client-side mirror of lib/scanner.js#isRulePaused - must stay in sync (same
+      // end-of-day boundary), used purely for display (badge/stat/filter), the actual
+      // scan-time exclusion is enforced server-side regardless of this.
+      function isRulePaused(rule) {
+        if (!rule || !rule.pausedUntil) return false;
+        var end = new Date(rule.pausedUntil);
+        if (isNaN(end.getTime())) return false;
+        end.setHours(23, 59, 59, 999);
+        return Date.now() <= end.getTime();
       }
 
       function apiCall(method, path, body) {
@@ -629,7 +642,7 @@
             notReportingHours: null, batteryThreshold: null,
             excludeBattery: false, onlyCheckBattery: false, excludeAll: false,
             excludeFromUnavailable: false, unavailableDelaySeconds: null,
-            includeLastSeenForReporting: null,
+            includeLastSeenForReporting: null, pausedUntil: null,
           };
           state.rules.push(rule);
         }
@@ -641,7 +654,8 @@
         if (!rule) return;
         var isEmpty = !rule.excludeAll && rule.notReportingHours == null && rule.batteryThreshold == null
           && !rule.excludeBattery && !rule.onlyCheckBattery && !rule.excludeFromUnavailable
-          && rule.unavailableDelaySeconds == null && rule.includeLastSeenForReporting == null;
+          && rule.unavailableDelaySeconds == null && rule.includeLastSeenForReporting == null
+          && rule.pausedUntil == null;
         if (isEmpty) state.rules = state.rules.filter(function (r) { return r !== rule; });
       }
 
@@ -650,7 +664,8 @@
       // ---------------------------------------------------------------
       function computeDeviceView(device) {
         var rule = getDeviceRule(device.id);
-        var monitored = !(rule && rule.excludeAll);
+        var paused = isRulePaused(rule);
+        var monitored = !(rule && rule.excludeAll) && !paused;
         var scanEntry = state.lastScan ? state.lastScan.all.find(function (d) { return d.id === device.id; }) : null;
         var isLowBattery = state.lastScan ? state.lastScan.lowBattery.indexOf(device.id) !== -1 : false;
         // Grace-period-confirmed live status (see getUnavailableStatus in app.js) - not
@@ -659,6 +674,7 @@
         var unavailable = state.unavailableIds.indexOf(device.id) !== -1;
         return {
           device: device, rule: rule, monitored: monitored, scanEntry: scanEntry, isLowBattery: isLowBattery, unavailable: unavailable,
+          paused: paused, pauseDate: rule ? rule.pausedUntil : null,
         };
       }
 
@@ -681,7 +697,12 @@
       }
 
       function badgeHtml(view) {
-        if (!view.monitored) return '<span class="badge">' + Homey.__('badge.notMonitored') + '</span>';
+        if (!view.monitored) {
+          if (view.paused) {
+            return '<span class="badge">' + Homey.__('badge.paused', { date: new Date(view.pauseDate).toLocaleDateString() }) + '</span>';
+          }
+          return '<span class="badge">' + Homey.__('badge.notMonitored') + '</span>';
+        }
         if (!state.lastScan) return '<span class="badge">' + Homey.__('badge.noScan') + '</span>';
         // Independent of the notReporting scan threshold - a device can be unavailable
         // (live connection lost) well before it would also count as "not reporting"
@@ -783,7 +804,8 @@
 
       function applyToAppButtonHtml(view) {
         var siblingIds = sameDriverSiblingIds(view.device);
-        if (!siblingIds.length || !hasSpecialRules(view)) return '';
+        var sourceHasPause = !!(view.rule && view.rule.pausedUntil);
+        if (!siblingIds.length || (!hasSpecialRules(view) && !sourceHasPause)) return '';
         var appName = view.device.ownerAppName || (view.device.ownerUri || '').replace(/^homey:app:/, '');
         var label = appName + ' (' + view.device.driverId + ')';
 
@@ -803,10 +825,15 @@
           return '<li><label class="f chk"><input type="checkbox" class="apply-to-app-pick" data-sibling-id="' + sid + '"' + (checked ? ' checked' : '') + ' /> ' + escapeHtml(name) + '</label></li>';
         }).join('') + '</ul>';
 
+        var pauseCheckbox = sourceHasPause
+          ? '<label class="f chk"><input type="checkbox" id="apply-to-app-include-pause"' + (state.applyToAppIncludePause ? ' checked' : '') + ' /> ' + Homey.__('advanced.applyToAppIncludePause') + '</label>'
+          : '';
+
         return '' +
           '<div class="apply-to-app-confirm">' +
             '<p>' + Homey.__('advanced.applyToAppQuestion', { app: label, count: siblingIds.length }) + '</p>' +
             '<details><summary>' + Homey.__('advanced.applyToAppDetailsToggle') + '</summary>' + list + '</details>' +
+            pauseCheckbox +
             '<div class="apply-to-app-actions">' +
               '<button class="btn small primary" data-action="apply-to-app-confirm" data-id="' + view.device.id + '">' + Homey.__('advanced.applyToAppConfirmBtn') + '</button>' +
               '<button class="btn small link" data-action="apply-to-app-cancel" data-id="' + view.device.id + '">' + Homey.__('advanced.applyToAppCancelBtn') + '</button>' +
@@ -822,6 +849,10 @@
           '<div class="device-advanced' + (isOpen ? ' open' : '') + '" id="adv-' + view.device.id + '">' +
           deviceInfoHtml(view) +
           applyToAppButtonHtml(view) +
+          '<div class="f" title="' + escapeHtml(Homey.__('advanced.pausedUntilHint')) + '"><label>' + Homey.__('advanced.pausedUntil') + '</label><div class="pause-field">' +
+            '<input type="date" data-field="pausedUntil" data-id="' + view.device.id + '" value="' + (r.pausedUntil || '') + '" />' +
+            (r.pausedUntil ? '<button class="btn small link" data-action="clear-pause" data-id="' + view.device.id + '">' + Homey.__('advanced.clearPauseButton') + '</button>' : '') +
+          '</div></div>' +
           '<div class="f"><label>' + Homey.__('advanced.hoursUntilOffline') + '</label><div class="unit-field">' +
             '<input type="number" min="0" step="any" data-field="notReportingHours" data-id="' + view.device.id + '" value="' + hoursToDisplay(r.notReportingHours, state.hoursUnit[view.device.id] || 'h') + '" placeholder="' + placeholderDefault + '" />' +
             '<select class="unit-select" data-unit-for="notReportingHours" data-id="' + view.device.id + '">' +
@@ -898,7 +929,11 @@
           case 'unavailable': return view.unavailable;
           case 'offline': return !!(view.scanEntry && view.scanEntry.status === 'NOK');
           case 'lowBattery': return view.isLowBattery;
-          case 'unmonitored': return !view.monitored;
+          // Deliberately excludeAll-only, not "!monitored" - a paused device is also
+          // "!monitored" but has its own separate "paused" tile/filter below, so the two
+          // stay mutually exclusive and match what unmonitoredTotal actually counts.
+          case 'unmonitored': return !!(view.rule && view.rule.excludeAll);
+          case 'paused': return view.paused;
           case 'specialRules': return hasSpecialRules(view);
           default: return true;
         }
@@ -1025,6 +1060,9 @@
         var unavailableTotal = state.unavailableIds.length;
         var lowBatt = state.lastScan ? state.lastScan.lowBattery.length : 0;
         var unmonitoredTotal = state.rules.filter(function (r) { return r.matchType === 'id' && r.excludeAll; }).length;
+        // Must mirror matchesFilter('paused') (i.e. isRulePaused) exactly, same
+        // "tile count and click-filter must agree" requirement as the other tiles.
+        var pausedTotal = state.rules.filter(function (r) { return r.matchType === 'id' && isRulePaused(r); }).length;
         // Must mirror hasSpecialRules exactly (matchesFilter('specialRules') uses that
         // for the actual filtering) - this only counted 4 of its 7 fields before, which
         // undercounted relative to what clicking the tile then actually filtered to.
@@ -1047,6 +1085,7 @@
           statCard('unavailable', unavailableTotal, 'var(--color-nok)', Homey.__('stats.unavailable')) +
           statCard('lowBattery', lowBatt, 'var(--color-warn)', Homey.__('stats.lowBattery')) +
           statCard('unmonitored', unmonitoredTotal, null, Homey.__('stats.unmonitored')) +
+          statCard('paused', pausedTotal, null, Homey.__('stats.paused')) +
           statCard('specialRules', specialRulesTotal, '#1a73e8', Homey.__('stats.specialRules'));
 
         var info = document.getElementById('last-scan-info');
@@ -1102,12 +1141,14 @@
       function startApplyToAppConfirm(id) {
         state.applyToAppConfirm = id;
         state.applyToAppExcludedIds = {};
+        state.applyToAppIncludePause = true;
         renderDevices();
       }
 
       function cancelApplyToAppConfirm() {
         state.applyToAppConfirm = null;
         state.applyToAppExcludedIds = {};
+        state.applyToAppIncludePause = true;
         renderDevices();
       }
 
@@ -1118,6 +1159,7 @@
 
         var siblingIds = sameDriverSiblingIds(device).filter(function (sid) { return !state.applyToAppExcludedIds[sid]; });
         var r = getDeviceRule(id) || {};
+        var includePause = state.applyToAppIncludePause;
 
         siblingIds.forEach(function (siblingId) {
           var sibling = state.devices.find(function (d) { return d.id === siblingId; });
@@ -1129,6 +1171,11 @@
           sr.excludeFromUnavailable = !!r.excludeFromUnavailable;
           sr.unavailableDelaySeconds = r.unavailableDelaySeconds != null ? r.unavailableDelaySeconds : null;
           sr.includeLastSeenForReporting = r.includeLastSeenForReporting != null ? r.includeLastSeenForReporting : null;
+          // Deliberately not unconditional like the fields above - a sibling's existing
+          // pause is left untouched unless the user opted in via the extra checkbox.
+          if (includePause && r.pausedUntil != null) {
+            sr.pausedUntil = r.pausedUntil;
+          }
           cleanupDeviceRule(siblingId);
         });
 
@@ -1175,6 +1222,17 @@
               renderDevices();
             }
           }
+          if (e.target.dataset.action === 'clear-pause') {
+            e.preventDefault();
+            e.stopPropagation();
+            var pausedRule = getDeviceRule(e.target.dataset.id);
+            if (pausedRule) {
+              pausedRule.pausedUntil = null;
+              cleanupDeviceRule(e.target.dataset.id);
+              scheduleAutoSave(true);
+              renderDevices();
+            }
+          }
           if (e.target.dataset.action === 'apply-to-app-start') {
             e.preventDefault();
             e.stopPropagation();
@@ -1197,6 +1255,11 @@
             var sid = e.target.dataset.siblingId;
             if (e.target.checked) delete state.applyToAppExcludedIds[sid];
             else state.applyToAppExcludedIds[sid] = true;
+            return;
+          }
+
+          if (e.target.id === 'apply-to-app-include-pause') {
+            state.applyToAppIncludePause = e.target.checked;
             return;
           }
 
@@ -1223,6 +1286,10 @@
           if (e.target.classList.contains('monitor-toggle')) {
             var rule = ensureDeviceRule(id, e.target.dataset.name);
             rule.excludeAll = !e.target.checked;
+            // Resuming via this switch also cancels any pending pause - otherwise the
+            // switch would visually snap back to "off" on the next render because the
+            // pause is still active, which reads as a bug rather than two separate states.
+            if (e.target.checked) rule.pausedUntil = null;
             cleanupDeviceRule(id);
             // 'change' (not 'input') only fires once a value is committed (on blur/Enter
             // for text/number fields, immediately for checkboxes) - already a natural
@@ -1254,6 +1321,9 @@
             r[field] = displayToSeconds(e.target.value, state.secondsUnit[id] || 's');
           } else if (field === 'includeLastSeenForReporting') {
             r[field] = e.target.value === '' ? null : e.target.value === 'yes';
+          } else if (field === 'pausedUntil') {
+            r[field] = e.target.value === '' ? null : e.target.value;
+            needsRerender = true; // clear/set toggles the inline "Clear pause" button's visibility
           } else {
             r[field] = e.target.value === '' ? null : Number(e.target.value);
           }

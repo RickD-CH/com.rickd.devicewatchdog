@@ -39,6 +39,7 @@
     "unavailable": "Nicht erreichbar",
     "lowBattery": "Batterie niedrig",
     "unmonitored": "Nicht überwacht",
+    "paused": "Pausiert",
     "specialRules": "Sonderregeln"
   },
   "badge": {
@@ -53,7 +54,8 @@
     "thresholdGlobal": "Standard",
     "battery": "Batterie __value__",
     "ok": "ok",
-    "noStatus": "kein Status (Filter)"
+    "noStatus": "kein Status (Filter)",
+    "paused": "pausiert bis __date__"
   },
   "meta": {
     "noScanResult": "Noch kein Scan-Ergebnis",
@@ -96,7 +98,11 @@
     "applyToAppQuestion": "Diese Einstellungen auf __count__ Geräte von \"__app__\" anwenden? Bestehende Pro-Gerät-Einstellungen dieser Geräte werden dabei überschrieben.",
     "applyToAppDetailsToggle": "Welche Geräte?",
     "applyToAppConfirmBtn": "Bestätigen",
-    "applyToAppCancelBtn": "Abbrechen"
+    "applyToAppCancelBtn": "Abbrechen",
+    "pausedUntil": "Pausiert bis",
+    "pausedUntilHint": "Gerät wird komplett übersprungen (wie \"nicht überwacht\") bis zu diesem Datum, danach automatisch beim nächsten Scan wieder aktiv.",
+    "clearPauseButton": "Pause aufheben",
+    "applyToAppIncludePause": "Pause-Datum auch übernehmen"
   },
   "zone": {
     "none": "Ohne Zone",

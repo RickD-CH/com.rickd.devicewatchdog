@@ -90,6 +90,16 @@ function percentOrNull(value) {
   return Math.min(100, Math.max(0, n));
 }
 
+// From <input type="date">: "YYYY-MM-DD" or nothing. Anything else (including
+// garbage from a direct API call bypassing the Settings UI) is treated as "no
+// pause" rather than corrupting the scan loop with an unparsable date.
+function isoDateOrNull(value) {
+  if (value === '' || value === undefined || value === null) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : value;
+}
+
 // One-time migration: the per-device override used to be "days until offline"
 // (notReportingDays), now it's hours (notReportingHours) to match the base threshold.
 function migrateRuleToHours(rule) {
@@ -461,24 +471,25 @@ class DeviceWatchdogApp extends Homey.App {
     this.homey.settings.set(SETTINGS_KEY_PROBLEM_SINCE, this.problemSince);
   }
 
-  // excludeAll ("monitored" off) - the one condition that should silence a device
-  // absolutely everywhere, including its own opt-in per-device trigger/condition. Used
-  // on its own (not via _isExcludedFromUnavailable) wherever explicit per-device Flow
-  // usage should still work under the narrower "Ignore unavailable" toggle.
+  // excludeAll ("monitored" off) or an active seasonal pause - the conditions that
+  // should silence a device absolutely everywhere, including its own opt-in per-device
+  // trigger/condition. Used on its own (not via _isExcludedFromUnavailable) wherever
+  // explicit per-device Flow usage should still work under the narrower "Ignore
+  // unavailable" toggle.
   _isMonitored(deviceId) {
     const { rule } = scanner.findRule({ id: deviceId }, this.rules);
-    return !rule?.excludeAll;
+    return !rule?.excludeAll && !scanner.isRulePaused(rule);
   }
 
-  // A device with monitoring off entirely (excludeAll) should stay silent everywhere,
-  // not just for battery/reporting - a device the user turned monitoring off for is not
-  // supposed to trip the watchdog's "unavailable" count either. excludeFromUnavailable
-  // is the narrower opt-in for "keep monitoring battery/reporting, just not unavailable"
-  // - used for the passive/aggregate outputs (count, log, summary, widget), not for
-  // explicit per-device Flow usage (see _isMonitored).
+  // A device with monitoring off entirely (excludeAll) or currently paused should stay
+  // silent everywhere, not just for battery/reporting - not supposed to trip the
+  // watchdog's "unavailable" count either. excludeFromUnavailable is the narrower opt-in
+  // for "keep monitoring battery/reporting, just not unavailable" - used for the
+  // passive/aggregate outputs (count, log, summary, widget), not for explicit per-device
+  // Flow usage (see _isMonitored).
   _isExcludedFromUnavailable(deviceId) {
     const { rule } = scanner.findRule({ id: deviceId }, this.rules);
-    return !!rule?.excludeAll || !!rule?.excludeFromUnavailable;
+    return !!rule?.excludeAll || !!rule?.excludeFromUnavailable || scanner.isRulePaused(rule);
   }
 
   // Pushes counts to the virtual "Watchdog status" device (drivers/watchdog), if the
@@ -596,6 +607,7 @@ class DeviceWatchdogApp extends Homey.App {
         excludeFromUnavailable: !!rule.excludeFromUnavailable,
         unavailableDelaySeconds: nonNegativeNumberOrNull(rule.unavailableDelaySeconds),
         includeLastSeenForReporting: boolOrNull(rule.includeLastSeenForReporting),
+        pausedUntil: isoDateOrNull(rule.pausedUntil),
       }));
       this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
     }
