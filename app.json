@@ -598,6 +598,35 @@
         ]
       },
       {
+        "id": "device_is_paused",
+        "title": {
+          "en": "!{{Device is|Device isn't}} paused",
+          "de": "!{{Gerät ist pausiert|Gerät ist nicht pausiert}}"
+        },
+        "titleFormatted": {
+          "en": "[[device]] !{{is|isn't}} paused",
+          "de": "[[device]] !{{ist pausiert|ist nicht pausiert}}"
+        },
+        "hint": {
+          "en": "Checks whether a specific device currently has an active seasonal pause (set under its Details, or via the \"Pause device until date\" action).",
+          "de": "Prüft, ob ein bestimmtes Gerät aktuell eine laufende Pause hat (gesetzt über dessen Details, oder über die Aktion \"Gerät bis Datum pausieren\")."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "autocomplete",
+            "title": {
+              "en": "Device",
+              "de": "Gerät"
+            },
+            "placeholder": {
+              "en": "Choose a device",
+              "de": "Gerät wählen"
+            }
+          }
+        ]
+      },
+      {
         "id": "device_is_unavailable",
         "title": {
           "en": "!{{Device is|Device isn't}} unavailable",
@@ -628,6 +657,72 @@
       }
     ],
     "actions": [
+      {
+        "id": "pause_device",
+        "title": {
+          "en": "Pause device until date",
+          "de": "Gerät bis Datum pausieren"
+        },
+        "titleFormatted": {
+          "en": "Pause [[device]] until [[date]]",
+          "de": "[[device]] bis [[date]] pausieren"
+        },
+        "hint": {
+          "en": "Skips the device entirely (like the \"monitored\" toggle turned off) until the given date, then it resumes automatically on the next scan. Same effect as setting \"Paused until\" under the device's Details.",
+          "de": "Überspringt das Gerät komplett (wie beim ausgeschalteten \"Überwacht\"-Schalter) bis zum angegebenen Datum, danach wird es beim nächsten Scan automatisch wieder aktiv. Gleicher Effekt wie \"Pausiert bis\" in den Geräte-Details."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "autocomplete",
+            "title": {
+              "en": "Device",
+              "de": "Gerät"
+            },
+            "placeholder": {
+              "en": "Choose a device",
+              "de": "Gerät wählen"
+            }
+          },
+          {
+            "name": "date",
+            "type": "date",
+            "title": {
+              "en": "Paused until",
+              "de": "Pausiert bis"
+            }
+          }
+        ]
+      },
+      {
+        "id": "resume_device",
+        "title": {
+          "en": "Resume device (clear pause)",
+          "de": "Gerät fortsetzen (Pause aufheben)"
+        },
+        "titleFormatted": {
+          "en": "Resume [[device]] (clear pause)",
+          "de": "[[device]] fortsetzen (Pause aufheben)"
+        },
+        "hint": {
+          "en": "Clears an active seasonal pause early, so the device is monitored again right away instead of waiting for the pause date. Does nothing if the device isn't currently paused.",
+          "de": "Hebt eine laufende Pause vorzeitig auf, sodass das Gerät sofort wieder überwacht wird, statt bis zum Pause-Datum zu warten. Ohne Effekt, falls das Gerät gerade nicht pausiert ist."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "autocomplete",
+            "title": {
+              "en": "Device",
+              "de": "Gerät"
+            },
+            "placeholder": {
+              "en": "Choose a device",
+              "de": "Gerät wählen"
+            }
+          }
+        ]
+      },
       {
         "id": "run_scan",
         "title": {

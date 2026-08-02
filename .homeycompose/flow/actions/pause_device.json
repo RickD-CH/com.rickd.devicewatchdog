@@ -1,0 +1,28 @@
+{
+  "id": "pause_device",
+  "title": {
+    "en": "Pause device until date",
+    "de": "Gerät bis Datum pausieren"
+  },
+  "titleFormatted": {
+    "en": "Pause [[device]] until [[date]]",
+    "de": "[[device]] bis [[date]] pausieren"
+  },
+  "hint": {
+    "en": "Skips the device entirely (like the \"monitored\" toggle turned off) until the given date, then it resumes automatically on the next scan. Same effect as setting \"Paused until\" under the device's Details.",
+    "de": "Überspringt das Gerät komplett (wie beim ausgeschalteten \"Überwacht\"-Schalter) bis zum angegebenen Datum, danach wird es beim nächsten Scan automatisch wieder aktiv. Gleicher Effekt wie \"Pausiert bis\" in den Geräte-Details."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "autocomplete",
+      "title": { "en": "Device", "de": "Gerät" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+    },
+    {
+      "name": "date",
+      "type": "date",
+      "title": { "en": "Paused until", "de": "Pausiert bis" }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "device_is_paused",
+  "title": {
+    "en": "!{{Device is|Device isn't}} paused",
+    "de": "!{{Gerät ist pausiert|Gerät ist nicht pausiert}}"
+  },
+  "titleFormatted": {
+    "en": "[[device]] !{{is|isn't}} paused",
+    "de": "[[device]] !{{ist pausiert|ist nicht pausiert}}"
+  },
+  "hint": {
+    "en": "Checks whether a specific device currently has an active seasonal pause (set under its Details, or via the \"Pause device until date\" action).",
+    "de": "Prüft, ob ein bestimmtes Gerät aktuell eine laufende Pause hat (gesetzt über dessen Details, oder über die Aktion \"Gerät bis Datum pausieren\")."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "autocomplete",
+      "title": { "en": "Device", "de": "Gerät" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "resume_device",
+  "title": {
+    "en": "Resume device (clear pause)",
+    "de": "Gerät fortsetzen (Pause aufheben)"
+  },
+  "titleFormatted": {
+    "en": "Resume [[device]] (clear pause)",
+    "de": "[[device]] fortsetzen (Pause aufheben)"
+  },
+  "hint": {
+    "en": "Clears an active seasonal pause early, so the device is monitored again right away instead of waiting for the pause date. Does nothing if the device isn't currently paused.",
+    "de": "Hebt eine laufende Pause vorzeitig auf, sodass das Gerät sofort wieder überwacht wird, statt bis zum Pause-Datum zu warten. Ohne Effekt, falls das Gerät gerade nicht pausiert ist."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "autocomplete",
+      "title": { "en": "Device", "de": "Gerät" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+    }
+  ]
+}

@@ -226,6 +226,20 @@ class DeviceWatchdogApp extends Homey.App {
       })
       .registerArgumentAutocompleteListener('device', this._testableDeviceAutocomplete.bind(this));
 
+    this.homey.flow.getActionCard('pause_device')
+      .registerRunListener(async (args) => {
+        await this.pauseDevice(args.device.id, args.date);
+        return true;
+      })
+      .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
+
+    this.homey.flow.getActionCard('resume_device')
+      .registerRunListener(async (args) => {
+        await this.pauseDevice(args.device.id, null);
+        return true;
+      })
+      .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
+
     // Summary triggers: fire once per batch (scan, or realtime debounce window) with
     // every newly-affected device bundled into count/devices tokens, so a Flow doesn't
     // fire N times in a row when N devices break at once.
@@ -244,6 +258,13 @@ class DeviceWatchdogApp extends Homey.App {
 
     this.homey.flow.getConditionCard('device_has_low_battery')
       .registerRunListener(async (args) => (this.lastScan?.lowBattery || []).includes(args.device.id))
+      .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
+
+    this.homey.flow.getConditionCard('device_is_paused')
+      .registerRunListener(async (args) => {
+        const { rule } = scanner.findRule({ id: args.device.id }, this.rules);
+        return scanner.isRulePaused(rule);
+      })
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
   }
 
@@ -615,6 +636,29 @@ class DeviceWatchdogApp extends Homey.App {
     this._scheduleInterval({ runImmediately: false });
 
     return this.getConfig();
+  }
+
+  // Backs the "Pause device until date" Flow action - same effect as setting "Paused
+  // until" under a device's Details, just reachable from a Flow. Routes through
+  // saveConfig so it gets the exact same whitelist/validation/persistence as a Settings
+  // UI save, instead of mutating this.rules directly.
+  async pauseDevice(deviceId, pausedUntil) {
+    await this._ensureApi();
+    const device = await this.api.devices.getDevice({ id: deviceId });
+    if (!device) throw new Error(this.homey.__('backend.deviceNotFound'));
+
+    const { rule } = scanner.findRule({ id: deviceId }, this.rules);
+    // Clearing a pause (pausedUntil falsy) on a device with no existing rule at all has
+    // nothing to do - skip creating a rule that would only ever hold a null pause.
+    if (!rule && !pausedUntil) return;
+
+    const rules = rule
+      ? this.rules.map((r) => (r === rule ? { ...r, pausedUntil } : r))
+      : [...this.rules, {
+        matchType: 'id', matchValue: deviceId, label: device.name, pausedUntil,
+      }];
+
+    await this.saveConfig({ rules });
   }
 
   // ---------------------------------------------------------------------
