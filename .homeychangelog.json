@@ -69,5 +69,8 @@
   },
   "1.9.1": {
     "en": "Adds Flow cards for pausing - a condition 'device is paused' and two action 'pause device until' and 'resume device'"
+  },
+  "1.9.2": {
+    "en": "Fixed pause-date Flow cards not applying (date format mismatch) - two cards, native date picker and a text/token variant for dynamic dates"
   }
 }
