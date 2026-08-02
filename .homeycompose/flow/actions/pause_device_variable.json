@@ -1,0 +1,29 @@
+{
+  "id": "pause_device_variable",
+  "title": {
+    "en": "Pause device until date (variable)",
+    "de": "Gerät bis Datum pausieren (Variable)"
+  },
+  "titleFormatted": {
+    "en": "Pause [[device]] until [[date]]",
+    "de": "[[device]] bis [[date]] pausieren"
+  },
+  "hint": {
+    "en": "Same as \"Pause device until date\", but the date is a text field so you can drop in a token or a Homey Logic variable instead of picking a fixed date - useful for a computed or dynamic date. Type a date directly as YYYY-MM-DD, or insert a token/variable that resolves to one. An unrecognizable value is treated as no pause, not an error.",
+    "de": "Wie \"Gerät bis Datum pausieren\", aber das Datum ist ein Textfeld, in das sich ein Token oder eine Homey-Logic-Variable einfügen lässt statt ein festes Datum auszuwählen - nützlich für ein berechnetes oder dynamisches Datum. Direkt als YYYY-MM-DD eintippen, oder ein Token/eine Variable einfügen, die sich dazu auflöst. Ein nicht erkennbarer Wert wird als \"keine Pause\" behandelt, nicht als Fehler."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "autocomplete",
+      "title": { "en": "Device", "de": "Gerät" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+    },
+    {
+      "name": "date",
+      "type": "text",
+      "title": { "en": "Paused until (YYYY-MM-DD)", "de": "Pausiert bis (JJJJ-MM-TT)" },
+      "placeholder": { "en": "YYYY-MM-DD, e.g. 2027-03-01, or a token", "de": "JJJJ-MM-TT, z.B. 2027-03-01, oder ein Token" }
+    }
+  ]
+}

@@ -102,7 +102,10 @@
     "pausedUntil": "Pausiert bis",
     "pausedUntilHint": "Gerät wird komplett übersprungen (wie \"nicht überwacht\") bis zu diesem Datum, danach automatisch beim nächsten Scan wieder aktiv.",
     "clearPauseButton": "Pause aufheben",
-    "applyToAppIncludePause": "Pause-Datum auch übernehmen"
+    "applyToAppIncludePause": "Pause-Datum auch übernehmen",
+    "batteryTypeOverride": "Batterietyp (manuell)",
+    "batteryTypeOverrideHint": "Wird anstelle des automatisch erkannten Batterietyps angezeigt (Widget und Details) - für Geräte, bei denen Homey keine Angabe liefert. Leer lassen, um weiterhin die automatische Erkennung zu nutzen.",
+    "batteryTypeOverridePlaceholder": "z.B. 4x AA oder CR2032"
   },
   "zone": {
     "none": "Ohne Zone",

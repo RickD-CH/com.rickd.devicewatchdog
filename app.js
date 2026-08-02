@@ -90,14 +90,30 @@ function percentOrNull(value) {
   return Math.min(100, Math.max(0, n));
 }
 
-// From <input type="date">: "YYYY-MM-DD" or nothing. Anything else (including
-// garbage from a direct API call bypassing the Settings UI) is treated as "no
-// pause" rather than corrupting the scan loop with an unparsable date.
+// Settings UI's <input type="date"> always sends "YYYY-MM-DD" (HTML spec). Homey's own
+// native Flow date-picker argument, however, presents/passes "dd-mm-yyyy" - accept both
+// here (this is shared by saveConfig and the Flow actions), normalizing to YYYY-MM-DD so
+// isRulePaused only ever has one format to parse. Anything else (including garbage from
+// a direct API call, or an unresolved/malformed token on the text-based Flow variant) is
+// treated as "no pause" rather than corrupting the scan loop with an unparsable date.
 function isoDateOrNull(value) {
   if (value === '' || value === undefined || value === null) return null;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? null : value;
+  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  const euMatch = /^(\d{2})-(\d{2})-(\d{4})$/.exec(value);
+  let iso = null;
+  if (isoMatch) iso = value;
+  else if (euMatch) iso = `${euMatch[3]}-${euMatch[2]}-${euMatch[1]}`;
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : iso;
+}
+
+// Free text, trimmed; empty/whitespace-only collapses to null (same "unset" semantics
+// as every other nullable per-device field) rather than storing a blank string forever.
+function trimmedOrNull(value) {
+  if (value === undefined || value === null) return null;
+  const trimmed = String(value).trim();
+  return trimmed === '' ? null : trimmed;
 }
 
 // One-time migration: the per-device override used to be "days until offline"
@@ -227,6 +243,18 @@ class DeviceWatchdogApp extends Homey.App {
       .registerArgumentAutocompleteListener('device', this._testableDeviceAutocomplete.bind(this));
 
     this.homey.flow.getActionCard('pause_device')
+      .registerRunListener(async (args) => {
+        await this.pauseDevice(args.device.id, args.date);
+        return true;
+      })
+      .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
+
+    // Same backend action as pause_device, but the date arg is plain text (not the
+    // native date-picker type) - Homey's flow tokens are only ever typed as
+    // string/number/boolean/image, so a "date"-typed argument can't accept a dropped-in
+    // token/variable the way a text argument reliably can. This card trades the native
+    // picker for that flexibility.
+    this.homey.flow.getActionCard('pause_device_variable')
       .registerRunListener(async (args) => {
         await this.pauseDevice(args.device.id, args.date);
         return true;
@@ -629,6 +657,7 @@ class DeviceWatchdogApp extends Homey.App {
         unavailableDelaySeconds: nonNegativeNumberOrNull(rule.unavailableDelaySeconds),
         includeLastSeenForReporting: boolOrNull(rule.includeLastSeenForReporting),
         pausedUntil: isoDateOrNull(rule.pausedUntil),
+        batteryTypeOverride: trimmedOrNull(rule.batteryTypeOverride),
       }));
       this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
     }
@@ -700,6 +729,7 @@ class DeviceWatchdogApp extends Homey.App {
       .filter((device) => !this._isOwnDevice(device))
       .map((device) => {
         const ownerAppId = device.ownerUri ? device.ownerUri.replace(/^homey:app:/, '') : null;
+        const { rule } = scanner.findRule({ id: device.id }, this.rules);
         return {
           id: device.id,
           name: device.name,
@@ -712,8 +742,15 @@ class DeviceWatchdogApp extends Homey.App {
           // Driver-declared, not computed by Homey - many apps never set this, so it's
           // frequently null even for a device that clearly has a battery. Raw array (one
           // entry per physical cell, e.g. ["AA","AA"]) - left unformatted for callers to
-          // group/translate as needed.
-          batteryTypes: device.energy?.batteries || null,
+          // group/translate as needed. energyObj is the one that's actually reliably
+          // populated (confirmed against real devices: every device with energy.batteries
+          // set also has the identical value in energyObj.batteries, but not vice versa -
+          // 41 of 66 battery devices on one real Homey had it ONLY in energyObj) - energy
+          // is kept as a fallback in case some driver/API version reverses that.
+          batteryTypes: (device.energyObj && device.energyObj.batteries) || (device.energy && device.energy.batteries) || null,
+          // Free-text per-device override (see saveConfig) for devices where Homey has
+          // nothing at all - takes precedence over batteryTypes on the frontend.
+          batteryTypeOverride: rule && rule.batteryTypeOverride ? rule.batteryTypeOverride : null,
           ownerUri: device.ownerUri || null,
           ownerAppName: ownerAppId ? (appNameMap[ownerAppId] || null) : null,
           driverId: device.driverId || null,
@@ -818,6 +855,7 @@ class DeviceWatchdogApp extends Homey.App {
       battery: scanById[id]?.battery || null,
       batteryValue: scanById[id]?.batteryValue ?? null,
       batteryTypes: raw ? raw.batteryTypes : null,
+      batteryTypeOverride: raw ? raw.batteryTypeOverride : null,
     }));
     const unavailable = buildEntries(unavailableIds, 'unavailable', (raw) => ({
       lastSeenAt: raw ? raw.lastSeenAt || null : null,

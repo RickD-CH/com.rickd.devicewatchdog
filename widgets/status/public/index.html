@@ -130,7 +130,8 @@
 
     function detailLine(Homey, catKey, entry) {
       if (catKey === 'lowBattery') {
-        var parts = [entry.battery || '', formatBatteryTypes(entry.batteryTypes)].filter(Boolean);
+        var typeLabel = entry.batteryTypeOverride || formatBatteryTypes(entry.batteryTypes);
+        var parts = [entry.battery || '', typeLabel].filter(Boolean);
         return escapeHtml(parts.join(' · '));
       }
       if (catKey === 'notReporting' && entry.lastUpdated) {

@@ -102,7 +102,10 @@
     "pausedUntil": "Paused until",
     "pausedUntilHint": "Device is skipped entirely (like \"not monitored\") until this date, then resumes automatically on the next scan.",
     "clearPauseButton": "Clear pause",
-    "applyToAppIncludePause": "Also apply the pause date"
+    "applyToAppIncludePause": "Also apply the pause date",
+    "batteryTypeOverride": "Battery type (manual)",
+    "batteryTypeOverrideHint": "Shown instead of the auto-detected battery type (widget and details) - for devices where Homey provides nothing. Leave empty to keep using auto-detection.",
+    "batteryTypeOverridePlaceholder": "e.g. 4x AA or CR2032"
   },
   "zone": {
     "none": "No zone",

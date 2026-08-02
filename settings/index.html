@@ -642,7 +642,7 @@
             notReportingHours: null, batteryThreshold: null,
             excludeBattery: false, onlyCheckBattery: false, excludeAll: false,
             excludeFromUnavailable: false, unavailableDelaySeconds: null,
-            includeLastSeenForReporting: null, pausedUntil: null,
+            includeLastSeenForReporting: null, pausedUntil: null, batteryTypeOverride: null,
           };
           state.rules.push(rule);
         }
@@ -655,7 +655,7 @@
         var isEmpty = !rule.excludeAll && rule.notReportingHours == null && rule.batteryThreshold == null
           && !rule.excludeBattery && !rule.onlyCheckBattery && !rule.excludeFromUnavailable
           && rule.unavailableDelaySeconds == null && rule.includeLastSeenForReporting == null
-          && rule.pausedUntil == null;
+          && rule.pausedUntil == null && !rule.batteryTypeOverride;
         if (isEmpty) state.rules = state.rules.filter(function (r) { return r !== rule; });
       }
 
@@ -778,13 +778,19 @@
         return order.map(function (t) { return (counts[t] > 1 ? counts[t] + 'x ' : '') + t; }).join(', ');
       }
 
+      // Manual per-device override (see "Details") wins when set - for devices where
+      // Homey/the driver provides nothing at all to auto-detect from.
+      function effectiveBatteryTypeLabel(d) {
+        return d.batteryTypeOverride || formatBatteryTypes(d.batteryTypes);
+      }
+
       function deviceInfoHtml(view) {
         var d = view.device;
         var bits = ['<span><b>' + Homey.__('info.id') + '</b> ' + escapeHtml(d.id) + '</span>'];
         var conn = connectionLabel(d.ownerUri, d.ownerAppName);
         if (conn) bits.push('<span><b>' + Homey.__('info.managedBy') + '</b> ' + escapeHtml(conn) + '</span>');
         if (d.driverId) bits.push('<span><b>' + Homey.__('info.driver') + '</b> ' + escapeHtml(d.driverId) + '</span>');
-        var batteryTypeLabel = formatBatteryTypes(d.batteryTypes);
+        var batteryTypeLabel = effectiveBatteryTypeLabel(d);
         if (batteryTypeLabel) bits.push('<span><b>' + Homey.__('info.batteryType') + '</b> ' + escapeHtml(batteryTypeLabel) + '</span>');
         if (d.lastSeenAt) bits.push('<span><b>' + Homey.__('info.lastSeen') + '</b> ' + new Date(d.lastSeenAt).toLocaleString() + '</span>');
         bits.push('<span><b>' + Homey.__('info.liveStatus') + '</b> ' + (d.available === false ? Homey.__('info.unavailable') : Homey.__('info.available')) + '</span>');
@@ -878,7 +884,10 @@
           (view.device.hasBattery ? '' +
             '<div class="f"><label>' + Homey.__('advanced.batteryThreshold') + '</label><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" data-id="' + view.device.id + '" value="' + (r.batteryThreshold == null ? '' : r.batteryThreshold) + '" placeholder="' + placeholderDefault + '" /></div>' +
             '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + view.device.id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.onlyBattery') + '</label>' +
-            '<label class="f chk"><input type="checkbox" data-field="excludeBattery" data-id="' + view.device.id + '"' + (r.excludeBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeBattery') + '</label>'
+            '<label class="f chk"><input type="checkbox" data-field="excludeBattery" data-id="' + view.device.id + '"' + (r.excludeBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeBattery') + '</label>' +
+            '<div class="f" title="' + escapeHtml(Homey.__('advanced.batteryTypeOverrideHint')) + '"><label>' + Homey.__('advanced.batteryTypeOverride') + '</label>' +
+              '<input type="text" maxlength="40" data-field="batteryTypeOverride" data-id="' + view.device.id + '" value="' + escapeHtml(r.batteryTypeOverride || '') + '" placeholder="' + escapeHtml(formatBatteryTypes(view.device.batteryTypes) || Homey.__('advanced.batteryTypeOverridePlaceholder')) + '" />' +
+            '</div>'
           : '') +
           (hasSpecialRules(view) ? '<button class="btn small link" data-action="reset-rule" data-id="' + view.device.id + '">' + Homey.__('advanced.resetButton') + '</button>' : '') +
           '</div>';
@@ -888,7 +897,8 @@
         var r = view.rule;
         return !!(r && (r.notReportingHours != null || r.batteryThreshold != null
           || r.excludeBattery || r.onlyCheckBattery || r.excludeFromUnavailable
-          || r.unavailableDelaySeconds != null || r.includeLastSeenForReporting != null));
+          || r.unavailableDelaySeconds != null || r.includeLastSeenForReporting != null
+          || r.batteryTypeOverride));
       }
 
       function availDotHtml(d) {
@@ -1069,7 +1079,8 @@
         var specialRulesTotal = state.rules.filter(function (r) {
           return r.matchType === 'id' && !r.excludeAll
             && (r.notReportingHours != null || r.batteryThreshold != null || r.excludeBattery || r.onlyCheckBattery
-              || r.excludeFromUnavailable || r.unavailableDelaySeconds != null || r.includeLastSeenForReporting != null);
+              || r.excludeFromUnavailable || r.unavailableDelaySeconds != null || r.includeLastSeenForReporting != null
+              || r.batteryTypeOverride);
         }).length;
 
         function statCard(filterKey, num, color, label) {
@@ -1171,6 +1182,7 @@
           sr.excludeFromUnavailable = !!r.excludeFromUnavailable;
           sr.unavailableDelaySeconds = r.unavailableDelaySeconds != null ? r.unavailableDelaySeconds : null;
           sr.includeLastSeenForReporting = r.includeLastSeenForReporting != null ? r.includeLastSeenForReporting : null;
+          sr.batteryTypeOverride = r.batteryTypeOverride || null;
           // Deliberately not unconditional like the fields above - a sibling's existing
           // pause is left untouched unless the user opted in via the extra checkbox.
           if (includePause && r.pausedUntil != null) {
@@ -1217,6 +1229,7 @@
               rule.excludeFromUnavailable = false;
               rule.unavailableDelaySeconds = null;
               rule.includeLastSeenForReporting = null;
+              rule.batteryTypeOverride = null;
               cleanupDeviceRule(e.target.dataset.id);
               scheduleAutoSave(true);
               renderDevices();
@@ -1324,6 +1337,9 @@
           } else if (field === 'pausedUntil') {
             r[field] = e.target.value === '' ? null : e.target.value;
             needsRerender = true; // clear/set toggles the inline "Clear pause" button's visibility
+          } else if (field === 'batteryTypeOverride') {
+            var trimmed = e.target.value.trim();
+            r[field] = trimmed === '' ? null : trimmed;
           } else {
             r[field] = e.target.value === '' ? null : Number(e.target.value);
           }
