@@ -75,5 +75,8 @@
   },
   "1.9.3": {
     "en": "Battery information improvements"
+  },
+  "1.9.4": {
+    "en": "Fixed blank driver pairing icon on mobile (invalid icon.svg with embedded raster image)"
   }
 }
