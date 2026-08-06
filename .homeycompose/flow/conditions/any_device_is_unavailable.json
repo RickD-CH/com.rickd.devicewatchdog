@@ -1,0 +1,16 @@
+{
+  "id": "any_device_is_unavailable",
+  "title": {
+    "en": "!{{Any device is|No device is}} unavailable",
+    "de": "!{{Ein beliebiges Gerät ist nicht erreichbar|Kein Gerät ist nicht erreichbar}}"
+  },
+  "titleFormatted": {
+    "en": "!{{Any device is|No device is}} unavailable",
+    "de": "!{{Ein beliebiges Gerät ist nicht erreichbar|Kein Gerät ist nicht erreichbar}}"
+  },
+  "hint": {
+    "en": "Checks the live count of currently unavailable devices across your whole setup, without picking one specific device. Same filtering as the summary trigger and the virtual device's counter (respects \"monitored\" and \"Ignore unavailable\").",
+    "de": "Prüft die aktuelle Anzahl nicht erreichbarer Geräte über das ganze Setup, ohne ein bestimmtes Gerät auszuwählen. Gleiche Filterung wie die Sammel-Trigger-Karte und der Zähler im virtuellen Gerät (berücksichtigt \"Überwacht\" und \"Nicht erreichbar ignorieren\")."
+  },
+  "args": []
+}

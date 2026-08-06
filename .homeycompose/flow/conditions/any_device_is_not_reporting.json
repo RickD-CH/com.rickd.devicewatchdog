@@ -1,0 +1,16 @@
+{
+  "id": "any_device_is_not_reporting",
+  "title": {
+    "en": "!{{Any device is|No device is}} not reporting",
+    "de": "!{{Ein beliebiges Gerät meldet sich nicht|Kein Gerät meldet sich nicht}}"
+  },
+  "titleFormatted": {
+    "en": "!{{Any device is|No device is}} not reporting",
+    "de": "!{{Ein beliebiges Gerät meldet sich nicht|Kein Gerät meldet sich nicht}}"
+  },
+  "hint": {
+    "en": "Checks the result of the last scan for any device currently flagged as \"not reporting\", without picking one specific device.",
+    "de": "Prüft das Ergebnis des letzten Scans auf ein beliebiges Gerät, das aktuell als \"meldet sich nicht\" markiert ist, ohne ein bestimmtes Gerät auszuwählen."
+  },
+  "args": []
+}

@@ -294,6 +294,18 @@ class DeviceWatchdogApp extends Homey.App {
         return scanner.isRulePaused(rule);
       })
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
+
+    // "Any device" variants: no device picker, for flows hung off the summary triggers
+    // where the specific device isn't known up front. Same filtering/source as the
+    // per-category counts already shown on the virtual device and widget.
+    this.homey.flow.getConditionCard('any_device_is_unavailable')
+      .registerRunListener(async () => this._countUnavailable() > 0);
+
+    this.homey.flow.getConditionCard('any_device_is_not_reporting')
+      .registerRunListener(async () => (this.lastScan?.notReporting || []).length > 0);
+
+    this.homey.flow.getConditionCard('any_device_has_low_battery')
+      .registerRunListener(async () => (this.lastScan?.lowBattery || []).length > 0);
   }
 
   // Required device-picker arg shared by the per-device triggers: fires only for the

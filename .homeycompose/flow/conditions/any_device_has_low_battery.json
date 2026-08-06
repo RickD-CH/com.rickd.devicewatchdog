@@ -1,0 +1,16 @@
+{
+  "id": "any_device_has_low_battery",
+  "title": {
+    "en": "!{{Any device has|No device has}} low battery",
+    "de": "!{{Ein beliebiges Gerät hat niedrigen Akkustand|Kein Gerät hat niedrigen Akkustand}}"
+  },
+  "titleFormatted": {
+    "en": "!{{Any device has|No device has}} low battery",
+    "de": "!{{Ein beliebiges Gerät hat niedrigen Akkustand|Kein Gerät hat niedrigen Akkustand}}"
+  },
+  "hint": {
+    "en": "Checks the result of the last scan for any device currently flagged with low battery, without picking one specific device.",
+    "de": "Prüft das Ergebnis des letzten Scans auf ein beliebiges Gerät, das aktuell mit niedrigem Akkustand markiert ist, ohne ein bestimmtes Gerät auszuwählen."
+  },
+  "args": []
+}

@@ -78,5 +78,8 @@
   },
   "1.9.4": {
     "en": "Fixed blank driver pairing icon on mobile (invalid icon.svg with embedded raster image)"
+  },
+  "1.9.5": {
+    "en": "New \"any device\" condition cards (unavailable / not reporting / low battery) - no device picker needed, for flows off the summary triggers"
   }
 }
