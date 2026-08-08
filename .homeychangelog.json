@@ -84,5 +84,8 @@
   },
   "1.9.6": {
     "en": "Fixed the Test button showing no success feedback for devices that aren't monitored"
+  },
+  "1.9.7": {
+    "en": "Settings: fixed the device search showing \"no devices found\" when only unmonitored devices matched. Matching zones and the unmonitored section now expand automatically while searching."
   }
 }
