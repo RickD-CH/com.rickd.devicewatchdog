@@ -991,13 +991,17 @@
         return keys.map(function (key) { return { zone: key || null, views: groups[key] }; });
       }
 
-      function zoneGroupHtml(group, sortMode, bulkAction) {
+      function zoneGroupHtml(group, sortMode, bulkAction, isSearching) {
         var views = sortViews(group.views, sortMode);
         var zoneLabel = group.zone || Homey.__('zone.none');
         var zoneKey = group.zone || '';
         var issueCount = views.filter(function (v) { return priority(v) <= 1; }).length;
         var override = state.zoneOpenOverride[zoneKey];
-        var isOpen = override === undefined ? issueCount > 0 : override;
+        // While actively searching, always show matches without an extra click - a
+        // zone only reaches this point if it has at least one matching device, so
+        // "isSearching" here already means "matches found in this zone". Manual
+        // collapse overrides only apply again once the search is cleared.
+        var isOpen = isSearching ? true : (override === undefined ? issueCount > 0 : override);
         var issueBadge = issueCount ? '<span class="zone-issue">' + Homey.__('zone.issues', { count: issueCount }) + '</span>' : '';
         var bulkLabel = bulkAction === 'ignore' ? Homey.__('zone.ignore') : Homey.__('zone.monitor');
 
@@ -1013,10 +1017,13 @@
           '</details>';
       }
 
-      function renderDeviceContainer(containerId, viewsList, bulkAction, sortMode) {
+      function renderDeviceContainer(containerId, viewsList, bulkAction, sortMode, suppressEmptyMessage, isSearching) {
         var container = document.getElementById(containerId);
         if (!viewsList.length) {
-          container.innerHTML = bulkAction === 'ignore' ? '<div class="empty">' + Homey.__('devices.empty') + '</div>' : '';
+          // Only show the "no devices found" message when there really are no
+          // matches anywhere - if the unmonitored section below still has hits,
+          // showing this here reads as a contradiction (see forum feedback).
+          container.innerHTML = (bulkAction === 'ignore' && !suppressEmptyMessage) ? '<div class="empty">' + Homey.__('devices.empty') + '</div>' : '';
           return;
         }
 
@@ -1025,9 +1032,18 @@
           // Nur eine (oder keine) Zone im Spiel - einfache flache Liste, keine unnötige Verschachtelung.
           container.innerHTML = '<div class="device-list">' + sortViews(viewsList, sortMode).map(deviceRowHtml).join('') + '</div>';
         } else {
-          container.innerHTML = groups.map(function (g) { return zoneGroupHtml(g, sortMode, bulkAction); }).join('');
+          container.innerHTML = groups.map(function (g) { return zoneGroupHtml(g, sortMode, bulkAction, isSearching); }).join('');
           container.querySelectorAll('details.zone-group').forEach(function (det) {
+            // Browsers queue an async 'toggle' event for a freshly-parsed <details open>
+            // even though nothing was actually toggled by the user - only for elements
+            // that start out open (there's no such phantom event for ones that start
+            // closed). Left unguarded, that spurious event gets recorded as if it were a
+            // manual override, permanently pinning this zone open (in BOTH lists, since
+            // zoneOpenOverride is keyed by zone name only) well after e.g. the search
+            // that forced it open here is cleared. Swallow exactly that one phantom event.
+            var ignorePhantomToggle = det.open;
             det.addEventListener('toggle', function () {
+              if (ignorePhantomToggle) { ignorePhantomToggle = false; return; }
               state.zoneOpenOverride[det.dataset.zone] = det.open;
             });
           });
@@ -1047,6 +1063,7 @@
 
       function renderDevices() {
         var query = document.getElementById('device-search').value.trim().toLowerCase();
+        var isSearching = !!query;
         var sortMode = document.getElementById('device-sort').value;
         var views = state.devices
           .filter(function (d) {
@@ -1058,11 +1075,17 @@
         var monitoredViews = views.filter(function (v) { return v.monitored; });
         var unmonitoredViews = views.filter(function (v) { return !v.monitored; });
 
-        renderDeviceContainer('device-list-monitored', monitoredViews, 'ignore', sortMode);
-        renderDeviceContainer('device-list-unmonitored', unmonitoredViews, 'monitor', sortMode);
+        renderDeviceContainer('device-list-monitored', monitoredViews, 'ignore', sortMode, unmonitoredViews.length > 0, isSearching);
+        renderDeviceContainer('device-list-unmonitored', unmonitoredViews, 'monitor', sortMode, false, isSearching);
 
         document.getElementById('unmonitored-summary').textContent = Homey.__('devices.unmonitoredSummary', { count: unmonitoredViews.length });
-        document.getElementById('unmonitored-details').style.display = unmonitoredViews.length ? 'block' : 'none';
+        var unmonitoredDetails = document.getElementById('unmonitored-details');
+        unmonitoredDetails.style.display = unmonitoredViews.length ? 'block' : 'none';
+        // Same "expand where found" rule as the per-zone groups: a search match that's
+        // hidden behind a collapsed <summary> defeats the point of searching.
+        if (isSearching && unmonitoredViews.length) {
+          unmonitoredDetails.open = true;
+        }
 
         var grid = document.getElementById('stat-grid');
         var total = state.devices.length;
