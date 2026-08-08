@@ -31,7 +31,8 @@
     "testButton": "Testen",
     "testHint": "Sendet den aktuellen Wert erneut ans Gerät, um Erreichbarkeit zu prüfen (kein sichtbarer Zustandswechsel).",
     "testRunning": "Teste…",
-    "testFailed": "✗ Fehlgeschlagen"
+    "testFailed": "✗ Fehlgeschlagen",
+    "testOk": "✓ Erreichbar"
   },
   "stats": {
     "total": "Geräte gesamt",

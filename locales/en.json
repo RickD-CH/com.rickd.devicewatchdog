@@ -31,7 +31,8 @@
     "testButton": "Test",
     "testHint": "Resends the current value to the device to check reachability (no visible state change).",
     "testRunning": "Testing…",
-    "testFailed": "✗ Failed"
+    "testFailed": "✗ Failed",
+    "testOk": "✓ Reachable"
   },
   "stats": {
     "total": "Devices total",

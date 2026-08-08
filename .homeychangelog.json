@@ -81,5 +81,8 @@
   },
   "1.9.5": {
     "en": "New \"any device\" condition cards (unavailable / not reporting / low battery) - no device picker needed, for flows off the summary triggers"
+  },
+  "1.9.6": {
+    "en": "Fixed the Test button showing no success feedback for devices that aren't monitored"
   }
 }

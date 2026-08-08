@@ -1117,7 +1117,10 @@
         apiCall('POST', '/devices/' + id + '/test', {})
           .then(function () {
             // A successful test proves the device is reachable right now - reflect that
-            // immediately in the badge instead of waiting for the next full scan.
+            // immediately in the badge instead of waiting for the next full scan. Note this
+            // only affects the badge for monitored devices - an excluded/paused device has no
+            // entry in lastScan.all at all, so the button's own "✓ Reachable" message below is
+            // the only feedback it ever gets (see forum report: no indication on unwatched devices).
             if (device) device.available = true;
             if (state.lastScan) {
               var entry = state.lastScan.all.find(function (se) { return se.id === id; });
@@ -1125,8 +1128,14 @@
               state.lastScan.notReporting = state.lastScan.notReporting.filter(function (nid) { return nid !== id; });
             }
             state.log.unshift({ ts: Date.now(), type: 'testSuccess', device: device ? device.name : '', zone: device ? device.zone : '' });
-            renderDevices();
             renderLog();
+            // Show success on the button itself before the full re-render below replaces it -
+            // otherwise a monitored device's badge flip was the only (indirect) confirmation,
+            // and an excluded device got no confirmation of any kind.
+            btn.textContent = Homey.__('devices.testOk');
+            setTimeout(function () {
+              renderDevices();
+            }, 2000);
           })
           .catch(function (err) {
             btn.textContent = Homey.__('devices.testFailed');
