@@ -305,6 +305,11 @@
         <label for="cfg-interval-minutes" id="lbl-interval-minutes">Scan-Intervall (Minuten)</label>
         <input type="number" id="cfg-interval-minutes" min="1" step="1" />
       </div>
+      <div class="field-row">
+        <label for="cfg-startup-grace" id="lbl-startup-grace">Wartezeit nach App-Start (Minuten)</label>
+        <input type="number" id="cfg-startup-grace" min="0" step="1" />
+      </div>
+      <p class="hint" id="hint-startup-grace">Verzögert nur den allerersten automatischen Scan nach einem Neustart. 0 = sofort.</p>
     </div>
 
     <div class="card">
@@ -448,6 +453,8 @@
         document.getElementById('lbl-interval-enabled').textContent = Homey.__('settingsTab.intervalEnabled');
         document.getElementById('hint-interval').textContent = Homey.__('settingsTab.intervalHint');
         document.getElementById('lbl-interval-minutes').textContent = Homey.__('settingsTab.intervalMinutes');
+        document.getElementById('lbl-startup-grace').textContent = Homey.__('settingsTab.startupGraceLabel');
+        document.getElementById('hint-startup-grace').textContent = Homey.__('settingsTab.startupGraceHint');
         document.getElementById('h2-thresholds').textContent = Homey.__('settingsTab.thresholdsTitle');
         document.getElementById('lbl-not-reporting').textContent = Homey.__('settingsTab.notReportingLabel');
         document.getElementById('hint-not-reporting').textContent = Homey.__('settingsTab.notReportingHint');
@@ -592,6 +599,7 @@
         var c = state.config;
         document.getElementById('cfg-interval-enabled').checked = !!c.scanIntervalEnabled;
         document.getElementById('cfg-interval-minutes').value = c.scanIntervalMinutes;
+        document.getElementById('cfg-startup-grace').value = c.startupGraceMinutes;
         document.getElementById('cfg-not-reporting-unit').value = state.hoursUnitGlobal;
         document.getElementById('cfg-not-reporting-hours').value = hoursToDisplay(c.notReportingThresholdHours, state.hoursUnitGlobal);
         document.getElementById('cfg-include-last-seen').checked = !!c.includeLastSeenForReporting;
@@ -615,6 +623,7 @@
         return {
           scanIntervalEnabled: document.getElementById('cfg-interval-enabled').checked,
           scanIntervalMinutes: Number(document.getElementById('cfg-interval-minutes').value) || 60,
+          startupGraceMinutes: Number(document.getElementById('cfg-startup-grace').value) || 0,
           notReportingThresholdHours: displayToHours(document.getElementById('cfg-not-reporting-hours').value, state.hoursUnitGlobal) || 24,
           includeLastSeenForReporting: document.getElementById('cfg-include-last-seen').checked,
           batteryThresholdPercent: Number(document.getElementById('cfg-battery-threshold').value) || 30,

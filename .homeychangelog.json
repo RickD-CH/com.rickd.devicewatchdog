@@ -87,5 +87,8 @@
   },
   "1.9.7": {
     "en": "Settings: fixed the device search showing \"no devices found\" when only unmonitored devices matched. Matching zones and the unmonitored section now expand automatically while searching."
+  },
+  "1.9.8": {
+    "en": "New setting: wait a few minutes after app start before the first automatic scan, to avoid a burst of false \"not reporting\" flags while device data is still settling"
   }
 }

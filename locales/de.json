@@ -119,6 +119,8 @@
     "intervalEnabled": "Automatisches Intervall aktiv",
     "intervalHint": "Aus = kein Hintergrund-Scan. \"Geräte-Scan jetzt ausführen\" per Flow funktioniert trotzdem immer.",
     "intervalMinutes": "Scan-Intervall (Minuten)",
+    "startupGraceLabel": "Wartezeit nach App-Start (Minuten)",
+    "startupGraceHint": "Verzögert nur den allerersten automatischen Scan nach einem Neustart. 0 = sofort.",
     "thresholdsTitle": "Standard-Schwellenwerte",
     "notReportingLabel": "Stunden ohne Meldung bis \"offline\"",
     "notReportingHint": "Pro Gerät via \"Details\" überschreibbar.",

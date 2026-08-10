@@ -147,6 +147,7 @@ class DeviceWatchdogApp extends Homey.App {
     this._zoneMap = {};
     this._availabilityMap = new Map();
     this._intervalTimer = null;
+    this._startupGraceTimer = null;
     this._scanPromise = null;
     this._unavailableBatch = new Set();
     this._unavailableBatchTimer = null;
@@ -599,6 +600,10 @@ class DeviceWatchdogApp extends Homey.App {
       this.homey.clearInterval(this._intervalTimer);
       this._intervalTimer = null;
     }
+    if (this._startupGraceTimer) {
+      this.homey.clearTimeout(this._startupGraceTimer);
+      this._startupGraceTimer = null;
+    }
 
     if (this.config.scanIntervalEnabled && this.config.scanIntervalMinutes > 0) {
       const ms = this.config.scanIntervalMinutes * 60 * 1000;
@@ -607,7 +612,20 @@ class DeviceWatchdogApp extends Homey.App {
       }, ms);
 
       if (runImmediately) {
-        this.runScan('interval').catch((err) => this.error('Initial-Scan fehlgeschlagen:', err));
+        // Startup transient guard: right after the app itself starts (Homey boot/restart,
+        // app update), HomeyAPI's device cache may not be fully settled yet - scanning
+        // immediately can produce a burst of spurious "not reporting" flags that clear up
+        // a few minutes later on their own (see forum report). Only delays this very first
+        // scan - manual scans and every later interval tick are unaffected.
+        const graceMs = this.config.startupGraceMinutes * 60 * 1000;
+        if (graceMs > 0) {
+          this._startupGraceTimer = this.homey.setTimeout(() => {
+            this._startupGraceTimer = null;
+            this.runScan('interval').catch((err) => this.error('Initial-Scan fehlgeschlagen:', err));
+          }, graceMs);
+        } else {
+          this.runScan('interval').catch((err) => this.error('Initial-Scan fehlgeschlagen:', err));
+        }
       }
     }
   }
@@ -649,6 +667,9 @@ class DeviceWatchdogApp extends Homey.App {
         scanIntervalMinutes: positiveNumberOrDefault(config.scanIntervalMinutes, DEFAULT_CONFIG.scanIntervalMinutes),
         unavailableDelaySeconds: nonNegativeNumberOrDefault(
           config.unavailableDelaySeconds, DEFAULT_CONFIG.unavailableDelaySeconds,
+        ),
+        startupGraceMinutes: nonNegativeNumberOrDefault(
+          config.startupGraceMinutes, DEFAULT_CONFIG.startupGraceMinutes,
         ),
       };
       this.homey.settings.set(SETTINGS_KEY_CONFIG, this.config);

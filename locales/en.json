@@ -119,6 +119,8 @@
     "intervalEnabled": "Automatic interval active",
     "intervalHint": "Off = no background scan. The \"Run device scan now\" Flow action still always works.",
     "intervalMinutes": "Scan interval (minutes)",
+    "startupGraceLabel": "Wait after app start (minutes)",
+    "startupGraceHint": "Delays only the very first automatic scan after a restart. 0 = immediately.",
     "thresholdsTitle": "Default thresholds",
     "notReportingLabel": "Hours without update until \"offline\"",
     "notReportingHint": "Overridable per device via \"Details\".",
