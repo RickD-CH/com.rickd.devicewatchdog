@@ -90,5 +90,11 @@
   },
   "1.9.8": {
     "en": "New setting: wait a few minutes after app start before the first automatic scan, to avoid a burst of false \"not reporting\" flags while device data is still settling"
+  },
+  "1.9.9": {
+    "en": "The log now also records recoveries (device available/reporting/battery ok again), not just problems"
+  },
+  "1.9.10": {
+    "en": "The log tab now refreshes every time you open it, instead of only on page load"
   }
 }

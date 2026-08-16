@@ -443,6 +443,10 @@ class DeviceWatchdogApp extends Homey.App {
         this._persistProblemSince();
         this._updateWatchdogDevice({ unavailableCount: this._countUnavailable() })
           .catch((err) => this.error('Watchdog-Gerät-Update fehlgeschlagen:', err));
+        // Positive counterpart to the 'unavailable' entry recorded in _confirmUnavailable -
+        // requested on the forum, so the log shows recoveries, not just problems.
+        const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
+        this._recordEvent('available', { device: device.name, zone: zoneName });
       }
     }
   }
@@ -1003,6 +1007,23 @@ class DeviceWatchdogApp extends Homey.App {
 
     const newlyNotReporting = result.notReporting.filter((d) => !prevNotReporting.has(d.id));
     const newlyLowBattery = result.lowBattery.filter((d) => !prevLowBattery.has(d.id));
+
+    // Positive counterpart to newlyNotReporting/newlyLowBattery, for the log only (no Flow
+    // triggers/Timeline for these, wasn't asked for) - requested on the forum, so users see
+    // recoveries, not just problems. Looked up from `all` since a recovered device is no
+    // longer in notReporting/lowBattery itself; a device removed from Homey entirely (no
+    // longer in `all` either) is silently skipped rather than logged with a blank name.
+    const allById = new Map(result.all.map((d) => [d.id, d]));
+    const recoveredNotReporting = [...prevNotReporting]
+      .filter((id) => !nowNotReporting.has(id)).map((id) => allById.get(id)).filter(Boolean);
+    const recoveredLowBattery = [...prevLowBattery]
+      .filter((id) => !nowLowBattery.has(id)).map((id) => allById.get(id)).filter(Boolean);
+    for (const device of recoveredNotReporting) {
+      this._recordEvent('notReportingRecovered', { device: device.name, zone: device.zone });
+    }
+    for (const device of recoveredLowBattery) {
+      this._recordEvent('lowBatteryRecovered', { device: device.name, zone: device.zone });
+    }
 
     // "Since" bookkeeping for the widget detail view - set when a device newly enters a
     // category, cleared when it leaves again (independent of the trigger/log logic below).

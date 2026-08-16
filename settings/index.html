@@ -586,6 +586,17 @@
           document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
           btn.classList.add('active');
           document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+
+          // The log is otherwise only loaded once at page load - a scan finishing (interval,
+          // manual, or triggered indirectly by a rule change) while the settings page is
+          // already open wouldn't show up until a manual reload. Re-fetch on every visit
+          // instead, so it's never stale by more than a tab switch.
+          if (btn.dataset.tab === 'log') {
+            apiCall('GET', '/log').then(function (log) {
+              state.log = log;
+              renderLog();
+            }).catch(function () {}); // keep showing the last-known log rather than erroring out
+          }
         });
       });
 
@@ -1399,6 +1410,7 @@
       // ---------------------------------------------------------------
       var LOG_ICONS = {
         notReporting: '📡', lowBattery: '🔋', unavailable: '🔌', testSuccess: '✅', testFailure: '❌',
+        available: '🟢', notReportingRecovered: '🟢', lowBatteryRecovered: '🟢',
       };
 
       function logEntryText(entry) {
@@ -1409,6 +1421,9 @@
             device: entry.device,
             lastSeen: entry.detail ? new Date(entry.detail).toLocaleString() : Homey.__('meta.noData'),
           });
+          case 'available': return Homey.__('log.available', { device: entry.device });
+          case 'notReportingRecovered': return Homey.__('log.notReportingRecovered', { device: entry.device });
+          case 'lowBatteryRecovered': return Homey.__('log.lowBatteryRecovered', { device: entry.device });
           case 'testSuccess': return Homey.__('log.testSuccess', { device: entry.device });
           case 'testFailure': return Homey.__('log.testFailure', { device: entry.device, error: entry.detail || '' });
           default: return entry.device;
