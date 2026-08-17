@@ -148,6 +148,10 @@
        darkening the background but leaving the text color untouched - fixed colors
        here sidestep that entirely instead of relying on the OS to get it right. */
     .search-input { background: #fff; color: #212121; }
+    /* ::placeholder isn't covered by the color rule above - browsers derive its
+       default color from the document's color-scheme (dark here), which renders
+       near-white text on this forced-white field. Pin it explicitly. */
+    .search-input::placeholder { color: #757575; opacity: 1; }
     .select-input { min-width: 150px; }
     .unit-field { display: flex; gap: 6px; align-items: center; }
     .pause-field { display: flex; gap: 6px; align-items: center; }
