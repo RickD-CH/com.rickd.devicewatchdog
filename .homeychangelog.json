@@ -99,5 +99,9 @@
   },
   "1.9.11": {
     "en": "More reliable recovery detection - a device missing from a single scan (transient hiccup) no longer silently loses its problem history instead of being logged as recovered"
+  },
+  "1.9.12": {
+    "en": "Fixed the device search placeholder text being nearly invisible in dark mode",
+    "de": "Der Platzhaltertext im Gerätesuchfeld war im Dark Mode kaum lesbar - behoben"
   }
 }
