@@ -1008,16 +1008,29 @@ class DeviceWatchdogApp extends Homey.App {
     const newlyNotReporting = result.notReporting.filter((d) => !prevNotReporting.has(d.id));
     const newlyLowBattery = result.lowBattery.filter((d) => !prevLowBattery.has(d.id));
 
+    // A previously-flagged device only counts as genuinely resolved (recovered, "since"
+    // cleared) if THIS scan actually re-evaluated it - i.e. it's present in `all`. One
+    // that's simply missing from this round's results (a transient HomeyAPI hiccup, say)
+    // is left exactly as it was instead of being silently dropped, so a later scan that
+    // does see it again can still catch the real recovery - otherwise that device's
+    // problem history is just lost, no log entry ever written.
+    const scannedIds = new Set(result.all.map((d) => d.id));
+    // Wider set for the flagState carry-forward below: also counts devices excluded by a
+    // rule this round (present, just intentionally skipped) as "accounted for" - those
+    // should still cleanly drop out (no forced-forever carry just because a device got
+    // excluded), unlike a device missing from both because it's genuinely gone/hiccuped.
+    const knownIds = new Set([...result.all, ...result.excluded].map((d) => d.id));
+
     // Positive counterpart to newlyNotReporting/newlyLowBattery, for the log only (no Flow
     // triggers/Timeline for these, wasn't asked for) - requested on the forum, so users see
-    // recoveries, not just problems. Looked up from `all` since a recovered device is no
-    // longer in notReporting/lowBattery itself; a device removed from Homey entirely (no
-    // longer in `all` either) is silently skipped rather than logged with a blank name.
+    // recoveries, not just problems.
     const allById = new Map(result.all.map((d) => [d.id, d]));
     const recoveredNotReporting = [...prevNotReporting]
-      .filter((id) => !nowNotReporting.has(id)).map((id) => allById.get(id)).filter(Boolean);
+      .filter((id) => scannedIds.has(id) && !nowNotReporting.has(id))
+      .map((id) => allById.get(id)).filter(Boolean);
     const recoveredLowBattery = [...prevLowBattery]
-      .filter((id) => !nowLowBattery.has(id)).map((id) => allById.get(id)).filter(Boolean);
+      .filter((id) => scannedIds.has(id) && !nowLowBattery.has(id))
+      .map((id) => allById.get(id)).filter(Boolean);
     for (const device of recoveredNotReporting) {
       this._recordEvent('notReportingRecovered', { device: device.name, zone: device.zone });
     }
@@ -1028,10 +1041,10 @@ class DeviceWatchdogApp extends Homey.App {
     // "Since" bookkeeping for the widget detail view - set when a device newly enters a
     // category, cleared when it leaves again (independent of the trigger/log logic below).
     for (const id of prevNotReporting) {
-      if (!nowNotReporting.has(id)) delete this.problemSince.notReporting[id];
+      if (scannedIds.has(id) && !nowNotReporting.has(id)) delete this.problemSince.notReporting[id];
     }
     for (const id of prevLowBattery) {
-      if (!nowLowBattery.has(id)) delete this.problemSince.lowBattery[id];
+      if (scannedIds.has(id) && !nowLowBattery.has(id)) delete this.problemSince.lowBattery[id];
     }
     for (const device of newlyNotReporting) this.problemSince.notReporting[device.id] = Date.now();
     for (const device of newlyLowBattery) this.problemSince.lowBattery[device.id] = Date.now();
@@ -1080,9 +1093,16 @@ class DeviceWatchdogApp extends Homey.App {
       this._notifyTimeline(this.homey.__('backend.timelineLowBattery', { count: newlyLowBattery.length, devices: devicesList }));
     }
 
+    // Carry forward anything genuinely missing from this round entirely (see knownIds
+    // above) - a device excluded by rule this round still cleanly drops out below, same
+    // as before this fix; only a device Homey didn't account for at all keeps its old
+    // flagged state until a future scan can actually re-confirm it one way or the other.
+    const carriedNotReporting = [...prevNotReporting].filter((id) => !knownIds.has(id));
+    const carriedLowBattery = [...prevLowBattery].filter((id) => !knownIds.has(id));
+
     this.flagState = {
-      notReporting: result.notReporting.map((d) => d.id),
-      lowBattery: result.lowBattery.map((d) => d.id),
+      notReporting: [...result.notReporting.map((d) => d.id), ...carriedNotReporting],
+      lowBattery: [...result.lowBattery.map((d) => d.id), ...carriedLowBattery],
     };
     this.homey.settings.set(SETTINGS_KEY_FLAG_STATE, this.flagState);
     this._persistProblemSince();

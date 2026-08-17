@@ -96,5 +96,8 @@
   },
   "1.9.10": {
     "en": "The log tab now refreshes every time you open it, instead of only on page load"
+  },
+  "1.9.11": {
+    "en": "More reliable recovery detection - a device missing from a single scan (transient hiccup) no longer silently loses its problem history instead of being logged as recovered"
   }
 }
