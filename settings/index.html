@@ -16,25 +16,27 @@
       --color-text: #212121;
       --color-input-bg: #fff;
     }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        color-scheme: dark;
-        --color-border: #3a3a3c;
-        --color-bg-alt: #232325;
-        --color-card-bg: #1e1e20;
-        --color-text: #ececec;
-        --color-input-bg: #2a2a2c;
-        --color-muted: #a3a3a8;
-      }
-      :root.high-contrast {
-        --color-muted: #c8c8cc;
-      }
-      body { background: #131314; }
-      .tabs { background: #131314; }
-      .badge { background: #333; }
-      .btn { background: var(--color-input-bg); color: var(--color-text); }
-      .stat.active { background: #16324a; }
+    /* Dark-mode rules live under an explicit html.theme-dark class rather than a
+       prefers-color-scheme media query, so the Darstellung > Farbschema setting
+       (auto/light/dark) can force either scheme regardless of the OS preference.
+       JS decides which class to apply - see applyColorTheme(). */
+    html.theme-dark {
+      color-scheme: dark;
+      --color-border: #3a3a3c;
+      --color-bg-alt: #232325;
+      --color-card-bg: #1e1e20;
+      --color-text: #ececec;
+      --color-input-bg: #2a2a2c;
+      --color-muted: #a3a3a8;
     }
+    html.theme-dark.high-contrast {
+      --color-muted: #c8c8cc;
+    }
+    html.theme-dark body { background: #131314; }
+    html.theme-dark .tabs { background: #131314; }
+    html.theme-dark .badge { background: #333; }
+    html.theme-dark .btn { background: var(--color-input-bg); color: var(--color-text); }
+    html.theme-dark .stat.active { background: #16324a; }
     * { box-sizing: border-box; }
     html, body {
       height: auto;
@@ -384,6 +386,15 @@
 
     <div class="card">
       <h2 id="h2-display">Darstellung</h2>
+      <div class="field-row">
+        <label for="cfg-color-theme" id="lbl-color-theme">Farbschema</label>
+        <select id="cfg-color-theme" class="select-input">
+          <option value="auto" id="opt-theme-auto">Automatisch (System)</option>
+          <option value="light" id="opt-theme-light">Hell</option>
+          <option value="dark" id="opt-theme-dark">Dunkel</option>
+        </select>
+      </div>
+      <p class="hint" id="hint-color-theme">Legt fest, ob die Einstellungsseite dem System folgt oder fest hell/dunkel angezeigt wird.</p>
       <div class="field-row toggle-row">
         <label for="cfg-high-contrast" id="lbl-high-contrast">Text-Kontrast erhöhen (Dark Mode)</label>
         <label class="switch"><input type="checkbox" id="cfg-high-contrast" /><span class="slider"></span></label>
@@ -395,6 +406,12 @@
       <h2 id="h2-reset">Zurücksetzen</h2>
       <p class="hint" id="hint-reset-settings">Setzt alle Einstellungen (Standardwerte + Pro-Gerät-Regeln) auf die Werkseinstellungen zurück. Verlauf und letzter Scan bleiben erhalten.</p>
       <button class="btn small danger" id="btn-reset-settings">Auf Werkseinstellungen zurücksetzen</button>
+    </div>
+
+    <div class="card">
+      <h2 id="h2-donate">Gefällt dir die App?</h2>
+      <p class="hint" id="hint-donate">Device Watchdog ist kostenlos und wird in der Freizeit weiterentwickelt. Über eine kleine Spende freue ich mich sehr!</p>
+      <button class="btn small" id="btn-donate">☕ Unterstützen (PayPal)</button>
     </div>
   </div>
 
@@ -479,11 +496,19 @@
         document.getElementById('lbl-alarm-not-reporting').textContent = Homey.__('settingsTab.vdAlarmNotReporting');
         document.getElementById('lbl-alarm-low-battery').textContent = Homey.__('settingsTab.vdAlarmLowBattery');
         document.getElementById('h2-display').textContent = Homey.__('settingsTab.displayTitle');
+        document.getElementById('lbl-color-theme').textContent = Homey.__('settingsTab.colorThemeLabel');
+        document.getElementById('hint-color-theme').textContent = Homey.__('settingsTab.colorThemeHint');
+        document.getElementById('opt-theme-auto').textContent = Homey.__('settingsTab.colorThemeAuto');
+        document.getElementById('opt-theme-light').textContent = Homey.__('settingsTab.colorThemeLight');
+        document.getElementById('opt-theme-dark').textContent = Homey.__('settingsTab.colorThemeDark');
         document.getElementById('lbl-high-contrast').textContent = Homey.__('settingsTab.highContrastLabel');
         document.getElementById('hint-high-contrast').textContent = Homey.__('settingsTab.highContrastHint');
         document.getElementById('h2-reset').textContent = Homey.__('settingsTab.resetTitle');
         document.getElementById('hint-reset-settings').textContent = Homey.__('settingsTab.resetHint');
         document.getElementById('btn-reset-settings').textContent = Homey.__('settingsTab.resetButton');
+        document.getElementById('h2-donate').textContent = Homey.__('settingsTab.donateTitle');
+        document.getElementById('hint-donate').textContent = Homey.__('settingsTab.donateHint');
+        document.getElementById('btn-donate').textContent = Homey.__('settingsTab.donateButton');
       }
       applyStaticTranslations();
 
@@ -626,12 +651,28 @@
         document.getElementById('cfg-alarm-not-reporting').checked = c.alarmIncludesNotReporting !== false;
         document.getElementById('cfg-alarm-low-battery').checked = c.alarmIncludesLowBattery !== false;
         document.getElementById('cfg-high-contrast').checked = !!c.highContrastText;
+        document.getElementById('cfg-color-theme').value = c.colorTheme || 'auto';
         document.getElementById('row-interval-minutes').style.display = c.scanIntervalEnabled ? '' : 'none';
         applyHighContrast(!!c.highContrastText);
+        applyColorTheme(c.colorTheme || 'auto');
       }
 
       function applyHighContrast(enabled) {
         document.documentElement.classList.toggle('high-contrast', enabled);
+      }
+
+      // 'auto' mirrors the OS/browser color-scheme preference (prefersDarkMedia);
+      // 'light'/'dark' force that scheme regardless of it. Re-run on every
+      // prefersDarkMedia change so 'auto' keeps tracking a live OS theme switch.
+      var prefersDarkMedia = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+      function applyColorTheme(theme) {
+        var isDark = theme === 'dark' || (theme !== 'light' && !!(prefersDarkMedia && prefersDarkMedia.matches));
+        document.documentElement.classList.toggle('theme-dark', isDark);
+      }
+      if (prefersDarkMedia) {
+        prefersDarkMedia.addEventListener('change', function () {
+          applyColorTheme(state.config.colorTheme || 'auto');
+        });
       }
 
       function readSettingsTab() {
@@ -648,6 +689,7 @@
           alarmIncludesNotReporting: document.getElementById('cfg-alarm-not-reporting').checked,
           alarmIncludesLowBattery: document.getElementById('cfg-alarm-low-battery').checked,
           highContrastText: document.getElementById('cfg-high-contrast').checked,
+          colorTheme: document.getElementById('cfg-color-theme').value,
         };
       }
 
@@ -1507,6 +1549,12 @@
 
       document.getElementById('cfg-high-contrast').addEventListener('change', function (e) {
         applyHighContrast(e.target.checked);
+      });
+      document.getElementById('cfg-color-theme').addEventListener('change', function (e) {
+        applyColorTheme(e.target.value);
+      });
+      document.getElementById('btn-donate').addEventListener('click', function () {
+        Homey.openURL('https://paypal.me/RickDch');
       });
 
       // Switching the unit just re-labels the same value (converts what's displayed,

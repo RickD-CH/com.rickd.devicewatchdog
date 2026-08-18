@@ -144,8 +144,16 @@
     "resetConfirm": "Wirklich alle Einstellungen und Pro-Gerät-Regeln auf die Werkseinstellungen zurücksetzen? Das kann nicht rückgängig gemacht werden.",
     "resetFailed": "Zurücksetzen fehlgeschlagen: __error__",
     "displayTitle": "Darstellung",
+    "colorThemeLabel": "Farbschema",
+    "colorThemeHint": "Legt fest, ob die Einstellungsseite dem System folgt oder fest hell/dunkel angezeigt wird.",
+    "colorThemeAuto": "Automatisch (System)",
+    "colorThemeLight": "Hell",
+    "colorThemeDark": "Dunkel",
     "highContrastLabel": "Text-Kontrast erhöhen (Dark Mode)",
-    "highContrastHint": "Hellt grauen/gedämpften Text (Hinweise, Zeitstempel, Zusatzinfos) im Dark Mode nochmals auf - hilfreich bei viel Umgebungslicht."
+    "highContrastHint": "Hellt grauen/gedämpften Text (Hinweise, Zeitstempel, Zusatzinfos) im Dark Mode nochmals auf - hilfreich bei viel Umgebungslicht.",
+    "donateTitle": "Gefällt dir die App?",
+    "donateHint": "Device Watchdog ist kostenlos und wird in der Freizeit weiterentwickelt. Über eine kleine Spende freue ich mich sehr!",
+    "donateButton": "☕ Unterstützen (PayPal)"
   },
   "log": {
     "count": "__count__ Eintrag/Einträge",
