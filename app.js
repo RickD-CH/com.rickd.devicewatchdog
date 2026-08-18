@@ -444,9 +444,13 @@ class DeviceWatchdogApp extends Homey.App {
         this._updateWatchdogDevice({ unavailableCount: this._countUnavailable() })
           .catch((err) => this.error('Watchdog-Gerät-Update fehlgeschlagen:', err));
         // Positive counterpart to the 'unavailable' entry recorded in _confirmUnavailable -
-        // requested on the forum, so the log shows recoveries, not just problems.
-        const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
-        this._recordEvent('available', { device: device.name, zone: zoneName });
+        // requested on the forum, so the log shows recoveries, not just problems. Mirrors
+        // the same exclusion check _confirmUnavailable uses for the 'unavailable' entry
+        // (see forum report: excluded devices were getting recovery log lines too).
+        if (!this._isExcludedFromUnavailable(device.id)) {
+          const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
+          this._recordEvent('available', { device: device.name, zone: zoneName });
+        }
       }
     }
   }

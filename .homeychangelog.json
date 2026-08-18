@@ -107,5 +107,9 @@
   "1.9.13": {
     "en": "Added a color scheme setting (Auto/Light/Dark) under Display, plus a donate button at the bottom of Settings",
     "de": "Neue Farbschema-Einstellung (Automatisch/Hell/Dunkel) unter Darstellung, sowie ein Spenden-Button unten in den Einstellungen"
+  },
+  "1.9.14": {
+    "en": "Fixed excluded devices getting a \"reachable again\" log entry despite being excluded from unavailable tracking",
+    "de": "Ausgeschlossene Geräte erhielten trotz Ausschluss von der Erreichbarkeitsüberwachung einen \"wieder erreichbar\"-Log-Eintrag - behoben"
   }
 }
