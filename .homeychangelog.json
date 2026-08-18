@@ -103,5 +103,9 @@
   "1.9.12": {
     "en": "Fixed the device search placeholder text being nearly invisible in dark mode",
     "de": "Der Platzhaltertext im Gerätesuchfeld war im Dark Mode kaum lesbar - behoben"
+  },
+  "1.9.13": {
+    "en": "Added a color scheme setting (Auto/Light/Dark) under Display, plus a donate button at the bottom of Settings",
+    "de": "Neue Farbschema-Einstellung (Automatisch/Hell/Dunkel) unter Darstellung, sowie ein Spenden-Button unten in den Einstellungen"
   }
 }
