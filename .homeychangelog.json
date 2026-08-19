@@ -118,5 +118,9 @@
   },
   "1.9.16": {
     "en": "Bugfix Auto heal"
+  },
+  "1.9.17": {
+    "en": "Fixed the widget's device names becoming near-unreadable in some embedding contexts (e.g. a device's own detail page) where the widget's dark-mode text color was used but the surrounding card stayed light. The widget now always fills its own background to match the text color it's using, instead of relying on the host to match.",
+    "de": "Behoben: In manchen Einbettungs-Kontexten des Widgets (z. B. auf der Detailseite eines Geräts) wurde die Dark-Mode-Textfarbe verwendet, obwohl die umgebende Karte hell blieb - Gerätenamen waren dadurch kaum lesbar. Das Widget füllt jetzt immer selbst einen zur Textfarbe passenden Hintergrund, statt sich darauf zu verlassen, dass die Umgebung passt."
   }
 }

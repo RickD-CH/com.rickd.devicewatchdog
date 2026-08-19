@@ -1,6 +1,6 @@
 {
   "id": "com.rickd.devicewatchdog",
-  "version": "1.9.16",
+  "version": "1.9.17",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
