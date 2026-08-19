@@ -709,6 +709,7 @@
             excludeBattery: false, onlyCheckBattery: false, excludeAll: false,
             excludeFromUnavailable: false, unavailableDelaySeconds: null,
             includeLastSeenForReporting: null, pausedUntil: null, batteryTypeOverride: null,
+            autoTestOnStale: false, autoTestTriggerOnHeal: false,
           };
           state.rules.push(rule);
         }
@@ -721,7 +722,8 @@
         var isEmpty = !rule.excludeAll && rule.notReportingHours == null && rule.batteryThreshold == null
           && !rule.excludeBattery && !rule.onlyCheckBattery && !rule.excludeFromUnavailable
           && rule.unavailableDelaySeconds == null && rule.includeLastSeenForReporting == null
-          && rule.pausedUntil == null && !rule.batteryTypeOverride;
+          && rule.pausedUntil == null && !rule.batteryTypeOverride
+          && !rule.autoTestOnStale && !rule.autoTestTriggerOnHeal;
         if (isEmpty) state.rules = state.rules.filter(function (r) { return r !== rule; });
       }
 
@@ -947,6 +949,10 @@
               '<option value="m"' + (state.secondsUnit[view.device.id] === 'm' ? ' selected' : '') + '>' + Homey.__('units.minutes') + '</option>' +
             '</select>' +
           '</div></div>' +
+          (view.device.testCapability ? '' +
+            '<label class="f chk" title="' + escapeHtml(Homey.__('advanced.autoTestOnStaleHint')) + '"><input type="checkbox" data-field="autoTestOnStale" data-id="' + view.device.id + '"' + (r.autoTestOnStale ? ' checked' : '') + ' /> ' + Homey.__('advanced.autoTestOnStale') + '</label>' +
+            (r.autoTestOnStale ? '<label class="f chk" title="' + escapeHtml(Homey.__('advanced.autoTestTriggerOnHealHint')) + '"><input type="checkbox" data-field="autoTestTriggerOnHeal" data-id="' + view.device.id + '"' + (r.autoTestTriggerOnHeal ? ' checked' : '') + ' /> ' + Homey.__('advanced.autoTestTriggerOnHeal') + '</label>' : '')
+          : '') +
           (view.device.hasBattery ? '' +
             '<div class="f"><label>' + Homey.__('advanced.batteryThreshold') + '</label><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" data-id="' + view.device.id + '" value="' + (r.batteryThreshold == null ? '' : r.batteryThreshold) + '" placeholder="' + placeholderDefault + '" /></div>' +
             '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + view.device.id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.onlyBattery') + '</label>' +
@@ -964,7 +970,7 @@
         return !!(r && (r.notReportingHours != null || r.batteryThreshold != null
           || r.excludeBattery || r.onlyCheckBattery || r.excludeFromUnavailable
           || r.unavailableDelaySeconds != null || r.includeLastSeenForReporting != null
-          || r.batteryTypeOverride));
+          || r.batteryTypeOverride || r.autoTestOnStale));
       }
 
       function availDotHtml(d) {
@@ -1169,7 +1175,7 @@
           return r.matchType === 'id' && !r.excludeAll
             && (r.notReportingHours != null || r.batteryThreshold != null || r.excludeBattery || r.onlyCheckBattery
               || r.excludeFromUnavailable || r.unavailableDelaySeconds != null || r.includeLastSeenForReporting != null
-              || r.batteryTypeOverride);
+              || r.batteryTypeOverride || r.autoTestOnStale);
         }).length;
 
         function statCard(filterKey, num, color, label) {
@@ -1281,6 +1287,11 @@
           sr.unavailableDelaySeconds = r.unavailableDelaySeconds != null ? r.unavailableDelaySeconds : null;
           sr.includeLastSeenForReporting = r.includeLastSeenForReporting != null ? r.includeLastSeenForReporting : null;
           sr.batteryTypeOverride = r.batteryTypeOverride || null;
+          // Only meaningful for a sibling that also has a testable capability - a device
+          // without one simply never becomes an auto-test candidate (see _runAutoTests),
+          // this flag being set is harmless either way.
+          sr.autoTestOnStale = !!r.autoTestOnStale;
+          sr.autoTestTriggerOnHeal = !!r.autoTestTriggerOnHeal;
           // Deliberately not unconditional like the fields above - a sibling's existing
           // pause is left untouched unless the user opted in via the extra checkbox.
           if (includePause && r.pausedUntil != null) {
@@ -1328,6 +1339,8 @@
               rule.unavailableDelaySeconds = null;
               rule.includeLastSeenForReporting = null;
               rule.batteryTypeOverride = null;
+              rule.autoTestOnStale = false;
+              rule.autoTestTriggerOnHeal = false;
               cleanupDeviceRule(e.target.dataset.id);
               scheduleAutoSave(true);
               renderDevices();
@@ -1456,7 +1469,7 @@
       // ---------------------------------------------------------------
       var LOG_ICONS = {
         notReporting: '📡', lowBattery: '🔋', unavailable: '🔌', testSuccess: '✅', testFailure: '❌',
-        available: '🟢', notReportingRecovered: '🟢', lowBatteryRecovered: '🟢',
+        available: '🟢', notReportingRecovered: '🟢', lowBatteryRecovered: '🟢', autoTestHeal: '🩹',
       };
 
       function logEntryText(entry) {
@@ -1472,6 +1485,7 @@
           case 'lowBatteryRecovered': return Homey.__('log.lowBatteryRecovered', { device: entry.device });
           case 'testSuccess': return Homey.__('log.testSuccess', { device: entry.device });
           case 'testFailure': return Homey.__('log.testFailure', { device: entry.device, error: entry.detail || '' });
+          case 'autoTestHeal': return Homey.__('log.autoTestHeal', { device: entry.device });
           default: return entry.device;
         }
       }

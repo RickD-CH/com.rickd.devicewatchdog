@@ -106,7 +106,11 @@
     "applyToAppIncludePause": "Also apply the pause date",
     "batteryTypeOverride": "Battery type (manual)",
     "batteryTypeOverrideHint": "Shown instead of the auto-detected battery type (widget and details) - for devices where Homey provides nothing. Leave empty to keep using auto-detection.",
-    "batteryTypeOverridePlaceholder": "e.g. 4x AA or CR2032"
+    "batteryTypeOverridePlaceholder": "e.g. 4x AA or CR2032",
+    "autoTestOnStale": "Auto-test before flagging",
+    "autoTestOnStaleHint": "Before this device is flagged \"not reporting\", resend its current value once as a live reachability test (same as the \"Test\" button). If that succeeds, the device counts as OK this cycle - useful for devices (e.g. some sirens) that never report on their own and would otherwise need an external script or Flow to \"ping\" them periodically.",
+    "autoTestTriggerOnHeal": "Still fire \"not reporting\" Flow trigger on a successful auto-test",
+    "autoTestTriggerOnHealHint": "Off by default: a successful auto-test counts as fully OK, no alert - only the log records it. Enable this to still fire the per-device \"not reporting\" Flow trigger whenever a nudge was needed, even though the device recovered on its own."
   },
   "zone": {
     "none": "No zone",
@@ -166,6 +170,7 @@
     "lowBatteryRecovered": "__device__'s battery is no longer low",
     "testSuccess": "__device__ tested successfully (reachable)",
     "testFailure": "__device__ test failed (__error__)",
+    "autoTestHeal": "__device__ needed an auto-test nudge to stay \"OK\"",
     "clearButton": "Clear log",
     "clearConfirm": "Really delete the log? This can't be undone.",
     "clearFailed": "Clearing failed: __error__"

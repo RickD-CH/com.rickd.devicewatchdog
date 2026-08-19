@@ -106,7 +106,11 @@
     "applyToAppIncludePause": "Pause-Datum auch übernehmen",
     "batteryTypeOverride": "Batterietyp (manuell)",
     "batteryTypeOverrideHint": "Wird anstelle des automatisch erkannten Batterietyps angezeigt (Widget und Details) - für Geräte, bei denen Homey keine Angabe liefert. Leer lassen, um weiterhin die automatische Erkennung zu nutzen.",
-    "batteryTypeOverridePlaceholder": "z.B. 4x AA oder CR2032"
+    "batteryTypeOverridePlaceholder": "z.B. 4x AA oder CR2032",
+    "autoTestOnStale": "Auto-Test vor Alarmierung",
+    "autoTestOnStaleHint": "Bevor dieses Gerät als \"nicht meldend\" markiert wird, wird einmal der aktuelle Wert erneut gesendet, als Live-Erreichbarkeitstest (wie der \"Test\"-Button). Ist das erfolgreich, gilt das Gerät für diesen Durchlauf als OK - nützlich für Geräte (z. B. manche Sirenen), die von sich aus nie melden und sonst per externem Skript oder Flow regelmäßig \"angestupst\" werden müssten.",
+    "autoTestTriggerOnHeal": "\"Nicht meldend\"-Flow trotz erfolgreichem Auto-Test trotzdem auslösen",
+    "autoTestTriggerOnHealHint": "Standardmäßig aus: ein erfolgreicher Auto-Test gilt als vollständig OK, kein Alarm - nur der Verlauf zeichnet es auf. Aktivieren, damit der geräteeigene \"Nicht meldend\"-Flow-Trigger trotzdem auslöst, wann immer ein Anstoß nötig war, auch wenn sich das Gerät von selbst erholt hat."
   },
   "zone": {
     "none": "Ohne Zone",
@@ -166,6 +170,7 @@
     "lowBatteryRecovered": "__device__s Akku ist nicht mehr niedrig",
     "testSuccess": "__device__ erfolgreich getestet (erreichbar)",
     "testFailure": "__device__ Test fehlgeschlagen (__error__)",
+    "autoTestHeal": "__device__ brauchte einen Auto-Test-Anstoß, um \"OK\" zu bleiben",
     "clearButton": "Verlauf leeren",
     "clearConfirm": "Verlauf wirklich unwiderruflich löschen?",
     "clearFailed": "Leeren fehlgeschlagen: __error__"

@@ -778,7 +778,7 @@ class DeviceWatchdogApp extends Homey.App {
           zoneOrder: device.zone && zoneOrderMap[device.zone] !== undefined ? zoneOrderMap[device.zone] : Number.MAX_SAFE_INTEGER,
           class: device.class || null,
           available: device.available !== false,
-          testCapability: TESTABLE_CAPABILITIES.find((id) => (device.capabilities || []).includes(id)) || null,
+          testCapability: this._findTestCapability(device),
           hasBattery: BATTERY_CAPABILITIES.some((id) => (device.capabilities || []).includes(id)),
           // Driver-declared, not computed by Homey - many apps never set this, so it's
           // frequently null even for a device that clearly has a battery. Raw array (one
@@ -819,6 +819,26 @@ class DeviceWatchdogApp extends Homey.App {
     }
   }
 
+  // Which (if any) TESTABLE_CAPABILITIES entry a device has - shared by the manual "Test"
+  // button (getRawDevices/testDevice) and the scan-time auto-test pass (_runAutoTests).
+  _findTestCapability(device) {
+    return TESTABLE_CAPABILITIES.find((id) => (device.capabilities || []).includes(id)) || null;
+  }
+
+  // The actual reachability round-trip: re-sends a testable capability's own current value.
+  // Throws (same errors testDevice already surfaced) if the device has nothing testable or
+  // no current value to resend; otherwise awaits the round-trip and returns what was tested.
+  async _performCapabilityTest(device) {
+    const capabilityId = this._findTestCapability(device);
+    if (!capabilityId) throw new Error(this.homey.__('backend.noTestableCapability'));
+
+    const currentValue = device.capabilitiesObj?.[capabilityId]?.value;
+    if (currentValue === undefined || currentValue === null) throw new Error(this.homey.__('backend.noCurrentValue'));
+
+    await device.setCapabilityValue({ capabilityId, value: currentValue });
+    return { capabilityId, value: currentValue };
+  }
+
   async testDevice(deviceId) {
     await this._ensureApi();
 
@@ -828,19 +848,13 @@ class DeviceWatchdogApp extends Homey.App {
     const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
 
     try {
-      const capabilityId = TESTABLE_CAPABILITIES.find((id) => (device.capabilities || []).includes(id));
-      if (!capabilityId) throw new Error(this.homey.__('backend.noTestableCapability'));
-
-      const currentValue = device.capabilitiesObj?.[capabilityId]?.value;
-      if (currentValue === undefined || currentValue === null) throw new Error(this.homey.__('backend.noCurrentValue'));
-
-      await device.setCapabilityValue({ capabilityId, value: currentValue });
+      const { capabilityId, value } = await this._performCapabilityTest(device);
 
       this._recordEvent('testSuccess', { device: device.name, zone: zoneName });
       this._triggerTestSucceeded
         ?.trigger({ device: device.name || '', zone: zoneName || '' }, { deviceId: device.id })
         .catch((triggerErr) => this.error('Trigger device_test_succeeded fehlgeschlagen:', triggerErr));
-      return { ok: true, capabilityId, value: currentValue };
+      return { ok: true, capabilityId, value };
     } catch (err) {
       this._recordEvent('testFailure', { device: device.name, zone: zoneName, detail: err.message });
       this._triggerTestFailed
@@ -966,6 +980,10 @@ class DeviceWatchdogApp extends Homey.App {
       devices, zones, rules: this.rules, config: this.config,
     });
 
+    // Opt-in "test before you alarm": for devices that would otherwise be newly/still
+    // flagged this cycle, give them one live reachability nudge first - see _runAutoTests.
+    await this._runAutoTests(result, devices);
+
     // Persisted/exposed scan snapshot is intentionally much leaner than `result`:
     // the Settings UI and condition cards only ever read id/status/battery/lastUpdated
     // per device and device ids for the not-reporting/low-battery lists - name, zone,
@@ -1001,6 +1019,61 @@ class DeviceWatchdogApp extends Homey.App {
     this.log(`Scan abgeschlossen: ${result.all.length} Geräte, ${result.notReporting.length} offline, ${result.lowBattery.length} Batteriewarnungen`);
 
     return this.lastScan;
+  }
+
+  // Opt-in per-device feature (rule.autoTestOnStale): a device that would otherwise be
+  // counted as "not reporting" this cycle instead gets one live capability round-trip
+  // first (same mechanism as the manual "Test" button/action card). A successful test is
+  // treated as a genuine sign of life - the entry is pulled back out of result.notReporting
+  // (and result.all, same object references) before any of the counting/alarming below
+  // ever sees it, so a device that only ever "speaks" when nudged (e.g. some sirens) never
+  // has to be kept alive by an external script or a manually-built Flow. A failed test
+  // (or a device with no testable capability at all) is left untouched - it falls straight
+  // through to the normal not-reporting handling in _fireEdgeTriggers, exactly as before
+  // this feature existed.
+  //
+  // Always logged either way (heal or not), so a device that needs this every single scan
+  // - which is expected and fine for a "silent by design" device - stays discoverable
+  // rather than just silently never alarming again. The per-device Flow trigger only fires
+  // on heal if the user opted into that too (rule.autoTestTriggerOnHeal) - off by default,
+  // since the whole point for most users is exactly to NOT be notified for these.
+  async _runAutoTests(result, devices) {
+    const candidates = result.notReporting.filter((entry) => {
+      const { rule } = scanner.findRule(entry, this.rules);
+      return !!(rule && rule.autoTestOnStale);
+    });
+    if (!candidates.length) return;
+
+    await Promise.all(candidates.map(async (entry) => {
+      const device = devices[entry.id];
+      if (!device) return;
+
+      const { rule } = scanner.findRule(entry, this.rules);
+      const zoneName = entry.zone || '';
+      const staleSince = entry.lastUpdated;
+
+      try {
+        await this._performCapabilityTest(device);
+
+        entry.status = 'OK';
+        entry.lastUpdated = scanner.formatDate(new Date());
+        const idx = result.notReporting.indexOf(entry);
+        if (idx !== -1) result.notReporting.splice(idx, 1);
+
+        this._recordEvent('autoTestHeal', { device: entry.name, zone: zoneName });
+
+        if (rule.autoTestTriggerOnHeal) {
+          await this._triggerNotReporting
+            ?.trigger({ device: entry.name || '', zone: zoneName, last_updated: staleSince || '' }, { deviceId: entry.id })
+            .catch((err) => this.error('Trigger device_not_reporting (Auto-Test-Heal) fehlgeschlagen:', err));
+        }
+      } catch (err) {
+        // Test itself failed - device really is unresponsive, not just quiet. Nothing to
+        // do here: leave the entry in result.notReporting exactly as-is, so the normal
+        // path below alarms it like any other not-reporting device.
+        this.log(`Auto-Test für ${entry.name} fehlgeschlagen: ${err.message}`);
+      }
+    }));
   }
 
   async _fireEdgeTriggers(result) {
