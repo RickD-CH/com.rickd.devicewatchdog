@@ -699,6 +699,8 @@ class DeviceWatchdogApp extends Homey.App {
         includeLastSeenForReporting: boolOrNull(rule.includeLastSeenForReporting),
         pausedUntil: isoDateOrNull(rule.pausedUntil),
         batteryTypeOverride: trimmedOrNull(rule.batteryTypeOverride),
+        autoTestOnStale: !!rule.autoTestOnStale,
+        autoTestTriggerOnHeal: !!rule.autoTestTriggerOnHeal,
       }));
       this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
     }

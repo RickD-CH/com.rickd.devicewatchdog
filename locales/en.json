@@ -109,7 +109,7 @@
     "batteryTypeOverridePlaceholder": "e.g. 4x AA or CR2032",
     "autoTestOnStale": "Auto-test before flagging",
     "autoTestOnStaleHint": "Before this device is flagged \"not reporting\", resend its current value once as a live reachability test (same as the \"Test\" button). If that succeeds, the device counts as OK this cycle - useful for devices (e.g. some sirens) that never report on their own and would otherwise need an external script or Flow to \"ping\" them periodically.",
-    "autoTestTriggerOnHeal": "Still fire \"not reporting\" Flow trigger on a successful auto-test",
+    "autoTestTriggerOnHeal": "Still trigger Flow on heal",
     "autoTestTriggerOnHealHint": "Off by default: a successful auto-test counts as fully OK, no alert - only the log records it. Enable this to still fire the per-device \"not reporting\" Flow trigger whenever a nudge was needed, even though the device recovered on its own."
   },
   "zone": {

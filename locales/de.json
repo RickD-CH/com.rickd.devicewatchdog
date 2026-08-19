@@ -109,7 +109,7 @@
     "batteryTypeOverridePlaceholder": "z.B. 4x AA oder CR2032",
     "autoTestOnStale": "Auto-Test vor Alarmierung",
     "autoTestOnStaleHint": "Bevor dieses Gerät als \"nicht meldend\" markiert wird, wird einmal der aktuelle Wert erneut gesendet, als Live-Erreichbarkeitstest (wie der \"Test\"-Button). Ist das erfolgreich, gilt das Gerät für diesen Durchlauf als OK - nützlich für Geräte (z. B. manche Sirenen), die von sich aus nie melden und sonst per externem Skript oder Flow regelmäßig \"angestupst\" werden müssten.",
-    "autoTestTriggerOnHeal": "\"Nicht meldend\"-Flow trotz erfolgreichem Auto-Test trotzdem auslösen",
+    "autoTestTriggerOnHeal": "Flow trotzdem auslösen",
     "autoTestTriggerOnHealHint": "Standardmäßig aus: ein erfolgreicher Auto-Test gilt als vollständig OK, kein Alarm - nur der Verlauf zeichnet es auf. Aktivieren, damit der geräteeigene \"Nicht meldend\"-Flow-Trigger trotzdem auslöst, wann immer ein Anstoß nötig war, auch wenn sich das Gerät von selbst erholt hat."
   },
   "zone": {
