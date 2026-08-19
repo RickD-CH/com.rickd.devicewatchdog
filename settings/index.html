@@ -406,6 +406,8 @@
       <h2 id="h2-reset">Zurücksetzen</h2>
       <p class="hint" id="hint-reset-settings">Setzt alle Einstellungen (Standardwerte + Pro-Gerät-Regeln) auf die Werkseinstellungen zurück. Verlauf und letzter Scan bleiben erhalten.</p>
       <button class="btn small danger" id="btn-reset-settings">Auf Werkseinstellungen zurücksetzen</button>
+      <p class="hint" id="hint-prune-rules">Entfernt Pro-Gerät-Regeln, die auf ein Gerät zeigen, das es in Homey nicht mehr gibt (z. B. nach dem Entfernen eines Geräts). Alle anderen Einstellungen bleiben unberührt.</p>
+      <button class="btn small" id="btn-prune-rules">Verwaiste Regeln aufräumen</button>
     </div>
 
     <div class="card">
@@ -506,6 +508,8 @@
         document.getElementById('h2-reset').textContent = Homey.__('settingsTab.resetTitle');
         document.getElementById('hint-reset-settings').textContent = Homey.__('settingsTab.resetHint');
         document.getElementById('btn-reset-settings').textContent = Homey.__('settingsTab.resetButton');
+        document.getElementById('hint-prune-rules').textContent = Homey.__('settingsTab.pruneRulesHint');
+        document.getElementById('btn-prune-rules').textContent = Homey.__('settingsTab.pruneRulesButton');
         document.getElementById('h2-donate').textContent = Homey.__('settingsTab.donateTitle');
         document.getElementById('hint-donate').textContent = Homey.__('settingsTab.donateHint');
         document.getElementById('btn-donate').textContent = Homey.__('settingsTab.donateButton');
@@ -1542,6 +1546,27 @@
           }).finally(function () {
             btn.disabled = false;
           });
+        });
+      });
+
+      document.getElementById('btn-prune-rules').addEventListener('click', function () {
+        var btn = document.getElementById('btn-prune-rules');
+        btn.disabled = true;
+        apiCall('POST', '/rules/prune', {}).then(function (result) {
+          Homey.alert(result.removedCount > 0
+            ? Homey.__('settingsTab.pruneRulesResult', { count: result.removedCount })
+            : Homey.__('settingsTab.pruneRulesNone'));
+          if (result.removedCount > 0) {
+            return apiCall('GET', '/config').then(function (cfg) {
+              state.rules = cfg.rules;
+              renderDevices();
+            });
+          }
+          return null;
+        }).catch(function (apiErr) {
+          Homey.alert(Homey.__('settingsTab.pruneRulesFailed', { error: apiErr && apiErr.message ? apiErr.message : apiErr }));
+        }).finally(function () {
+          btn.disabled = false;
         });
       });
 

@@ -132,6 +132,60 @@ describe('findRule', () => {
   });
 });
 
+describe('buildRuleIndex + findRuleIndexed', () => {
+  // Same rules/fixtures as the findRule suite above, on purpose - findRuleIndexed is a
+  // drop-in, faster replacement and must agree with findRule on every case, not just its
+  // own cases.
+  const rules = [
+    { id: 'r-id', matchType: 'id', matchValue: 'dev-1' },
+    { id: 'r-name', matchType: 'name', matchValue: 'Garage sensor' },
+    { id: 'r-pattern', matchType: 'pattern', matchValue: '^Garage' },
+  ];
+
+  test('exact ID match wins over name and pattern', () => {
+    const { rule, ruleApplied } = scanner.findRuleIndexed(device({ id: 'dev-1', name: 'Garage sensor' }), scanner.buildRuleIndex(rules));
+    assert.equal(rule.id, 'r-id');
+    assert.equal(ruleApplied, 'ID');
+  });
+
+  test('exact name match wins over pattern when ID does not match', () => {
+    const { rule, ruleApplied } = scanner.findRuleIndexed(device({ id: 'dev-2', name: 'Garage sensor' }), scanner.buildRuleIndex(rules));
+    assert.equal(rule.id, 'r-name');
+    assert.equal(ruleApplied, 'NM');
+  });
+
+  test('falls back to a matching pattern', () => {
+    const { rule, ruleApplied } = scanner.findRuleIndexed(device({ id: 'dev-3', name: 'Garage door' }), scanner.buildRuleIndex(rules));
+    assert.equal(rule.id, 'r-pattern');
+    assert.equal(ruleApplied, 'PT');
+  });
+
+  test('returns no rule when nothing matches', () => {
+    const { rule, ruleApplied } = scanner.findRuleIndexed(device({ id: 'dev-9', name: 'Kitchen light' }), scanner.buildRuleIndex(rules));
+    assert.equal(rule, null);
+    assert.equal(ruleApplied, '--');
+  });
+
+  test('an invalid regex pattern rule is skipped, not thrown', () => {
+    const badIndex = scanner.buildRuleIndex([{ id: 'r-bad', matchType: 'pattern', matchValue: '(' }]);
+    const { rule, ruleApplied } = scanner.findRuleIndexed(device({ name: 'Anything' }), badIndex);
+    assert.equal(rule, null);
+    assert.equal(ruleApplied, '--');
+  });
+
+  test('first rule of a type wins, same as Array#find on the raw array', () => {
+    const dupeRules = [
+      { id: 'r-first', matchType: 'id', matchValue: 'dev-1' },
+      { id: 'r-second', matchType: 'id', matchValue: 'dev-1' },
+    ];
+    const dupeIndex = scanner.buildRuleIndex(dupeRules);
+    const viaIndex = scanner.findRuleIndexed(device({ id: 'dev-1' }), dupeIndex);
+    const viaArray = scanner.findRule(device({ id: 'dev-1' }), dupeRules);
+    assert.equal(viaIndex.rule.id, 'r-first');
+    assert.equal(viaIndex.rule.id, viaArray.rule.id);
+  });
+});
+
 describe('computeDeviceStatus', () => {
   const config = { notReportingThresholdHours: 24, batteryThresholdPercent: 30 };
 

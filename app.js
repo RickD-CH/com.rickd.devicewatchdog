@@ -4,6 +4,7 @@ const Homey = require('homey');
 const { HomeyAPI } = require('homey-api');
 const { DEFAULT_CONFIG, DEFAULT_RULES } = require('./lib/defaults');
 const scanner = require('./lib/scanner');
+const rulesLib = require('./lib/rules');
 
 const SETTINGS_KEY_CONFIG = 'config';
 const SETTINGS_KEY_RULES = 'rules';
@@ -17,7 +18,9 @@ const SETTINGS_KEY_PROBLEM_SINCE = 'problemSince';
 // without producing a perceptible state change, unlike toggling on/off for real. Limited
 // to continuous/numeric setpoints - deliberately excludes enum-style capabilities like
 // windowcoverings_state ("up"/"down"/"idle"), where re-sending the current value isn't
-// guaranteed to be a no-op on every driver and could re-trigger real motion.
+// guaranteed to be a no-op on every driver and could re-trigger real motion. These are
+// base ids - _findTestCapability also matches multi-instance variants of them (e.g. a
+// siren's "onoff.siren"), not just an exact "onoff".
 const TESTABLE_CAPABILITIES = ['onoff', 'dim', 'windowcoverings_set', 'target_temperature', 'volume_set'];
 
 // Matches the capabilities lib/scanner.js itself treats as battery-relevant (percentage
@@ -44,76 +47,23 @@ function formatNameList(names, homey) {
   return `${shown.join(', ')} … ${more}`;
 }
 
-function generateId() {
-  return `r-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 // The Settings UI's <input min="..."> is a client-side hint only - it doesn't stop a
 // negative/NaN value from being typed or POSTed directly. These guard the numbers that
 // feed threshold math in lib/scanner.js, where e.g. a negative "hours" would make a
-// device permanently show as not-reporting regardless of when it last updated.
+// device permanently show as not-reporting regardless of when it last updated. Only used
+// for the global config (defaults, not nullable) - the per-device rule equivalents
+// (positiveNumberOrNull etc.) live in lib/rules.js alongside the rest of the rule
+// sanitizing whitelist.
 function positiveNumberOrDefault(value, fallback) {
   const n = Number(value);
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
-function positiveNumberOrNull(value) {
-  if (value === '' || value === undefined || value === null) return null;
-  const n = Number(value);
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
-// Unlike positiveNumberOrDefault/positiveNumberOrNull above, 0 is a valid, meaningful
-// value here ("no delay, confirm instantly") rather than "unset".
+// Unlike positiveNumberOrDefault above, 0 is a valid, meaningful value here ("no delay,
+// confirm instantly") rather than "unset".
 function nonNegativeNumberOrDefault(value, fallback) {
   const n = Number(value);
   return Number.isFinite(n) && n >= 0 ? n : fallback;
-}
-
-function nonNegativeNumberOrNull(value) {
-  if (value === '' || value === undefined || value === null) return null;
-  const n = Number(value);
-  return Number.isFinite(n) && n >= 0 ? n : null;
-}
-
-// Tri-state per-device override for a setting that also has a global default: null
-// means "inherit the global config value", true/false explicitly overrides it.
-function boolOrNull(value) {
-  if (value === null || value === undefined || value === '') return null;
-  return !!value;
-}
-
-function percentOrNull(value) {
-  if (value === '' || value === undefined || value === null) return null;
-  const n = Number(value);
-  if (!Number.isFinite(n)) return null;
-  return Math.min(100, Math.max(0, n));
-}
-
-// Settings UI's <input type="date"> always sends "YYYY-MM-DD" (HTML spec). Homey's own
-// native Flow date-picker argument, however, presents/passes "dd-mm-yyyy" - accept both
-// here (this is shared by saveConfig and the Flow actions), normalizing to YYYY-MM-DD so
-// isRulePaused only ever has one format to parse. Anything else (including garbage from
-// a direct API call, or an unresolved/malformed token on the text-based Flow variant) is
-// treated as "no pause" rather than corrupting the scan loop with an unparsable date.
-function isoDateOrNull(value) {
-  if (value === '' || value === undefined || value === null) return null;
-  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  const euMatch = /^(\d{2})-(\d{2})-(\d{4})$/.exec(value);
-  let iso = null;
-  if (isoMatch) iso = value;
-  else if (euMatch) iso = `${euMatch[3]}-${euMatch[2]}-${euMatch[1]}`;
-  if (!iso) return null;
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? null : iso;
-}
-
-// Free text, trimmed; empty/whitespace-only collapses to null (same "unset" semantics
-// as every other nullable per-device field) rather than storing a blank string forever.
-function trimmedOrNull(value) {
-  if (value === undefined || value === null) return null;
-  const trimmed = String(value).trim();
-  return trimmed === '' ? null : trimmed;
 }
 
 // One-time migration: the per-device override used to be "days until offline"
@@ -130,7 +80,7 @@ class DeviceWatchdogApp extends Homey.App {
     this.log('Device Watchdog initialized');
 
     this.config = { ...DEFAULT_CONFIG, ...(this.homey.settings.get(SETTINGS_KEY_CONFIG) || {}) };
-    this.rules = (this.homey.settings.get(SETTINGS_KEY_RULES) || DEFAULT_RULES).map(migrateRuleToHours);
+    this._setRules((this.homey.settings.get(SETTINGS_KEY_RULES) || DEFAULT_RULES).map(migrateRuleToHours));
     this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
     this.flagState = this.homey.settings.get(SETTINGS_KEY_FLAG_STATE) || { notReporting: [], lowBattery: [] };
     // Since-when each device entered a problem category (widget detail view) - keyed by
@@ -291,7 +241,7 @@ class DeviceWatchdogApp extends Homey.App {
 
     this.homey.flow.getConditionCard('device_is_paused')
       .registerRunListener(async (args) => {
-        const { rule } = scanner.findRule({ id: args.device.id }, this.rules);
+        const { rule } = scanner.findRuleIndexed({ id: args.device.id }, this._ruleIndex);
         return scanner.isRulePaused(rule);
       })
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
@@ -456,7 +406,7 @@ class DeviceWatchdogApp extends Homey.App {
   }
 
   _getUnavailableDelaySeconds(deviceId) {
-    const { rule } = scanner.findRule({ id: deviceId }, this.rules);
+    const { rule } = scanner.findRuleIndexed({ id: deviceId }, this._ruleIndex);
     const override = rule?.unavailableDelaySeconds;
     return (override != null ? override : this.config.unavailableDelaySeconds) || 0;
   }
@@ -547,7 +497,7 @@ class DeviceWatchdogApp extends Homey.App {
   // explicit per-device Flow usage should still work under the narrower "Ignore
   // unavailable" toggle.
   _isMonitored(deviceId) {
-    const { rule } = scanner.findRule({ id: deviceId }, this.rules);
+    const { rule } = scanner.findRuleIndexed({ id: deviceId }, this._ruleIndex);
     return !rule?.excludeAll && !scanner.isRulePaused(rule);
   }
 
@@ -558,7 +508,7 @@ class DeviceWatchdogApp extends Homey.App {
   // passive/aggregate outputs (count, log, summary, widget), not for explicit per-device
   // Flow usage (see _isMonitored).
   _isExcludedFromUnavailable(deviceId) {
-    const { rule } = scanner.findRule({ id: deviceId }, this.rules);
+    const { rule } = scanner.findRuleIndexed({ id: deviceId }, this._ruleIndex);
     return !!rule?.excludeAll || !!rule?.excludeFromUnavailable || scanner.isRulePaused(rule);
   }
 
@@ -663,6 +613,36 @@ class DeviceWatchdogApp extends Homey.App {
     return this.saveConfig({ config: { ...DEFAULT_CONFIG }, rules: [] });
   }
 
+  // Per-device rules (matchType 'id') never get removed on their own when the device
+  // itself is deleted from Homey - cleanupDeviceRule only fires on an active edit in the
+  // Settings UI, never on removal. Over years of device churn that silently accumulates
+  // dead entries (pointing at a device id that no longer exists) that just sit there
+  // forever taking up space. 'name'/'pattern' rules aren't tied to a specific device id,
+  // so they're left alone here regardless of what's currently paired.
+  async pruneStaleRules() {
+    await this._ensureApi();
+    const devices = await this.api.devices.getDevices({ $cache: false });
+    const liveIds = new Set(Object.keys(devices));
+
+    const kept = this.rules.filter((rule) => rule.matchType !== 'id' || liveIds.has(rule.matchValue));
+    const removedCount = this.rules.length - kept.length;
+
+    if (removedCount > 0) {
+      this._setRules(kept);
+      this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
+    }
+
+    return { removedCount };
+  }
+
+  // Keeps this.rules and its lookup index (see lib/scanner.js buildRuleIndex) in lockstep -
+  // the index is only ever valid for the exact array it was built from, so every write to
+  // this.rules must go through here rather than assigning the field directly.
+  _setRules(rules) {
+    this.rules = rules;
+    this._ruleIndex = scanner.buildRuleIndex(rules);
+  }
+
   async saveConfig({ config, rules } = {}) {
     if (config && typeof config === 'object') {
       this.config = {
@@ -671,7 +651,7 @@ class DeviceWatchdogApp extends Homey.App {
         notReportingThresholdHours: positiveNumberOrDefault(
           config.notReportingThresholdHours, DEFAULT_CONFIG.notReportingThresholdHours,
         ),
-        batteryThresholdPercent: percentOrNull(config.batteryThresholdPercent) ?? DEFAULT_CONFIG.batteryThresholdPercent,
+        batteryThresholdPercent: rulesLib.percentOrNull(config.batteryThresholdPercent) ?? DEFAULT_CONFIG.batteryThresholdPercent,
         scanIntervalMinutes: positiveNumberOrDefault(config.scanIntervalMinutes, DEFAULT_CONFIG.scanIntervalMinutes),
         unavailableDelaySeconds: nonNegativeNumberOrDefault(
           config.unavailableDelaySeconds, DEFAULT_CONFIG.unavailableDelaySeconds,
@@ -684,24 +664,7 @@ class DeviceWatchdogApp extends Homey.App {
     }
 
     if (Array.isArray(rules)) {
-      this.rules = rules.map((rule) => ({
-        id: rule.id || generateId(),
-        matchType: rule.matchType,
-        matchValue: rule.matchValue,
-        label: rule.label || '',
-        notReportingHours: positiveNumberOrNull(rule.notReportingHours),
-        batteryThreshold: percentOrNull(rule.batteryThreshold),
-        excludeBattery: !!rule.excludeBattery,
-        onlyCheckBattery: !!rule.onlyCheckBattery,
-        excludeAll: !!rule.excludeAll,
-        excludeFromUnavailable: !!rule.excludeFromUnavailable,
-        unavailableDelaySeconds: nonNegativeNumberOrNull(rule.unavailableDelaySeconds),
-        includeLastSeenForReporting: boolOrNull(rule.includeLastSeenForReporting),
-        pausedUntil: isoDateOrNull(rule.pausedUntil),
-        batteryTypeOverride: trimmedOrNull(rule.batteryTypeOverride),
-        autoTestOnStale: !!rule.autoTestOnStale,
-        autoTestTriggerOnHeal: !!rule.autoTestTriggerOnHeal,
-      }));
+      this._setRules(rules.map(rulesLib.sanitizeRule));
       this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
     }
 
@@ -719,7 +682,7 @@ class DeviceWatchdogApp extends Homey.App {
     const device = await this.api.devices.getDevice({ id: deviceId });
     if (!device) throw new Error(this.homey.__('backend.deviceNotFound'));
 
-    const { rule } = scanner.findRule({ id: deviceId }, this.rules);
+    const { rule } = scanner.findRuleIndexed({ id: deviceId }, this._ruleIndex);
     // Clearing a pause (pausedUntil falsy) on a device with no existing rule at all has
     // nothing to do - skip creating a rule that would only ever hold a null pause.
     if (!rule && !pausedUntil) return;
@@ -772,7 +735,7 @@ class DeviceWatchdogApp extends Homey.App {
       .filter((device) => !this._isOwnDevice(device))
       .map((device) => {
         const ownerAppId = device.ownerUri ? device.ownerUri.replace(/^homey:app:/, '') : null;
-        const { rule } = scanner.findRule({ id: device.id }, this.rules);
+        const { rule } = scanner.findRuleIndexed({ id: device.id }, this._ruleIndex);
         return {
           id: device.id,
           name: device.name,
@@ -823,8 +786,17 @@ class DeviceWatchdogApp extends Homey.App {
 
   // Which (if any) TESTABLE_CAPABILITIES entry a device has - shared by the manual "Test"
   // button (getRawDevices/testDevice) and the scan-time auto-test pass (_runAutoTests).
+  // Matches multi-instance capabilities too (e.g. a siren's "onoff.siren", not just a bare
+  // "onoff") - the base id is what TESTABLE_CAPABILITIES lists, but the *full* id
+  // (including the ".instance" suffix) is what actually has to be passed to
+  // setCapabilityValue/capabilitiesObj, so that's what gets returned here.
   _findTestCapability(device) {
-    return TESTABLE_CAPABILITIES.find((id) => (device.capabilities || []).includes(id)) || null;
+    const capabilities = device.capabilities || [];
+    for (const base of TESTABLE_CAPABILITIES) {
+      const match = capabilities.find((id) => id === base || id.startsWith(`${base}.`));
+      if (match) return match;
+    }
+    return null;
   }
 
   // The actual reachability round-trip: re-sends a testable capability's own current value.
@@ -1040,17 +1012,17 @@ class DeviceWatchdogApp extends Homey.App {
   // on heal if the user opted into that too (rule.autoTestTriggerOnHeal) - off by default,
   // since the whole point for most users is exactly to NOT be notified for these.
   async _runAutoTests(result, devices) {
-    const candidates = result.notReporting.filter((entry) => {
-      const { rule } = scanner.findRule(entry, this.rules);
-      return !!(rule && rule.autoTestOnStale);
-    });
+    // Look the rule up once per entry here (not again inside the map below) - findRule is
+    // O(1) now (see buildRuleIndex), but there's no reason to pay it twice regardless.
+    const candidates = result.notReporting
+      .map((entry) => ({ entry, rule: scanner.findRuleIndexed(entry, this._ruleIndex).rule }))
+      .filter(({ rule }) => !!(rule && rule.autoTestOnStale));
     if (!candidates.length) return;
 
-    await Promise.all(candidates.map(async (entry) => {
+    await Promise.all(candidates.map(async ({ entry, rule }) => {
       const device = devices[entry.id];
       if (!device) return;
 
-      const { rule } = scanner.findRule(entry, this.rules);
       const zoneName = entry.zone || '';
       const staleSince = entry.lastUpdated;
 
