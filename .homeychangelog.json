@@ -115,5 +115,8 @@
   "1.9.15": {
     "en": "New \"Auto-test before flagging\" per-device setting (for devices with a test capability): before a device is flagged \"not reporting\", it's nudged with a live reachability test first - handy for devices that never report on their own (e.g. some sirens) and previously needed an external script or Flow to stay \"awake\". Always logged either way; optionally still fires the Flow trigger even when the test heals it.",
     "de": "Neue Geräte-Einstellung \"Auto-Test vor Alarmierung\" (für Geräte mit Testfähigkeit): bevor ein Gerät als \"nicht meldend\" markiert wird, wird es zuerst per Live-Erreichbarkeitstest angestupst - praktisch für Geräte, die von sich aus nie melden (z. B. manche Sirenen) und bisher per externem Skript oder Flow \"wachgehalten\" werden mussten. Wird immer im Verlauf protokolliert; optional kann der Flow-Trigger trotzdem auslösen, auch wenn der Test das Gerät rettet."
+  },
+  "1.9.16": {
+    "en": "Bugfix Auto heal"
   }
 }
