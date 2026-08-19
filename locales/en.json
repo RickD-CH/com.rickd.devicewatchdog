@@ -56,7 +56,9 @@
     "battery": "Battery __value__",
     "ok": "ok",
     "noStatus": "no status (filtered)",
-    "paused": "paused until __date__"
+    "paused": "paused until __date__",
+    "filterPinned": "staying visible",
+    "filterPinnedHint": "No longer matches the active filter after the last change, but stays visible while its details are open here - so you can keep adjusting it without the device vanishing."
   },
   "meta": {
     "noScanResult": "No scan result yet",

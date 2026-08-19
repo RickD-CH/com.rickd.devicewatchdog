@@ -126,5 +126,9 @@
   "1.9.18": {
     "en": "Performance and cleanup pass: per-device rule lookups are now indexed instead of re-scanning the full rule list per device (noticeable on larger installations), the rule-saving logic that caused a recent bug is now covered by automated tests, testable-device detection now also matches multi-instance capabilities (e.g. some sirens), and a new \"Clean up stale rules\" button removes leftover rules for devices you've since removed from Homey.",
     "de": "Performance- und Aufräum-Update: Pro-Gerät-Regel-Lookups sind jetzt indexiert statt bei jedem Gerät die ganze Regelliste neu zu durchsuchen (spürbar bei grösseren Installationen), die Regel-Speicherlogik (Ursache eines kürzlichen Bugs) ist jetzt automatisiert getestet, die Test-Geräte-Erkennung erkennt jetzt auch Multi-Instance-Capabilities (z. B. manche Sirenen), und ein neuer \"Verwaiste Regeln aufräumen\"-Button entfernt Regeln für Geräte, die du inzwischen aus Homey entfernt hast."
+  },
+  "1.9.19": {
+    "en": "Fixed a device being edited sometimes disappearing from a filtered list, plus various other settings-screen improvements.",
+    "de": "Behoben: Ein bearbeitetes Gerät konnte aus einer gefilterten Liste verschwinden. Dazu diverse weitere Optimierungen an der Einstellungs-Oberfläche."
   }
 }
