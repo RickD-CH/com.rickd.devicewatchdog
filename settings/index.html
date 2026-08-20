@@ -278,6 +278,18 @@
     .apply-to-app-confirm details { margin-bottom: 8px; }
     .apply-to-app-confirm summary { cursor: pointer; color: var(--color-muted); }
     .apply-to-app-list { list-style: none; margin: 6px 0 0; padding-left: 18px; max-height: 160px; overflow-y: auto; }
+    /* .f.chk (elsewhere: short one-line toggle labels) sets white-space:nowrap and
+       flex-shrink:0 - fine for "Nur Batterie prüfen" etc., but sibling names here can be
+       much longer (full device name plus a Homey-appended "[MAC]" suffix). nowrap forced
+       the row wider than the list, which - since only overflow-y was set, so overflow-x
+       auto-computes to "auto" too - turned this into a horizontally scrollable box whose
+       checkbox (always at the start of the row) ends up scrolled out of view. Truncating
+       instead was considered and rejected: the "[MAC]" suffix is often the only thing
+       telling otherwise-identically-named siblings apart, i.e. exactly what this list
+       exists to let the user pick between - cutting it off would hide the one thing that
+       matters here. Wrap instead, so nothing is ever lost, at the cost of taller rows in
+       an already-scrollable list. */
+    .apply-to-app-list .f.chk { white-space: normal; flex-shrink: 1; align-items: flex-start; }
     .apply-to-app-actions { display: flex; gap: 8px; }
     /* Log tab */
     .log-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--color-border); }

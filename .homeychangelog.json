@@ -134,5 +134,9 @@
   "1.9.20": {
     "en": "Fixed focus sometimes jumping out of the field you were editing during auto-save, plus more settings-screen polish.",
     "de": "Behoben: Fokus sprang beim automatischen Speichern manchmal aus dem bearbeiteten Feld. Dazu weitere Optimierungen an der Einstellungs-Oberfläche."
+  },
+  "1.9.21": {
+    "en": "Fixed checkboxes sometimes being invisible in the \"apply to similar devices\" device picker for devices with long names.",
+    "de": "Behoben: Checkboxen in der Geräteauswahl von \"Für gleichartige Geräte übernehmen\" waren bei langen Gerätenamen teils unsichtbar."
   }
 }
