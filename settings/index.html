@@ -1192,6 +1192,21 @@
       }
 
       function renderDevices() {
+        // Every call below rebuilds the device rows' HTML wholesale (innerHTML =), which
+        // drops focus/cursor entirely from whatever field the user is currently in - most
+        // noticeably when this runs at the end of the auto-save round trip (real network +
+        // rescan latency, a second or more on a large install), squarely while the user has
+        // already moved on to the next field. Capture here, restore at the end below.
+        var focusField = null;
+        var active = document.activeElement;
+        if (active && active.dataset && active.dataset.field && active.dataset.id) {
+          focusField = {
+            id: active.dataset.id, field: active.dataset.field,
+            selStart: (typeof active.selectionStart === 'number') ? active.selectionStart : null,
+            selEnd: (typeof active.selectionEnd === 'number') ? active.selectionEnd : null,
+          };
+        }
+
         var query = document.getElementById('device-search').value.trim().toLowerCase();
         var isSearching = !!query;
         var sortMode = document.getElementById('device-sort').value;
@@ -1264,6 +1279,19 @@
         info.textContent = state.lastScan
           ? Homey.__('devices.lastScan', { date: new Date(state.lastScan.generatedAt).toLocaleString() })
           : Homey.__('devices.noScanYet');
+
+        if (focusField) {
+          var toRefocus = document.querySelector('[data-id="' + focusField.id + '"][data-field="' + focusField.field + '"]');
+          if (toRefocus) {
+            toRefocus.focus();
+            // Not all input types support text selection (e.g. type=number in some
+            // browsers throws on setSelectionRange) - best-effort only, losing just the
+            // cursor position is harmless, losing focus entirely is what this fixes.
+            if (focusField.selStart != null && typeof toRefocus.setSelectionRange === 'function') {
+              try { toRefocus.setSelectionRange(focusField.selStart, focusField.selEnd); } catch (e) { /* ignore */ }
+            }
+          }
+        }
       }
 
       function runDeviceTest(btn) {
@@ -1749,10 +1777,19 @@
         }
         saveInFlight = true;
 
-        // Auto-save re-renders the device list to refresh badges - without this,
-        // that reset the scroll position too, on top of whatever detail panel you
-        // had open (now fixed separately via state.openAdvanced).
+        // Auto-save re-renders the device list to refresh badges - without this, that
+        // resets the scroll position too, on top of whatever detail panel you had open
+        // (now fixed separately via state.openAdvanced). Anchored to the open device's
+        // own row rather than the raw scrollY: the rescan below can change ITS sort
+        // position (e.g. NOK -> OK under the default "Status zuerst" sort moves it from
+        // near the top to wherever it lands alphabetically among possibly 300+ "OK"
+        // devices) - restoring the same pixel offset would then just show whatever else
+        // now happens to be there, not the device actually being edited. Falls back to
+        // the plain scrollY when no device panel is open (nothing to anchor to).
         var scrollY = window.scrollY;
+        var anchorId = Object.keys(state.openAdvanced).find(function (id) { return state.openAdvanced[id]; });
+        var anchorRow = anchorId ? document.querySelector('.device-row[data-id="' + anchorId + '"]') : null;
+        var anchorOffset = anchorRow ? anchorRow.getBoundingClientRect().top : null;
 
         var payload = { config: readSettingsTab(), rules: state.rules };
         setSaveStatus(Homey.__('save.saving'), false);
@@ -1769,7 +1806,12 @@
           state.lastScan = results[0];
           state.unavailableIds = results[1].ids;
           renderDevices();
-          window.scrollTo(0, scrollY);
+          var newAnchorRow = anchorId ? document.querySelector('.device-row[data-id="' + anchorId + '"]') : null;
+          if (newAnchorRow && anchorOffset != null) {
+            window.scrollBy(0, newAnchorRow.getBoundingClientRect().top - anchorOffset);
+          } else {
+            window.scrollTo(0, scrollY);
+          }
           setSaveStatus(Homey.__('save.savedAt', { time: new Date().toLocaleTimeString() }), false);
         }).catch(function (err) {
           setSaveStatus(Homey.__('save.error'), true);
