@@ -130,5 +130,9 @@
   "1.9.19": {
     "en": "Fixed a device being edited sometimes disappearing from a filtered list, plus various other settings-screen improvements.",
     "de": "Behoben: Ein bearbeitetes Gerät konnte aus einer gefilterten Liste verschwinden. Dazu diverse weitere Optimierungen an der Einstellungs-Oberfläche."
+  },
+  "1.9.20": {
+    "en": "Fixed focus sometimes jumping out of the field you were editing during auto-save, plus more settings-screen polish.",
+    "de": "Behoben: Fokus sprang beim automatischen Speichern manchmal aus dem bearbeiteten Feld. Dazu weitere Optimierungen an der Einstellungs-Oberfläche."
   }
 }
