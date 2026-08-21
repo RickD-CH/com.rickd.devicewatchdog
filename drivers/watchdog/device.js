@@ -29,10 +29,13 @@ class WatchdogDevice extends Homey.Device {
 
     // Populate immediately from whatever the app already knows (last scan / current
     // availability map), instead of showing stale/empty values until the next event.
+    // lowBatteryCount comes from flagState.lowBatteryConfirmed (delay-gated), not the raw
+    // lastScan.lowBattery list - same reasoning as unavailableCount below, see
+    // _getLowBatteryDelaySeconds in app.js.
     const { app } = this.homey;
     await this.updateCounts({
       notReportingCount: app.lastScan ? app.lastScan.notReporting.length : 0,
-      lowBatteryCount: app.lastScan ? app.lastScan.lowBattery.length : 0,
+      lowBatteryCount: app.flagState ? (app.flagState.lowBatteryConfirmed || []).length : 0,
       unavailableCount: app._countUnavailable(),
     });
 

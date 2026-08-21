@@ -138,5 +138,9 @@
   "1.9.21": {
     "en": "Fixed checkboxes sometimes being invisible in the \"apply to similar devices\" device picker for devices with long names.",
     "de": "Behoben: Checkboxen in der Geräteauswahl von \"Für gleichartige Geräte übernehmen\" waren bei langen Gerätenamen teils unsichtbar."
+  },
+  "1.9.22": {
+    "en": "New \"Delay before low battery counts\" setting (global + per-device, like the existing unavailable-delay). Fixes a device that briefly reports e.g. 1% before recovering triggering a false low-battery alert - the raw battery %/status shown here and in the widget stays instant, only the Flow trigger, summary, timeline, log, and virtual device counter now wait for the configured delay.",
+    "de": "Neue Einstellung \"Verzögerung bis Batteriewarnung zählt\" (global + pro Gerät, analog zur bestehenden Verzögerung für \"nicht erreichbar\"). Behebt einen falschen Batteriewarnung-Alarm bei Geräten, die kurz z.B. 1% melden, bevor sie sich wieder erholen - der rohe Batteriestand/-status hier und im Widget bleibt weiterhin sofort sichtbar, nur Flow-Trigger, Sammelmeldung, Zeitleiste, Verlauf und der Zähler im virtuellen Gerät warten jetzt die konfigurierte Verzögerung ab."
   }
 }

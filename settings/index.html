@@ -400,6 +400,17 @@
           <p class="hint" id="hint-battery-threshold">Gilt für alle Geräte ohne eigene Regel.</p>
         </div>
         <div class="field-row">
+          <label for="cfg-low-battery-delay" id="lbl-low-battery-delay">Verzögerung bis Batteriewarnung zählt</label>
+          <div class="unit-field">
+            <input type="number" id="cfg-low-battery-delay" min="0" step="any" />
+            <select id="cfg-low-battery-delay-unit" class="unit-select">
+              <option value="s" id="opt-unit-seconds-global-batt">Sekunden</option>
+              <option value="m" id="opt-unit-minutes-global-batt">Minuten</option>
+            </select>
+          </div>
+          <p class="hint" id="hint-low-battery-delay">0 = sofort. Pro Gerät via "Details" überschreibbar.</p>
+        </div>
+        <div class="field-row">
           <label for="cfg-unavailable-delay" id="lbl-unavailable-delay">Verzögerung bis "nicht erreichbar" zählt</label>
           <div class="unit-field">
             <input type="number" id="cfg-unavailable-delay" min="0" step="any" />
@@ -498,6 +509,11 @@
         hoursUnitGlobal: 'h',
         secondsUnit: {},
         secondsUnitGlobal: 's',
+        // Separate unit-toggle bookkeeping from secondsUnit/secondsUnitGlobal above - a
+        // shared bucket would make switching the unit on one seconds-based delay field
+        // (unavailable vs. low-battery) silently re-label the other one too.
+        lowBatterySecondsUnit: {},
+        secondsUnitGlobalLowBattery: 's',
         applyToAppConfirm: null,
         applyToAppExcludedIds: {},
         applyToAppIncludePause: true,
@@ -543,6 +559,10 @@
         document.getElementById('hint-include-last-seen').textContent = Homey.__('settingsTab.includeLastSeenHint');
         document.getElementById('lbl-battery-threshold').textContent = Homey.__('settingsTab.batteryLabel');
         document.getElementById('hint-battery-threshold').textContent = Homey.__('settingsTab.batteryHint');
+        document.getElementById('lbl-low-battery-delay').textContent = Homey.__('settingsTab.lowBatteryDelayLabel');
+        document.getElementById('hint-low-battery-delay').textContent = Homey.__('settingsTab.lowBatteryDelayHint');
+        document.getElementById('opt-unit-seconds-global-batt').textContent = Homey.__('units.seconds');
+        document.getElementById('opt-unit-minutes-global-batt').textContent = Homey.__('units.minutes');
         document.getElementById('lbl-unavailable-delay').textContent = Homey.__('settingsTab.unavailableDelayLabel');
         document.getElementById('hint-unavailable-delay').textContent = Homey.__('settingsTab.unavailableDelayHint');
         document.getElementById('opt-unit-seconds-global').textContent = Homey.__('units.seconds');
@@ -706,6 +726,8 @@
         document.getElementById('cfg-not-reporting-hours').value = hoursToDisplay(c.notReportingThresholdHours, state.hoursUnitGlobal);
         document.getElementById('cfg-include-last-seen').checked = !!c.includeLastSeenForReporting;
         document.getElementById('cfg-battery-threshold').value = c.batteryThresholdPercent;
+        document.getElementById('cfg-low-battery-delay-unit').value = state.secondsUnitGlobalLowBattery;
+        document.getElementById('cfg-low-battery-delay').value = secondsToDisplay(c.lowBatteryDelaySeconds, state.secondsUnitGlobalLowBattery);
         document.getElementById('cfg-unavailable-delay-unit').value = state.secondsUnitGlobal;
         document.getElementById('cfg-unavailable-delay').value = secondsToDisplay(c.unavailableDelaySeconds, state.secondsUnitGlobal);
         document.getElementById('cfg-timeline-notifications').checked = !!c.timelineNotifications;
@@ -745,6 +767,7 @@
           notReportingThresholdHours: displayToHours(document.getElementById('cfg-not-reporting-hours').value, state.hoursUnitGlobal) || 24,
           includeLastSeenForReporting: document.getElementById('cfg-include-last-seen').checked,
           batteryThresholdPercent: Number(document.getElementById('cfg-battery-threshold').value) || 30,
+          lowBatteryDelaySeconds: displayToSeconds(document.getElementById('cfg-low-battery-delay').value, state.secondsUnitGlobalLowBattery) || 0,
           unavailableDelaySeconds: displayToSeconds(document.getElementById('cfg-unavailable-delay').value, state.secondsUnitGlobal) || 0,
           timelineNotifications: document.getElementById('cfg-timeline-notifications').checked,
           alarmIncludesUnavailable: document.getElementById('cfg-alarm-unavailable').checked,
@@ -769,7 +792,7 @@
             id: genId(), matchType: 'id', matchValue: id, label: name,
             notReportingHours: null, batteryThreshold: null,
             excludeBattery: false, onlyCheckBattery: false, excludeAll: false,
-            excludeFromUnavailable: false, unavailableDelaySeconds: null,
+            excludeFromUnavailable: false, unavailableDelaySeconds: null, lowBatteryDelaySeconds: null,
             includeLastSeenForReporting: null, pausedUntil: null, batteryTypeOverride: null,
             autoTestOnStale: false, autoTestTriggerOnHeal: false,
           };
@@ -783,7 +806,8 @@
         if (!rule) return;
         var isEmpty = !rule.excludeAll && rule.notReportingHours == null && rule.batteryThreshold == null
           && !rule.excludeBattery && !rule.onlyCheckBattery && !rule.excludeFromUnavailable
-          && rule.unavailableDelaySeconds == null && rule.includeLastSeenForReporting == null
+          && rule.unavailableDelaySeconds == null && rule.lowBatteryDelaySeconds == null
+          && rule.includeLastSeenForReporting == null
           && rule.pausedUntil == null && !rule.batteryTypeOverride
           && !rule.autoTestOnStale && !rule.autoTestTriggerOnHeal;
         if (isEmpty) state.rules = state.rules.filter(function (r) { return r !== rule; });
@@ -1024,6 +1048,13 @@
           : '') +
           (view.device.hasBattery ? '' +
             '<div class="f"><label>' + Homey.__('advanced.batteryThreshold') + '</label><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" data-id="' + view.device.id + '" value="' + (r.batteryThreshold == null ? '' : r.batteryThreshold) + '" placeholder="' + placeholderDefault + '" /></div>' +
+            '<div class="f"><label>' + Homey.__('advanced.lowBatteryDelay') + '</label><div class="unit-field">' +
+              '<input type="number" min="0" step="any" data-field="lowBatteryDelaySeconds" data-id="' + view.device.id + '" value="' + secondsToDisplay(r.lowBatteryDelaySeconds, state.lowBatterySecondsUnit[view.device.id] || 's') + '" placeholder="' + placeholderDefault + '" />' +
+              '<select class="unit-select" data-unit-for="lowBatteryDelaySeconds" data-id="' + view.device.id + '">' +
+                '<option value="s"' + ((state.lowBatterySecondsUnit[view.device.id] || 's') === 's' ? ' selected' : '') + '>' + Homey.__('units.seconds') + '</option>' +
+                '<option value="m"' + (state.lowBatterySecondsUnit[view.device.id] === 'm' ? ' selected' : '') + '>' + Homey.__('units.minutes') + '</option>' +
+              '</select>' +
+            '</div></div>' +
             '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + view.device.id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.onlyBattery') + '</label>' +
             '<label class="f chk"><input type="checkbox" data-field="excludeBattery" data-id="' + view.device.id + '"' + (r.excludeBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeBattery') + '</label>' +
             '<div class="f" title="' + escapeHtml(Homey.__('advanced.batteryTypeOverrideHint')) + '"><label>' + Homey.__('advanced.batteryTypeOverride') + '</label>' +
@@ -1038,7 +1069,8 @@
         var r = view.rule;
         return !!(r && (r.notReportingHours != null || r.batteryThreshold != null
           || r.excludeBattery || r.onlyCheckBattery || r.excludeFromUnavailable
-          || r.unavailableDelaySeconds != null || r.includeLastSeenForReporting != null
+          || r.unavailableDelaySeconds != null || r.lowBatteryDelaySeconds != null
+          || r.includeLastSeenForReporting != null
           || r.batteryTypeOverride || r.autoTestOnStale));
       }
 
@@ -1267,7 +1299,8 @@
         var specialRulesTotal = state.rules.filter(function (r) {
           return r.matchType === 'id' && !r.excludeAll
             && (r.notReportingHours != null || r.batteryThreshold != null || r.excludeBattery || r.onlyCheckBattery
-              || r.excludeFromUnavailable || r.unavailableDelaySeconds != null || r.includeLastSeenForReporting != null
+              || r.excludeFromUnavailable || r.unavailableDelaySeconds != null || r.lowBatteryDelaySeconds != null
+              || r.includeLastSeenForReporting != null
               || r.batteryTypeOverride || r.autoTestOnStale);
         }).length;
 
@@ -1391,6 +1424,7 @@
           sr.onlyCheckBattery = !!r.onlyCheckBattery;
           sr.excludeFromUnavailable = !!r.excludeFromUnavailable;
           sr.unavailableDelaySeconds = r.unavailableDelaySeconds != null ? r.unavailableDelaySeconds : null;
+          sr.lowBatteryDelaySeconds = r.lowBatteryDelaySeconds != null ? r.lowBatteryDelaySeconds : null;
           sr.includeLastSeenForReporting = r.includeLastSeenForReporting != null ? r.includeLastSeenForReporting : null;
           sr.batteryTypeOverride = r.batteryTypeOverride || null;
           // Only meaningful for a sibling that also has a testable capability - a device
@@ -1443,6 +1477,7 @@
               rule.onlyCheckBattery = false;
               rule.excludeFromUnavailable = false;
               rule.unavailableDelaySeconds = null;
+              rule.lowBatteryDelaySeconds = null;
               rule.includeLastSeenForReporting = null;
               rule.batteryTypeOverride = null;
               rule.autoTestOnStale = false;
@@ -1501,10 +1536,15 @@
             // the underlying rule value (and thus nothing worth saving) doesn't change.
             e.stopPropagation();
             var numInput = e.target.closest('.unit-field').querySelector('input[type=number]');
-            if (e.target.dataset.unitFor === 'unavailableDelaySeconds') {
-              var currentSeconds = displayToSeconds(numInput.value, state.secondsUnit[id] || 's');
-              state.secondsUnit[id] = e.target.value;
-              numInput.value = secondsToDisplay(currentSeconds, state.secondsUnit[id]);
+            var unitFor = e.target.dataset.unitFor;
+            if (unitFor === 'unavailableDelaySeconds' || unitFor === 'lowBatteryDelaySeconds') {
+              // Separate unit-store per field (see state.lowBatterySecondsUnit) - these
+              // are two independent delay settings, switching one's unit shouldn't
+              // silently re-label the other.
+              var secondsUnitStore = unitFor === 'unavailableDelaySeconds' ? state.secondsUnit : state.lowBatterySecondsUnit;
+              var currentSeconds = displayToSeconds(numInput.value, secondsUnitStore[id] || 's');
+              secondsUnitStore[id] = e.target.value;
+              numInput.value = secondsToDisplay(currentSeconds, secondsUnitStore[id]);
             } else {
               var currentHours = displayToHours(numInput.value, state.hoursUnit[id] || 'h');
               state.hoursUnit[id] = e.target.value;
@@ -1549,6 +1589,8 @@
             r[field] = displayToHours(e.target.value, state.hoursUnit[id] || 'h');
           } else if (field === 'unavailableDelaySeconds') {
             r[field] = displayToSeconds(e.target.value, state.secondsUnit[id] || 's');
+          } else if (field === 'lowBatteryDelaySeconds') {
+            r[field] = displayToSeconds(e.target.value, state.lowBatterySecondsUnit[id] || 's');
           } else if (field === 'includeLastSeenForReporting') {
             r[field] = e.target.value === '' ? null : e.target.value === 'yes';
           } else if (field === 'pausedUntil') {
@@ -1714,6 +1756,14 @@
         var seconds = displayToSeconds(input.value, state.secondsUnitGlobal);
         state.secondsUnitGlobal = e.target.value;
         input.value = secondsToDisplay(seconds, state.secondsUnitGlobal);
+      });
+
+      document.getElementById('cfg-low-battery-delay-unit').addEventListener('change', function (e) {
+        e.stopPropagation();
+        var input = document.getElementById('cfg-low-battery-delay');
+        var seconds = displayToSeconds(input.value, state.secondsUnitGlobalLowBattery);
+        state.secondsUnitGlobalLowBattery = e.target.value;
+        input.value = secondsToDisplay(seconds, state.secondsUnitGlobalLowBattery);
       });
 
       // Any real user edit within the Einstellungen tab auto-saves - programmatic

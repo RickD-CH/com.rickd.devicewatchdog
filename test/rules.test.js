@@ -24,6 +24,7 @@ describe('sanitizeRule', () => {
     excludeAll: true,
     excludeFromUnavailable: true,
     unavailableDelaySeconds: 30,
+    lowBatteryDelaySeconds: 45,
     includeLastSeenForReporting: true,
     pausedUntil: '2026-01-01',
     batteryTypeOverride: '4x AA',
@@ -74,6 +75,7 @@ describe('sanitizeRule', () => {
     assert.equal(sanitized.notReportingHours, null);
     assert.equal(sanitized.batteryThreshold, null);
     assert.equal(sanitized.unavailableDelaySeconds, null);
+    assert.equal(sanitized.lowBatteryDelaySeconds, null);
     assert.equal(sanitized.includeLastSeenForReporting, null);
     assert.equal(sanitized.pausedUntil, null);
     assert.equal(sanitized.batteryTypeOverride, null);

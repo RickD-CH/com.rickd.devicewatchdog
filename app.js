@@ -82,7 +82,13 @@ class DeviceWatchdogApp extends Homey.App {
     this.config = { ...DEFAULT_CONFIG, ...(this.homey.settings.get(SETTINGS_KEY_CONFIG) || {}) };
     this._setRules((this.homey.settings.get(SETTINGS_KEY_RULES) || DEFAULT_RULES).map(migrateRuleToHours));
     this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
-    this.flagState = this.homey.settings.get(SETTINGS_KEY_FLAG_STATE) || { notReporting: [], lowBattery: [] };
+    this.flagState = this.homey.settings.get(SETTINGS_KEY_FLAG_STATE)
+      // lowBatteryConfirmed is the delay-gated subset of lowBattery (see
+      // _getLowBatteryDelaySeconds / _fireEdgeTriggers) - kept separate so a device isn't
+      // re-fired every scan once confirmed, and so a settings file saved by an older
+      // version (with no lowBatteryConfirmed key at all) starts everyone unconfirmed
+      // rather than crashing on a missing array.
+      || { notReporting: [], lowBattery: [], lowBatteryConfirmed: [] };
     // Since-when each device entered a problem category (widget detail view) - keyed by
     // device id, cleared once the device leaves that category again. Separate from
     // flagState (which only needs the current set, not when it started).
@@ -411,6 +417,14 @@ class DeviceWatchdogApp extends Homey.App {
     return (override != null ? override : this.config.unavailableDelaySeconds) || 0;
   }
 
+  // Same idea as _getUnavailableDelaySeconds above, for the low-battery grace period -
+  // see lowBatteryDelaySeconds in lib/defaults.js.
+  _getLowBatteryDelaySeconds(deviceId) {
+    const { rule } = scanner.findRuleIndexed({ id: deviceId }, this._ruleIndex);
+    const override = rule?.lowBatteryDelaySeconds;
+    return (override != null ? override : this.config.lowBatteryDelaySeconds) || 0;
+  }
+
   _scheduleUnavailableConfirmation(device, delaySeconds, silent) {
     this._cancelPendingUnavailableConfirmation(device.id);
     const timer = this.homey.setTimeout(() => {
@@ -655,6 +669,9 @@ class DeviceWatchdogApp extends Homey.App {
         scanIntervalMinutes: positiveNumberOrDefault(config.scanIntervalMinutes, DEFAULT_CONFIG.scanIntervalMinutes),
         unavailableDelaySeconds: nonNegativeNumberOrDefault(
           config.unavailableDelaySeconds, DEFAULT_CONFIG.unavailableDelaySeconds,
+        ),
+        lowBatteryDelaySeconds: nonNegativeNumberOrDefault(
+          config.lowBatteryDelaySeconds, DEFAULT_CONFIG.lowBatteryDelaySeconds,
         ),
         startupGraceMinutes: nonNegativeNumberOrDefault(
           config.startupGraceMinutes, DEFAULT_CONFIG.startupGraceMinutes,
@@ -983,9 +1000,12 @@ class DeviceWatchdogApp extends Homey.App {
       this.homey.settings.set(SETTINGS_KEY_LAST_SCAN, this.lastScan);
     }
 
+    // lowBatteryCount is deliberately NOT set here - _fireEdgeTriggers below applies the
+    // confirmation delay first (see _getLowBatteryDelaySeconds) and updates it itself,
+    // same as unavailableCount is only ever updated via _confirmUnavailable /
+    // _handleDeviceUpdate rather than from the raw per-scan count.
     await this._updateWatchdogDevice({
       notReportingCount: result.notReporting.length,
-      lowBatteryCount: result.lowBattery.length,
     });
 
     await this._fireEdgeTriggers(result);
@@ -1053,10 +1073,20 @@ class DeviceWatchdogApp extends Homey.App {
   async _fireEdgeTriggers(result) {
     const prevNotReporting = new Set(this.flagState.notReporting || []);
     const prevLowBattery = new Set(this.flagState.lowBattery || []);
+    // Delay-confirmed subset of prevLowBattery (see _getLowBatteryDelaySeconds) - kept
+    // separate from the raw set above so a device isn't re-fired every scan once
+    // confirmed, and so the recovery logging below only fires for devices that were
+    // actually confirmed/alerted, not every transient blip that recovered on its own
+    // before its grace period even elapsed.
+    const prevLowBatteryConfirmed = new Set(this.flagState.lowBatteryConfirmed || []);
     const nowNotReporting = new Set(result.notReporting.map((d) => d.id));
     const nowLowBattery = new Set(result.lowBattery.map((d) => d.id));
 
     const newlyNotReporting = result.notReporting.filter((d) => !prevNotReporting.has(d.id));
+    // Raw newly-low-battery this scan, before any grace period - only used below to stamp
+    // problemSince.lowBattery, the "since" anchor the confirmation check (below) measures
+    // from. Everything user-facing (trigger/log/timeline/summary/virtual device counter)
+    // waits for newlyLowBatteryConfirmed instead.
     const newlyLowBattery = result.lowBattery.filter((d) => !prevLowBattery.has(d.id));
 
     // A previously-flagged device only counts as genuinely resolved (recovered, "since"
@@ -1079,7 +1109,11 @@ class DeviceWatchdogApp extends Homey.App {
     const recoveredNotReporting = [...prevNotReporting]
       .filter((id) => scannedIds.has(id) && !nowNotReporting.has(id))
       .map((id) => allById.get(id)).filter(Boolean);
-    const recoveredLowBattery = [...prevLowBattery]
+    // Sourced from prevLowBatteryConfirmed (not the raw prevLowBattery) - a device that
+    // was only ever a candidate, never actually confirmed/alerted, has nothing to
+    // "recover" from as far as the log is concerned (see forum report re: transient
+    // battery blips).
+    const recoveredLowBattery = [...prevLowBatteryConfirmed]
       .filter((id) => scannedIds.has(id) && !nowLowBattery.has(id))
       .map((id) => allById.get(id)).filter(Boolean);
     for (const device of recoveredNotReporting) {
@@ -1091,6 +1125,8 @@ class DeviceWatchdogApp extends Homey.App {
 
     // "Since" bookkeeping for the widget detail view - set when a device newly enters a
     // category, cleared when it leaves again (independent of the trigger/log logic below).
+    // Deliberately stays instantaneous/raw (not delay-gated) - same as the widget itself,
+    // and it's the anchor the low-battery confirmation check right below measures from.
     for (const id of prevNotReporting) {
       if (scannedIds.has(id) && !nowNotReporting.has(id)) delete this.problemSince.notReporting[id];
     }
@@ -1099,6 +1135,25 @@ class DeviceWatchdogApp extends Homey.App {
     }
     for (const device of newlyNotReporting) this.problemSince.notReporting[device.id] = Date.now();
     for (const device of newlyLowBattery) this.problemSince.lowBattery[device.id] = Date.now();
+
+    // Low-battery confirmation (mirrors the unavailable grace period - see
+    // _getLowBatteryDelaySeconds): a device already confirmed on a previous scan stays
+    // confirmed for as long as it's still in this scan's raw low-battery set; a device
+    // seen low for the first time (or still pending) only confirms once problemSince has
+    // aged past its configured delay. A device that recovers before ever reaching this
+    // never fires anything below - exactly the transient-blip case this exists to filter.
+    const nowLowBatteryConfirmed = new Set();
+    for (const device of result.lowBattery) {
+      if (prevLowBatteryConfirmed.has(device.id)) {
+        nowLowBatteryConfirmed.add(device.id);
+        continue;
+      }
+      const since = this.problemSince.lowBattery[device.id];
+      const delayMs = this._getLowBatteryDelaySeconds(device.id) * 1000;
+      if (since != null && Date.now() - since >= delayMs) nowLowBatteryConfirmed.add(device.id);
+    }
+    const newlyLowBatteryConfirmed = result.lowBattery
+      .filter((d) => nowLowBatteryConfirmed.has(d.id) && !prevLowBatteryConfirmed.has(d.id));
 
     for (const device of newlyNotReporting) {
       await this._triggerNotReporting
@@ -1112,7 +1167,7 @@ class DeviceWatchdogApp extends Homey.App {
       this._recordEvent('notReporting', { device: device.name, zone: device.zone, detail: device.lastUpdated });
     }
 
-    for (const device of newlyLowBattery) {
+    for (const device of newlyLowBatteryConfirmed) {
       await this._triggerBatteryLow
         ?.trigger({
           device: device.name || '',
@@ -1134,14 +1189,14 @@ class DeviceWatchdogApp extends Homey.App {
       this._notifyTimeline(this.homey.__('backend.timelineNotReporting', { count: newlyNotReporting.length, devices: devicesList }));
     }
 
-    if (newlyLowBattery.length) {
-      const devicesList = formatNameList(newlyLowBattery.map((d) => d.name), this.homey);
+    if (newlyLowBatteryConfirmed.length) {
+      const devicesList = formatNameList(newlyLowBatteryConfirmed.map((d) => d.name), this.homey);
 
       await this._triggerBatteryLowSummary
-        ?.trigger({ count: newlyLowBattery.length, devices: devicesList })
+        ?.trigger({ count: newlyLowBatteryConfirmed.length, devices: devicesList })
         .catch((err) => this.error('Trigger devices_low_battery_summary fehlgeschlagen:', err));
 
-      this._notifyTimeline(this.homey.__('backend.timelineLowBattery', { count: newlyLowBattery.length, devices: devicesList }));
+      this._notifyTimeline(this.homey.__('backend.timelineLowBattery', { count: newlyLowBatteryConfirmed.length, devices: devicesList }));
     }
 
     // Carry forward anything genuinely missing from this round entirely (see knownIds
@@ -1150,13 +1205,20 @@ class DeviceWatchdogApp extends Homey.App {
     // flagged state until a future scan can actually re-confirm it one way or the other.
     const carriedNotReporting = [...prevNotReporting].filter((id) => !knownIds.has(id));
     const carriedLowBattery = [...prevLowBattery].filter((id) => !knownIds.has(id));
+    const carriedLowBatteryConfirmed = [...prevLowBatteryConfirmed].filter((id) => !knownIds.has(id));
 
     this.flagState = {
       notReporting: [...result.notReporting.map((d) => d.id), ...carriedNotReporting],
       lowBattery: [...result.lowBattery.map((d) => d.id), ...carriedLowBattery],
+      lowBatteryConfirmed: [...nowLowBatteryConfirmed, ...carriedLowBatteryConfirmed],
     };
     this.homey.settings.set(SETTINGS_KEY_FLAG_STATE, this.flagState);
     this._persistProblemSince();
+
+    // Virtual device counter/alarm - gated by confirmation same as the trigger/log/
+    // timeline above (see _getLowBatteryDelaySeconds), deliberately NOT the raw
+    // result.lowBattery.length the Settings UI/widget/condition cards use.
+    await this._updateWatchdogDevice({ lowBatteryCount: this.flagState.lowBatteryConfirmed.length });
   }
 
 }
