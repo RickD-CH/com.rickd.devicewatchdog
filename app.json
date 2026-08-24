@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.rickd.devicewatchdog",
-  "version": "1.9.22",
+  "version": "1.9.23",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -716,12 +716,12 @@
           "de": "Gerät bis Datum pausieren"
         },
         "titleFormatted": {
-          "en": "Pause [[device]] until [[date]]",
-          "de": "[[device]] bis [[date]] pausieren"
+          "en": "Pause [[device]] until [[date]] [[rescanNow]]",
+          "de": "[[device]] bis [[date]] pausieren [[rescanNow]]"
         },
         "hint": {
-          "en": "Skips the device entirely (like the \"monitored\" toggle turned off) until the given date, then it resumes automatically on the next scan. Same effect as setting \"Paused until\" under the device's Details. For a computed/dynamic date via a token or Homey Logic variable instead of picking a fixed date, use \"Pause device until date (variable)\" instead.",
-          "de": "Überspringt das Gerät komplett (wie beim ausgeschalteten \"Überwacht\"-Schalter) bis zum angegebenen Datum, danach wird es beim nächsten Scan automatisch wieder aktiv. Gleicher Effekt wie \"Pausiert bis\" in den Geräte-Details. Für ein berechnetes/dynamisches Datum via Token oder Homey-Logic-Variable statt eines festen Datums stattdessen \"Gerät bis Datum pausieren (Variable)\" verwenden."
+          "en": "Skips the device entirely (like the \"monitored\" toggle turned off) until the given date, then it resumes automatically on the next scan. Same effect as setting \"Paused until\" under the device's Details. For a computed/dynamic date via a token or Homey Logic variable instead of picking a fixed date, use \"Pause device until date (variable)\" instead.\n\n\"Rescan immediately\" below forces a full device scan right after pausing, so this device's counts, the virtual device's alarm, and the dashboard widget reflect the pause right away - instead of only catching up on the next scheduled/manual scan. Useful if the device currently has an active problem you want cleared from the counts immediately. Off by default (no extra scan unless you turn it on).",
+          "de": "Überspringt das Gerät komplett (wie beim ausgeschalteten \"Überwacht\"-Schalter) bis zum angegebenen Datum, danach wird es beim nächsten Scan automatisch wieder aktiv. Gleicher Effekt wie \"Pausiert bis\" in den Geräte-Details. Für ein berechnetes/dynamisches Datum via Token oder Homey-Logic-Variable statt eines festen Datums stattdessen \"Gerät bis Datum pausieren (Variable)\" verwenden.\n\n\"Sofort neu scannen\" weiter unten erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler dieses Geräts, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln - statt erst beim nächsten geplanten/manuellen Scan nachzuziehen. Nützlich, wenn das Gerät gerade ein aktives Problem hat, das sofort aus den Zählern verschwinden soll. Standardmäßig aus (kein zusätzlicher Scan, außer du aktivierst es)."
         },
         "args": [
           {
@@ -743,6 +743,14 @@
               "en": "Paused until",
               "de": "Pausiert bis"
             }
+          },
+          {
+            "name": "rescanNow",
+            "type": "checkbox",
+            "title": {
+              "en": "Rescan immediately",
+              "de": "Sofort neu scannen"
+            }
           }
         ]
       },
@@ -753,12 +761,12 @@
           "de": "Gerät bis Datum pausieren (Variable)"
         },
         "titleFormatted": {
-          "en": "Pause [[device]] until [[date]]",
-          "de": "[[device]] bis [[date]] pausieren"
+          "en": "Pause [[device]] until [[date]] [[rescanNow]]",
+          "de": "[[device]] bis [[date]] pausieren [[rescanNow]]"
         },
         "hint": {
-          "en": "Same as \"Pause device until date\", but the date is a text field so you can drop in a token or a Homey Logic variable instead of picking a fixed date - useful for a computed or dynamic date. Type a date directly as YYYY-MM-DD, or insert a token/variable that resolves to one. An unrecognizable value is treated as no pause, not an error.",
-          "de": "Wie \"Gerät bis Datum pausieren\", aber das Datum ist ein Textfeld, in das sich ein Token oder eine Homey-Logic-Variable einfügen lässt statt ein festes Datum auszuwählen - nützlich für ein berechnetes oder dynamisches Datum. Direkt als YYYY-MM-DD eintippen, oder ein Token/eine Variable einfügen, die sich dazu auflöst. Ein nicht erkennbarer Wert wird als \"keine Pause\" behandelt, nicht als Fehler."
+          "en": "Same as \"Pause device until date\", but the date is a text field so you can drop in a token or a Homey Logic variable instead of picking a fixed date - useful for a computed or dynamic date. Type a date directly as YYYY-MM-DD, or insert a token/variable that resolves to one. An unrecognizable value is treated as no pause, not an error.\n\n\"Rescan immediately\" below forces a full device scan right after pausing, so this device's counts, the virtual device's alarm, and the dashboard widget reflect the pause right away - instead of only catching up on the next scheduled/manual scan. Off by default (no extra scan unless you turn it on).",
+          "de": "Wie \"Gerät bis Datum pausieren\", aber das Datum ist ein Textfeld, in das sich ein Token oder eine Homey-Logic-Variable einfügen lässt statt ein festes Datum auszuwählen - nützlich für ein berechnetes oder dynamisches Datum. Direkt als YYYY-MM-DD eintippen, oder ein Token/eine Variable einfügen, die sich dazu auflöst. Ein nicht erkennbarer Wert wird als \"keine Pause\" behandelt, nicht als Fehler.\n\n\"Sofort neu scannen\" weiter unten erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler dieses Geräts, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln - statt erst beim nächsten geplanten/manuellen Scan nachzuziehen. Standardmäßig aus (kein zusätzlicher Scan, außer du aktivierst es)."
         },
         "args": [
           {
@@ -783,6 +791,14 @@
             "placeholder": {
               "en": "YYYY-MM-DD, e.g. 2027-03-01, or a token",
               "de": "JJJJ-MM-TT, z.B. 2027-03-01, oder ein Token"
+            }
+          },
+          {
+            "name": "rescanNow",
+            "type": "checkbox",
+            "title": {
+              "en": "Rescan immediately",
+              "de": "Sofort neu scannen"
             }
           }
         ]

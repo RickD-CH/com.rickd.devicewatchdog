@@ -201,7 +201,7 @@ class DeviceWatchdogApp extends Homey.App {
 
     this.homey.flow.getActionCard('pause_device')
       .registerRunListener(async (args) => {
-        await this.pauseDevice(args.device.id, args.date);
+        await this.pauseDevice(args.device.id, args.date, { rescanNow: !!args.rescanNow });
         return true;
       })
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
@@ -213,7 +213,7 @@ class DeviceWatchdogApp extends Homey.App {
     // picker for that flexibility.
     this.homey.flow.getActionCard('pause_device_variable')
       .registerRunListener(async (args) => {
-        await this.pauseDevice(args.device.id, args.date);
+        await this.pauseDevice(args.device.id, args.date, { rescanNow: !!args.rescanNow });
         return true;
       })
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
@@ -694,7 +694,16 @@ class DeviceWatchdogApp extends Homey.App {
   // until" under a device's Details, just reachable from a Flow. Routes through
   // saveConfig so it gets the exact same whitelist/validation/persistence as a Settings
   // UI save, instead of mutating this.rules directly.
-  async pauseDevice(deviceId, pausedUntil) {
+  //
+  // rescanNow (opt-in, only meaningful when pausing, not clearing a pause - see the
+  // pause_device*/resume_device run listeners): saveConfig alone never re-evaluates
+  // anything, so a device that's currently flagged stays reflected in the counts/virtual
+  // device alarm/widget until the next scheduled or manual scan - forum feedback wanted a
+  // way to force that catch-up immediately instead of waiting. Reuses the exact same
+  // runScan() the "Run device scan now" action/button already use, rather than
+  // hand-rolling a narrower per-device reconcile - simpler and already battle-tested for
+  // this multi-device install.
+  async pauseDevice(deviceId, pausedUntil, { rescanNow = false } = {}) {
     await this._ensureApi();
     const device = await this.api.devices.getDevice({ id: deviceId });
     if (!device) throw new Error(this.homey.__('backend.deviceNotFound'));
@@ -711,6 +720,8 @@ class DeviceWatchdogApp extends Homey.App {
       }];
 
     await this.saveConfig({ rules });
+
+    if (rescanNow) await this.runScan('flow');
   }
 
   // ---------------------------------------------------------------------
