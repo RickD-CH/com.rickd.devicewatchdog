@@ -41,6 +41,10 @@ module.exports = {
     return homey.app.clearLog();
   },
 
+  async getStaleRules({ homey }) {
+    return homey.app.getStaleRules();
+  },
+
   async pruneStaleRules({ homey }) {
     return homey.app.pruneStaleRules();
   },

@@ -153,6 +153,7 @@
     "resetConfirm": "Wirklich alle Einstellungen und Pro-Gerät-Regeln auf die Werkseinstellungen zurücksetzen? Das kann nicht rückgängig gemacht werden.",
     "resetFailed": "Zurücksetzen fehlgeschlagen: __error__",
     "pruneRulesHint": "Entfernt Pro-Gerät-Regeln, die auf ein Gerät zeigen, das es in Homey nicht mehr gibt (z. B. nach dem Entfernen eines Geräts). Alle anderen Einstellungen bleiben unberührt.",
+    "pruneRulesAffects": "Betrifft aktuell:",
     "pruneRulesButton": "Verwaiste Regeln aufräumen",
     "pruneRulesResult": "__count__ Regel(n) für nicht mehr existierende Geräte entfernt.",
     "pruneRulesNone": "Keine verwaisten Regeln gefunden - nichts aufzuräumen.",

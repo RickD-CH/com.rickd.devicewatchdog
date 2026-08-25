@@ -632,21 +632,35 @@ class DeviceWatchdogApp extends Homey.App {
   // Settings UI, never on removal. Over years of device churn that silently accumulates
   // dead entries (pointing at a device id that no longer exists) that just sit there
   // forever taking up space. 'name'/'pattern' rules aren't tied to a specific device id,
-  // so they're left alone here regardless of what's currently paired.
-  async pruneStaleRules() {
+  // so they're never considered stale by this. Shared by getStaleRules (read-only preview)
+  // and pruneStaleRules (actually removes them), so the two can never disagree about what
+  // counts as stale.
+  async _findStaleRules() {
     await this._ensureApi();
     const devices = await this.api.devices.getDevices({ $cache: false });
     const liveIds = new Set(Object.keys(devices));
+    return this.rules.filter((rule) => rule.matchType === 'id' && !liveIds.has(rule.matchValue));
+  }
 
-    const kept = this.rules.filter((rule) => rule.matchType !== 'id' || liveIds.has(rule.matchValue));
-    const removedCount = this.rules.length - kept.length;
+  // Read-only preview for the Settings UI - lets "Clean up stale rules" show exactly which
+  // devices it would affect before the user actually clicks it, instead of it being a
+  // surprise. label falls back to the raw device id when empty (older rules, or ones
+  // created without a device name at hand, don't always have one set).
+  async getStaleRules() {
+    const stale = await this._findStaleRules();
+    return stale.map((rule) => ({ id: rule.id, label: rule.label || rule.matchValue }));
+  }
 
-    if (removedCount > 0) {
-      this._setRules(kept);
+  async pruneStaleRules() {
+    const stale = await this._findStaleRules();
+
+    if (stale.length > 0) {
+      const staleIds = new Set(stale.map((rule) => rule.id));
+      this._setRules(this.rules.filter((rule) => !staleIds.has(rule.id)));
       this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
     }
 
-    return { removedCount };
+    return { removedCount: stale.length };
   }
 
   // Keeps this.rules and its lookup index (see lib/scanner.js buildRuleIndex) in lockstep -

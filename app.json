@@ -109,6 +109,10 @@
       "method": "delete",
       "path": "/log"
     },
+    "getStaleRules": {
+      "method": "get",
+      "path": "/rules/stale"
+    },
     "pruneStaleRules": {
       "method": "post",
       "path": "/rules/prune"

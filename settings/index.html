@@ -136,6 +136,8 @@
     .field-stack .field-row { margin-bottom: 18px; }
     .field-stack .field-row:last-child { margin-bottom: 4px; }
     .hint { color: var(--color-muted); font-size: 12px; margin: 0 0 14px; line-height: 1.4; }
+    .stale-rules-caption { color: var(--color-muted); font-size: 12px; margin: -8px 0 4px; }
+    .stale-rules-list { color: var(--color-muted); font-size: 12px; line-height: 1.5; margin: 0 0 14px; padding-left: 20px; max-height: 160px; overflow-y: auto; }
     .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #eee; color: var(--color-muted); white-space: nowrap; }
     .badge.ok { background: #e8f5e9; color: var(--color-ok); }
     .badge.nok { background: #ffebee; color: var(--color-nok); }
@@ -473,6 +475,8 @@
       <p class="hint" id="hint-reset-settings">Setzt alle Einstellungen (Standardwerte + Pro-Gerät-Regeln) auf die Werkseinstellungen zurück. Verlauf und letzter Scan bleiben erhalten.</p>
       <button class="btn small danger" id="btn-reset-settings">Auf Werkseinstellungen zurücksetzen</button>
       <p class="hint" id="hint-prune-rules">Entfernt Pro-Gerät-Regeln, die auf ein Gerät zeigen, das es in Homey nicht mehr gibt (z. B. nach dem Entfernen eines Geräts). Alle anderen Einstellungen bleiben unberührt.</p>
+      <p class="stale-rules-caption" id="stale-rules-caption" style="display:none;">Betrifft aktuell:</p>
+      <ul class="stale-rules-list" id="stale-rules-list" style="display:none;"></ul>
       <button class="btn small" id="btn-prune-rules">Verwaiste Regeln aufräumen</button>
     </div>
 
@@ -521,6 +525,9 @@
         // (same data the widget/virtual device use) - independent of the notReporting
         // scan threshold, see getUnavailableStatus() in app.js.
         unavailableIds: [],
+        // Preview for "Clean up stale rules" (see getStaleRules in app.js) - [{id, label}],
+        // refreshed on load and again right after the button actually prunes.
+        staleRules: [],
       };
 
       // ---------------------------------------------------------------
@@ -587,6 +594,7 @@
         document.getElementById('hint-reset-settings').textContent = Homey.__('settingsTab.resetHint');
         document.getElementById('btn-reset-settings').textContent = Homey.__('settingsTab.resetButton');
         document.getElementById('hint-prune-rules').textContent = Homey.__('settingsTab.pruneRulesHint');
+        document.getElementById('stale-rules-caption').textContent = Homey.__('settingsTab.pruneRulesAffects');
         document.getElementById('btn-prune-rules').textContent = Homey.__('settingsTab.pruneRulesButton');
         document.getElementById('h2-donate').textContent = Homey.__('settingsTab.donateTitle');
         document.getElementById('hint-donate').textContent = Homey.__('settingsTab.donateHint');
@@ -1657,6 +1665,26 @@
         }).join('');
       }
 
+      // Preview list for "Clean up stale rules" (see getStaleRules in app.js) - shows
+      // exactly which devices the button would affect before it's clicked, instead of it
+      // being a surprise. Hidden entirely when there's nothing stale, same as the rest of
+      // this page only shows what's actually relevant right now.
+      function renderStaleRules() {
+        var caption = document.getElementById('stale-rules-caption');
+        var list = document.getElementById('stale-rules-list');
+        if (!state.staleRules.length) {
+          caption.style.display = 'none';
+          list.style.display = 'none';
+          list.innerHTML = '';
+          return;
+        }
+        caption.style.display = '';
+        list.style.display = '';
+        list.innerHTML = state.staleRules.map(function (r) {
+          return '<li>' + escapeHtml(r.label) + '</li>';
+        }).join('');
+      }
+
       document.getElementById('btn-clear-log').addEventListener('click', function () {
         Homey.confirm(Homey.__('log.clearConfirm'), null, function (err, confirmed) {
           if (err || !confirmed) return;
@@ -1683,6 +1711,10 @@
           apiCall('POST', '/settings/reset', {}).then(function (result) {
             state.config = result.config;
             state.rules = result.rules;
+            // Reset wipes every rule, so nothing can be stale anymore - no need for a
+            // round-trip to confirm that.
+            state.staleRules = [];
+            renderStaleRules();
             fillSettingsTab();
             renderDevices();
           }).catch(function (apiErr) {
@@ -1700,13 +1732,19 @@
           Homey.alert(result.removedCount > 0
             ? Homey.__('settingsTab.pruneRulesResult', { count: result.removedCount })
             : Homey.__('settingsTab.pruneRulesNone'));
-          if (result.removedCount > 0) {
-            return apiCall('GET', '/config').then(function (cfg) {
-              state.rules = cfg.rules;
+          // The preview should always end up empty right after a successful prune, but
+          // re-fetch rather than just assuming - cheap, and correct even if something else
+          // changed the device list in the meantime.
+          var refreshes = [apiCall('GET', '/rules/stale')];
+          if (result.removedCount > 0) refreshes.push(apiCall('GET', '/config'));
+          return Promise.all(refreshes).then(function (results) {
+            state.staleRules = results[0];
+            renderStaleRules();
+            if (results[1]) {
+              state.rules = results[1].rules;
               renderDevices();
-            });
-          }
-          return null;
+            }
+          });
         }).catch(function (apiErr) {
           Homey.alert(Homey.__('settingsTab.pruneRulesFailed', { error: apiErr && apiErr.message ? apiErr.message : apiErr }));
         }).finally(function () {
@@ -1896,6 +1934,7 @@
         apiCall('GET', '/devices/raw'),
         apiCall('GET', '/log'),
         apiCall('GET', '/devices/unavailable'),
+        apiCall('GET', '/rules/stale'),
       ]).then(function (results) {
         state.config = results[0].config;
         state.rules = results[0].rules;
@@ -1903,10 +1942,12 @@
         state.devices = results[2];
         state.log = results[3];
         state.unavailableIds = results[4].ids;
+        state.staleRules = results[5];
 
         fillSettingsTab();
         renderDevices();
         renderLog();
+        renderStaleRules();
         Homey.ready();
       }).catch(function (err) {
         Homey.alert(Homey.__('devices.loadFailed', { error: err && err.message ? err.message : err }));
