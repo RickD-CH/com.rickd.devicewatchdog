@@ -154,6 +154,7 @@
     .btn.danger { background: #fff; color: var(--color-nok); border-color: #ffcdd2; }
     .btn.small { padding: 3px 9px; font-size: 12px; }
     .btn.link { border: none; background: none; color: #1a73e8; padding: 3px 6px; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
     .toolbar .spacer { flex: 1; }
     /* Same reshuffle class as .stat-grid (see there): whether this fit on the sort
@@ -474,10 +475,15 @@
       <h2 id="h2-reset">Zurücksetzen</h2>
       <p class="hint" id="hint-reset-settings">Setzt alle Einstellungen (Standardwerte + Pro-Gerät-Regeln) auf die Werkseinstellungen zurück. Verlauf und letzter Scan bleiben erhalten.</p>
       <button class="btn small danger" id="btn-reset-settings">Auf Werkseinstellungen zurücksetzen</button>
+    </div>
+
+    <div class="card">
+      <h2 id="h2-prune-rules">Verwaiste Regeln</h2>
       <p class="hint" id="hint-prune-rules">Entfernt Pro-Gerät-Regeln, die auf ein Gerät zeigen, das es in Homey nicht mehr gibt (z. B. nach dem Entfernen eines Geräts). Alle anderen Einstellungen bleiben unberührt.</p>
+      <p class="hint" id="stale-rules-empty" style="display:none;">Keine verwaisten Regeln vorhanden.</p>
       <p class="stale-rules-caption" id="stale-rules-caption" style="display:none;">Betrifft aktuell:</p>
       <ul class="stale-rules-list" id="stale-rules-list" style="display:none;"></ul>
-      <button class="btn small" id="btn-prune-rules">Verwaiste Regeln aufräumen</button>
+      <button class="btn small" id="btn-prune-rules" disabled>Verwaiste Regeln aufräumen</button>
     </div>
 
     <div class="card">
@@ -593,7 +599,11 @@
         document.getElementById('h2-reset').textContent = Homey.__('settingsTab.resetTitle');
         document.getElementById('hint-reset-settings').textContent = Homey.__('settingsTab.resetHint');
         document.getElementById('btn-reset-settings').textContent = Homey.__('settingsTab.resetButton');
+        document.getElementById('h2-prune-rules').textContent = Homey.__('settingsTab.pruneRulesTitle');
         document.getElementById('hint-prune-rules').textContent = Homey.__('settingsTab.pruneRulesHint');
+        // Reuses the same "nothing found" text the post-click alert already shows -
+        // no need for a near-duplicate string just because this one's shown proactively.
+        document.getElementById('stale-rules-empty').textContent = Homey.__('settingsTab.pruneRulesNone');
         document.getElementById('stale-rules-caption').textContent = Homey.__('settingsTab.pruneRulesAffects');
         document.getElementById('btn-prune-rules').textContent = Homey.__('settingsTab.pruneRulesButton');
         document.getElementById('h2-donate').textContent = Homey.__('settingsTab.donateTitle');
@@ -1667,19 +1677,26 @@
 
       // Preview list for "Clean up stale rules" (see getStaleRules in app.js) - shows
       // exactly which devices the button would affect before it's clicked, instead of it
-      // being a surprise. Hidden entirely when there's nothing stale, same as the rest of
-      // this page only shows what's actually relevant right now.
+      // being a surprise. Also doubles as confirmation that there's nothing to clean up
+      // right now (explicit "none found" text, not just an empty gap), and disables the
+      // button entirely in that case rather than leaving it clickable with no visible effect.
       function renderStaleRules() {
+        var empty = document.getElementById('stale-rules-empty');
         var caption = document.getElementById('stale-rules-caption');
         var list = document.getElementById('stale-rules-list');
+        var btn = document.getElementById('btn-prune-rules');
         if (!state.staleRules.length) {
+          empty.style.display = '';
           caption.style.display = 'none';
           list.style.display = 'none';
           list.innerHTML = '';
+          btn.disabled = true;
           return;
         }
+        empty.style.display = 'none';
         caption.style.display = '';
         list.style.display = '';
+        btn.disabled = false;
         list.innerHTML = state.staleRules.map(function (r) {
           return '<li>' + escapeHtml(r.label) + '</li>';
         }).join('');
