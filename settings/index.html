@@ -472,12 +472,6 @@
     </div>
 
     <div class="card">
-      <h2 id="h2-reset">Zurücksetzen</h2>
-      <p class="hint" id="hint-reset-settings">Setzt alle Einstellungen (Standardwerte + Pro-Gerät-Regeln) auf die Werkseinstellungen zurück. Verlauf und letzter Scan bleiben erhalten.</p>
-      <button class="btn small danger" id="btn-reset-settings">Auf Werkseinstellungen zurücksetzen</button>
-    </div>
-
-    <div class="card">
       <h2 id="h2-prune-rules">Verwaiste Regeln</h2>
       <p class="hint" id="hint-prune-rules">Entfernt Pro-Gerät-Regeln, die auf ein Gerät zeigen, das es in Homey nicht mehr gibt (z. B. nach dem Entfernen eines Geräts). Alle anderen Einstellungen bleiben unberührt.</p>
       <p class="hint" id="stale-rules-empty" style="display:none;">Keine verwaisten Regeln vorhanden.</p>
@@ -490,6 +484,14 @@
       <h2 id="h2-donate">Gefällt dir die App?</h2>
       <p class="hint" id="hint-donate">Device Watchdog ist kostenlos und wird in der Freizeit weiterentwickelt. Über eine kleine Spende freue ich mich sehr!</p>
       <button class="btn small" id="btn-donate">☕ Unterstützen (PayPal)</button>
+    </div>
+
+    <!-- Destructive, rarely-used action - deliberately last, away from everyday settings
+         and away from the much lighter "Verwaiste Regeln" cleanup above. -->
+    <div class="card">
+      <h2 id="h2-reset">Zurücksetzen</h2>
+      <p class="hint" id="hint-reset-settings">Setzt alle Einstellungen (Standardwerte + Pro-Gerät-Regeln) auf die Werkseinstellungen zurück. Verlauf und letzter Scan bleiben erhalten.</p>
+      <button class="btn small danger" id="btn-reset-settings">Auf Werkseinstellungen zurücksetzen</button>
     </div>
   </div>
 
