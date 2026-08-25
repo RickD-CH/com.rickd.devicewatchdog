@@ -1591,7 +1591,18 @@
 
           var field = e.target.dataset.field;
           if (!field) return;
-          var r = ensureDeviceRule(id, e.target.dataset.name || '');
+          // Unlike monitor-toggle/toggle-advanced above, the individual field inputs
+          // inside the Details panel (notReportingHours, batteryThreshold, pausedUntil,
+          // etc.) don't carry their own data-name - editing one of them as the FIRST
+          // change on a device (i.e. the moment ensureDeviceRule actually creates the
+          // rule) used to create it with an empty label. Harmless while the device still
+          // exists (its live name is always shown instead), but once the device is later
+          // removed from Homey, that empty label is all "Verwaiste Regeln" has left to
+          // show - it falls back to the raw device id (see getStaleRules in app.js).
+          // Resolving from state.devices instead of yet another data attribute fixes it
+          // for every field at once, current and future.
+          var editedDevice = state.devices.find(function (dv) { return dv.id === id; });
+          var r = ensureDeviceRule(id, editedDevice ? editedDevice.name : '');
           var needsRerender = false;
           if (e.target.type === 'checkbox') {
             r[field] = e.target.checked;
