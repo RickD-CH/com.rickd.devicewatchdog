@@ -146,5 +146,9 @@
   "1.9.23": {
     "en": "New \"Rescan immediately\" checkbox on the \"Pause device until date\" Flow actions - forces an immediate scan right after pausing, so the device's counts, the virtual device's alarm, and the widget reflect the pause right away instead of waiting for the next scheduled scan. Off by default.",
     "de": "Neue Checkbox \"Sofort neu scannen\" bei den \"Gerät bis Datum pausieren\"-Flow-Karten - erzwingt direkt nach dem Pausieren einen Scan, sodass die Zähler des Geräts, der Alarm des virtuellen Geräts und das Widget die Pause sofort widerspiegeln, statt auf den nächsten geplanten Scan zu warten. Standardmäßig aus."
+  },
+  "1.9.24": {
+    "en": "Fixed the virtual Watchdog device's \"unavailable\" counter/alarm sometimes staying stuck on a device that's excluded (paused, \"Ignore unavailable\", monitoring off) while still genuinely offline - previously it only updated when a device's real connection state changed, not when its exclusion status did, so it could show a phantom count indefinitely even after a full rescan.",
+    "de": "Behoben: Der \"Nicht erreichbar\"-Zähler/Alarm des virtuellen Watchdog-Geräts konnte bei einem ausgeschlossenen Gerät (pausiert, \"Nicht erreichbar ignorieren\", Überwachung aus) hängen bleiben, das weiterhin echt offline ist - er wurde bisher nur bei einer echten Verbindungsänderung aktualisiert, nicht bei einer Änderung des Ausschluss-Status, wodurch ein Phantom-Zähler auch nach einem vollständigen Scan bestehen bleiben konnte."
   }
 }

@@ -683,6 +683,18 @@ class DeviceWatchdogApp extends Homey.App {
     if (Array.isArray(rules)) {
       this._setRules(rules.map(rulesLib.sanitizeRule));
       this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
+
+      // A rule change can flip a device's exclusion status (pause, "Ignore unavailable",
+      // monitoring toggle) without its actual availability changing at all - e.g. pausing
+      // a device that's genuinely, still offline. _confirmedUnavailable itself is only
+      // ever added to/removed from on a real availability edge (_handleDeviceUpdate), so
+      // without this, the virtual device's pushed counter/alarm can stay stuck showing a
+      // now-excluded device as unavailable indefinitely - not even a full rescan corrects
+      // it, since a scan's own _handleDeviceUpdate pass has the same edge-only condition
+      // (confirmed live: forum + live report, Aug 2026). getUnavailableStatus() itself was
+      // never affected by this - it always filters _isExcludedFromUnavailable fresh - only
+      // this pushed capability value on the virtual device could go stale.
+      await this._updateWatchdogDevice({ unavailableCount: this._countUnavailable() });
     }
 
     this._scheduleInterval({ runImmediately: false });
