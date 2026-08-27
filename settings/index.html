@@ -271,6 +271,10 @@
     .device-advanced input[type=number] { width: 90px; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; }
     .device-info { width: 100%; display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 12px; color: var(--color-muted); margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--color-border); }
     .device-info b { color: #212121; font-weight: 600; }
+    /* Full-width so it sits on its own line below the "live status" bit, not inline with it. */
+    .device-info .sn-warn { width: 100%; color: var(--color-warn); }
+    .device-info .sn-warn b { color: var(--color-warn); }
+    .bulk-ignore { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
     .apply-to-app-trigger { width: 100%; }
     .apply-to-app-trigger .hint { margin: 2px 0 0; }
     .apply-to-app-confirm {
@@ -529,6 +533,11 @@
         applyToAppConfirm: null,
         applyToAppExcludedIds: {},
         applyToAppIncludePause: true,
+        // Bulk "stop monitoring" (by owning app / by device class) from a device's Details -
+        // bulkIgnoreConfirm is "<sourceDeviceId>:<app|class>" while its preview is open,
+        // bulkIgnoreExcludedIds holds the devices unticked in that preview.
+        bulkIgnoreConfirm: null,
+        bulkIgnoreExcludedIds: {},
         // Grace-period-confirmed, exclusion-filtered device ids currently "unavailable"
         // (same data the widget/virtual device use) - independent of the notReporting
         // scan threshold, see getUnavailableStatus() in app.js.
@@ -975,6 +984,12 @@
         if (batteryTypeLabel) bits.push('<span><b>' + Homey.__('info.batteryType') + '</b> ' + escapeHtml(batteryTypeLabel) + '</span>');
         if (d.lastSeenAt) bits.push('<span><b>' + Homey.__('info.lastSeen') + '</b> ' + new Date(d.lastSeenAt).toLocaleString() + '</span>');
         bits.push('<span><b>' + Homey.__('info.liveStatus') + '</b> ' + (d.available === false ? Homey.__('info.unavailable') : Homey.__('info.available')) + '</span>');
+        // Devices that can never carry a capability timestamp (a virtual "button" / scene
+        // trigger and the like) are deliberately never flagged "not reporting" - say so
+        // here so the missing "last update" line doesn't just look like a bug.
+        if (d.stalenessCheckable === false) {
+          bits.push('<span class="sn-warn">⚠ <b>' + Homey.__('info.noStalenessCheck') + '</b> ' + Homey.__('info.noStalenessCheckHint') + '</span>');
+        }
         return '<div class="device-info">' + bits.join('') + '</div>';
       }
 
@@ -1028,6 +1043,112 @@
           '</div>';
       }
 
+      // "Stop monitoring every device that shares this one's owning app, or its Homey
+      // device class" - one action instead of dozens of individual monitoring toggles,
+      // for installs with lots of virtual button / scene-helper devices from a single app
+      // (community request). Only ever adds excludeAll (ignore-only) - re-enabling stays
+      // per-device or per-zone, same asymmetry the request was framed with.
+      function bulkIgnoreGroups(view) {
+        var d = view.device;
+        var groups = [];
+        if (d.ownerUri) {
+          groups.push({
+            mode: 'app',
+            label: d.ownerAppName || d.ownerUri.replace(/^homey:app:/, ''),
+            ids: state.devices.filter(function (x) { return x.ownerUri === d.ownerUri; }).map(function (x) { return x.id; }),
+          });
+        }
+        if (d.class) {
+          groups.push({
+            mode: 'class',
+            label: classIcon(d.class) + ' ' + d.class,
+            ids: state.devices.filter(function (x) { return x.class === d.class; }).map(function (x) { return x.id; }),
+          });
+        }
+        // Only worth offering when it covers more than the one device in front of you and
+        // at least one of them is actually still monitored (nothing to do otherwise).
+        return groups.filter(function (g) {
+          return g.ids.length >= 2 && g.ids.some(function (id) {
+            var rule = getDeviceRule(id);
+            return !(rule && rule.excludeAll);
+          });
+        });
+      }
+
+      function bulkIgnoreHtml(view) {
+        var groups = bulkIgnoreGroups(view);
+        if (!groups.length) return '';
+        var d = view.device;
+
+        return '<div class="bulk-ignore">' + groups.map(function (g) {
+          var key = d.id + ':' + g.mode;
+          // The devices this would actually change - already-ignored ones aren't "affected".
+          var affectedIds = g.ids.filter(function (id) {
+            var rule = getDeviceRule(id);
+            return !(rule && rule.excludeAll);
+          });
+
+          if (state.bulkIgnoreConfirm !== key) {
+            var btnLabel = g.mode === 'app'
+              ? Homey.__('advanced.bulkIgnoreAppButton', { count: affectedIds.length, app: g.label })
+              : Homey.__('advanced.bulkIgnoreClassButton', { count: affectedIds.length, cls: g.label });
+            return '<button class="btn small link" data-action="bulk-ignore-start" data-key="' + escapeHtml(key) + '">' + escapeHtml(btnLabel) + '</button>';
+          }
+
+          var listItems = affectedIds.map(function (id) {
+            var dev = state.devices.find(function (x) { return x.id === id; });
+            var name = dev ? dev.name : id;
+            var zone = dev && dev.zone ? ' · ' + dev.zone : '';
+            var checked = !state.bulkIgnoreExcludedIds[id];
+            return '<li><label class="f chk"><input type="checkbox" class="bulk-ignore-pick" data-pick-id="' + escapeHtml(id) + '"' + (checked ? ' checked' : '') + ' /> ' + escapeHtml(name) + escapeHtml(zone) + '</label></li>';
+          }).join('');
+
+          var question = g.mode === 'app'
+            ? Homey.__('advanced.bulkIgnoreAppQuestion', { count: affectedIds.length, app: g.label })
+            : Homey.__('advanced.bulkIgnoreClassQuestion', { count: affectedIds.length, cls: g.label });
+
+          return '<div class="apply-to-app-confirm">' +
+            '<p>' + escapeHtml(question) + '</p>' +
+            '<details><summary>' + Homey.__('advanced.bulkIgnoreDetailsToggle') + '</summary>' +
+              '<ul class="apply-to-app-list">' + listItems + '</ul>' +
+            '</details>' +
+            '<div class="apply-to-app-actions">' +
+              '<button class="btn small primary" data-action="bulk-ignore-confirm" data-key="' + escapeHtml(key) + '">' + Homey.__('advanced.bulkIgnoreConfirmBtn') + '</button>' +
+              '<button class="btn small link" data-action="bulk-ignore-cancel">' + Homey.__('advanced.bulkIgnoreCancelBtn') + '</button>' +
+            '</div>' +
+          '</div>';
+        }).join('') + '</div>';
+      }
+
+      // Applies the bulk "stop monitoring" from bulkIgnoreHtml: sets excludeAll on every
+      // still-monitored device in the chosen group (by owning app or device class), minus
+      // any the user unticked in the preview. Same mechanism as bulkSetZoneMonitored, just
+      // a different device set.
+      function confirmBulkIgnore(key) {
+        var sep = key.indexOf(':');
+        var sourceId = key.slice(0, sep);
+        var mode = key.slice(sep + 1);
+        var source = state.devices.find(function (d) { return d.id === sourceId; });
+        state.bulkIgnoreConfirm = null;
+        if (!source) { state.bulkIgnoreExcludedIds = {}; renderDevices(); return; }
+
+        state.devices.forEach(function (d) {
+          var matches = mode === 'app'
+            ? (d.ownerUri && d.ownerUri === source.ownerUri)
+            : (d.class && d.class === source.class);
+          if (!matches || state.bulkIgnoreExcludedIds[d.id]) return;
+          var rule = getDeviceRule(d.id);
+          if (rule && rule.excludeAll) return;
+          rule = ensureDeviceRule(d.id, d.name);
+          rule.excludeAll = true;
+          cleanupDeviceRule(d.id);
+        });
+
+        state.bulkIgnoreExcludedIds = {};
+        scheduleAutoSave(true);
+        renderDevices();
+      }
+
       function deviceAdvancedHtml(view) {
         var r = view.rule || {};
         var placeholderDefault = Homey.__('advanced.placeholderDefault');
@@ -1036,6 +1157,7 @@
           '<div class="device-advanced' + (isOpen ? ' open' : '') + '" id="adv-' + view.device.id + '">' +
           deviceInfoHtml(view) +
           applyToAppButtonHtml(view) +
+          bulkIgnoreHtml(view) +
           '<div class="f" title="' + escapeHtml(Homey.__('advanced.pausedUntilHint')) + '"><label>' + Homey.__('advanced.pausedUntil') + '</label><div class="pause-field">' +
             '<input type="date" data-field="pausedUntil" data-id="' + view.device.id + '" value="' + (r.pausedUntil || '') + '" />' +
             (r.pausedUntil ? '<button class="btn small link" data-action="clear-pause" data-id="' + view.device.id + '">' + Homey.__('advanced.clearPauseButton') + '</button>' : '') +
@@ -1533,6 +1655,25 @@
             e.stopPropagation();
             confirmApplyToAppSiblings(e.target.dataset.id);
           }
+          if (e.target.dataset.action === 'bulk-ignore-start') {
+            e.preventDefault();
+            e.stopPropagation();
+            state.bulkIgnoreConfirm = e.target.dataset.key;
+            state.bulkIgnoreExcludedIds = {};
+            renderDevices();
+          }
+          if (e.target.dataset.action === 'bulk-ignore-cancel') {
+            e.preventDefault();
+            e.stopPropagation();
+            state.bulkIgnoreConfirm = null;
+            state.bulkIgnoreExcludedIds = {};
+            renderDevices();
+          }
+          if (e.target.dataset.action === 'bulk-ignore-confirm') {
+            e.preventDefault();
+            e.stopPropagation();
+            confirmBulkIgnore(e.target.dataset.key);
+          }
         });
 
         container.addEventListener('change', function (e) {
@@ -1540,6 +1681,13 @@
             var sid = e.target.dataset.siblingId;
             if (e.target.checked) delete state.applyToAppExcludedIds[sid];
             else state.applyToAppExcludedIds[sid] = true;
+            return;
+          }
+
+          if (e.target.classList.contains('bulk-ignore-pick')) {
+            var pid = e.target.dataset.pickId;
+            if (e.target.checked) delete state.bulkIgnoreExcludedIds[pid];
+            else state.bulkIgnoreExcludedIds[pid] = true;
             return;
           }
 

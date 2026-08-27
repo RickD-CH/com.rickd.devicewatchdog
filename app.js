@@ -815,6 +815,11 @@ class DeviceWatchdogApp extends Homey.App {
           ownerAppName: ownerAppId ? (appNameMap[ownerAppId] || null) : null,
           driverId: device.driverId || null,
           lastSeenAt: device.lastSeenAt || null,
+          // False for devices that can never carry a capability timestamp (only a
+          // momentary `button` capability, e.g. virtual scene-trigger devices) - the
+          // Settings UI shows a "no staleness check possible" note for these instead of
+          // ever flagging them "not reporting". Same helper the scan itself uses.
+          stalenessCheckable: scanner.canCheckStaleness(device),
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name));

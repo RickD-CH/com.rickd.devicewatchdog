@@ -150,5 +150,9 @@
   "1.9.24": {
     "en": "Bugfix for the \"unavailable\" counter, plus improvements to \"stale rules\"",
     "de": "Bugfix \"nicht erreichbar\"-Zähler, plus Optimierungen bei \"Verwaiste Regeln\""
+  },
+  "1.9.25": {
+    "en": "Devices that can never report capability data (virtual \"button\"/scene-trigger devices, e.g. from Virtual Devices) are no longer flagged \"not reporting\" - their Details now show a short note explaining why instead. New in Details: bulk \"stop monitoring all devices from this app / of this class\", with a preview of exactly which devices are affected.",
+    "de": "Geräte, die prinzipiell keine Capability-Daten melden können (virtuelle \"Button\"-/Szenen-Trigger-Geräte, z. B. aus Virtual Devices), werden nicht mehr als \"meldet sich nicht\" markiert - stattdessen erklärt jetzt ein kurzer Hinweis in den Details, warum. Neu in den Details: Sammelaktion \"alle Geräte dieser App / dieser Klasse nicht mehr überwachen\", mit Vorschau, welche Geräte genau betroffen sind."
   }
 }

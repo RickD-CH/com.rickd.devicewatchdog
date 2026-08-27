@@ -81,7 +81,9 @@
     "lastSeen": "Last seen:",
     "liveStatus": "Live status (Homey):",
     "available": "reachable",
-    "unavailable": "not reachable"
+    "unavailable": "not reachable",
+    "noStalenessCheck": "No \"not reporting\" check",
+    "noStalenessCheckHint": "This device only has a momentary button/trigger capability, so Homey never records a \"last update\" time for it - it can't be checked for stale data and is never flagged \"not reporting\"."
   },
   "advanced": {
     "hoursUntilOffline": "Hours until \"offline\"",
@@ -113,7 +115,14 @@
     "autoTestOnStale": "Auto-test before flagging",
     "autoTestOnStaleHint": "Before this device is flagged \"not reporting\", resend its current value once as a live reachability test (same as the \"Test\" button). If that succeeds, the device counts as OK this cycle - useful for devices (e.g. some sirens) that never report on their own and would otherwise need an external script or Flow to \"ping\" them periodically.",
     "autoTestTriggerOnHeal": "Still trigger Flow on heal",
-    "autoTestTriggerOnHealHint": "Off by default: a successful auto-test counts as fully OK, no alert - only the log records it. Enable this to still fire the per-device \"not reporting\" Flow trigger whenever a nudge was needed, even though the device recovered on its own."
+    "autoTestTriggerOnHealHint": "Off by default: a successful auto-test counts as fully OK, no alert - only the log records it. Enable this to still fire the per-device \"not reporting\" Flow trigger whenever a nudge was needed, even though the device recovered on its own.",
+    "bulkIgnoreAppButton": "Stop monitoring all __count__ devices from \"__app__\"",
+    "bulkIgnoreClassButton": "Stop monitoring all __count__ \"__cls__\" devices",
+    "bulkIgnoreAppQuestion": "Stop monitoring __count__ devices managed by \"__app__\"? Re-enabling is per-device or per-zone.",
+    "bulkIgnoreClassQuestion": "Stop monitoring __count__ devices of class \"__cls__\"? Re-enabling is per-device or per-zone.",
+    "bulkIgnoreDetailsToggle": "Which devices?",
+    "bulkIgnoreConfirmBtn": "Stop monitoring",
+    "bulkIgnoreCancelBtn": "Cancel"
   },
   "zone": {
     "none": "No zone",

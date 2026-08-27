@@ -81,7 +81,9 @@
     "lastSeen": "Zuletzt gesehen:",
     "liveStatus": "Live-Status (Homey):",
     "available": "erreichbar",
-    "unavailable": "nicht erreichbar"
+    "unavailable": "nicht erreichbar",
+    "noStalenessCheck": "Keine \"meldet sich nicht\"-Prüfung",
+    "noStalenessCheckHint": "Dieses Gerät hat nur eine momentane Button-/Trigger-Capability, für die Homey keinen \"zuletzt aktualisiert\"-Zeitstempel führt - es lässt sich nicht auf veraltete Daten prüfen und wird nie als \"meldet sich nicht\" markiert."
   },
   "advanced": {
     "hoursUntilOffline": "Stunden bis \"offline\"",
@@ -113,7 +115,14 @@
     "autoTestOnStale": "Auto-Test vor Alarmierung",
     "autoTestOnStaleHint": "Bevor dieses Gerät als \"nicht meldend\" markiert wird, wird einmal der aktuelle Wert erneut gesendet, als Live-Erreichbarkeitstest (wie der \"Test\"-Button). Ist das erfolgreich, gilt das Gerät für diesen Durchlauf als OK - nützlich für Geräte (z. B. manche Sirenen), die von sich aus nie melden und sonst per externem Skript oder Flow regelmäßig \"angestupst\" werden müssten.",
     "autoTestTriggerOnHeal": "Flow trotzdem auslösen",
-    "autoTestTriggerOnHealHint": "Standardmäßig aus: ein erfolgreicher Auto-Test gilt als vollständig OK, kein Alarm - nur der Verlauf zeichnet es auf. Aktivieren, damit der geräteeigene \"Nicht meldend\"-Flow-Trigger trotzdem auslöst, wann immer ein Anstoß nötig war, auch wenn sich das Gerät von selbst erholt hat."
+    "autoTestTriggerOnHealHint": "Standardmäßig aus: ein erfolgreicher Auto-Test gilt als vollständig OK, kein Alarm - nur der Verlauf zeichnet es auf. Aktivieren, damit der geräteeigene \"Nicht meldend\"-Flow-Trigger trotzdem auslöst, wann immer ein Anstoß nötig war, auch wenn sich das Gerät von selbst erholt hat.",
+    "bulkIgnoreAppButton": "Alle __count__ Geräte von \"__app__\" nicht mehr überwachen",
+    "bulkIgnoreClassButton": "Alle __count__ \"__cls__\"-Geräte nicht mehr überwachen",
+    "bulkIgnoreAppQuestion": "__count__ von \"__app__\" verwaltete Geräte nicht mehr überwachen? Reaktivieren geht pro Gerät oder pro Zone.",
+    "bulkIgnoreClassQuestion": "__count__ Geräte der Klasse \"__cls__\" nicht mehr überwachen? Reaktivieren geht pro Gerät oder pro Zone.",
+    "bulkIgnoreDetailsToggle": "Welche Geräte?",
+    "bulkIgnoreConfirmBtn": "Nicht mehr überwachen",
+    "bulkIgnoreCancelBtn": "Abbrechen"
   },
   "zone": {
     "none": "Ohne Zone",

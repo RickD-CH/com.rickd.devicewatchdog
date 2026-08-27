@@ -186,6 +186,27 @@ describe('buildRuleIndex + findRuleIndexed', () => {
   });
 });
 
+describe('canCheckStaleness', () => {
+  test('true for a device with any non-button capability', () => {
+    assert.equal(scanner.canCheckStaleness(device({ capabilities: ['onoff'] })), true);
+    assert.equal(scanner.canCheckStaleness(device({ capabilities: ['button', 'measure_battery'] })), true);
+  });
+
+  test('false for a button-only device (incl. multi-instance button.x)', () => {
+    assert.equal(scanner.canCheckStaleness(device({ capabilities: ['button'] })), false);
+    assert.equal(scanner.canCheckStaleness(device({ capabilities: ['button', 'button.2'] })), false);
+  });
+
+  test('false for a device with no capabilities at all', () => {
+    assert.equal(scanner.canCheckStaleness(device({ capabilities: [], capabilitiesObj: {} })), false);
+  });
+
+  test('falls back to capabilitiesObj keys when capabilities is not populated', () => {
+    assert.equal(scanner.canCheckStaleness({ capabilitiesObj: { onoff: { value: true } } }), true);
+    assert.equal(scanner.canCheckStaleness({ capabilitiesObj: { button: { value: null } } }), false);
+  });
+});
+
 describe('computeDeviceStatus', () => {
   const config = { notReportingThresholdHours: 24, batteryThresholdPercent: 30 };
 
@@ -219,10 +240,39 @@ describe('computeDeviceStatus', () => {
     assert.equal(status.isReporting, true);
   });
 
-  test('a device with no capability data at all is treated as not reporting', () => {
-    const d = device({ capabilitiesObj: {} });
+  test('a device with a real capability but no data yet is treated as not reporting', () => {
+    // Genuine "dead sensor" case: it has a capability that would carry a timestamp, it
+    // just never has - still flagged, exactly as before.
+    const d = device({ capabilities: ['measure_temperature'], capabilitiesObj: {} });
     const status = scanner.computeDeviceStatus(d, null, config);
     assert.equal(status.isReporting, false);
+  });
+
+  test('a device whose only capability is button is never flagged not reporting', () => {
+    // Virtual "button" / scene-trigger device (e.g. com.arjankranenburg.virtual): the
+    // button capability never carries a lastUpdated, so the staleness check is skipped
+    // entirely rather than flagging it forever.
+    const d = device({ class: 'button', capabilities: ['button'], capabilitiesObj: { button: { value: null } } });
+    const status = scanner.computeDeviceStatus(d, null, config);
+    assert.equal(status.isReporting, true);
+  });
+
+  test('a real button device with a battery capability is still staleness-checked', () => {
+    // A physical remote/button (Aqara, IKEA, ...) has measure_battery alongside button -
+    // that one CAN carry a timestamp, so a genuinely silent one is still flagged.
+    const d = device({
+      class: 'button',
+      capabilities: ['button', 'measure_battery'],
+      capabilitiesObj: { measure_battery: { value: 80, lastUpdated: new Date(Date.now() - 25 * HOUR).toISOString() } },
+    });
+    const status = scanner.computeDeviceStatus(d, null, config);
+    assert.equal(status.isReporting, false);
+  });
+
+  test('a device with no capabilities at all is not flagged not reporting', () => {
+    const d = device({ capabilities: [], capabilitiesObj: {} });
+    const status = scanner.computeDeviceStatus(d, null, config);
+    assert.equal(status.isReporting, true);
   });
 
   test('a stale capability with a fresh lastSeenAt is still not reporting by default', () => {
@@ -391,6 +441,25 @@ describe('runScan', () => {
     const good = result.all.find((d) => d.id === 'good');
     assert.equal(good.zone, 'Living room');
     assert.equal(good.status, 'OK');
+  });
+
+  test('a button-only virtual device never lands in notReporting', () => {
+    const devices = {
+      btn: device({
+        id: 'btn',
+        name: 'Scene button',
+        class: 'button',
+        capabilities: ['button'],
+        capabilitiesObj: { button: { value: null } },
+      }),
+    };
+
+    const result = scanner.runScan({
+      devices, zones, rules: [], config,
+    });
+
+    assert.equal(result.notReporting.length, 0);
+    assert.equal(result.all.find((d) => d.id === 'btn').status, 'OK');
   });
 
   test('a rule with excludeAll removes the device from every list', () => {
