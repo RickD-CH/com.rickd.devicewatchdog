@@ -1,4 +1,8 @@
 {
+  "1.9.27": {
+    "en": "Battery-only-wakes devices (e.g. a Hue Tap Dial or other remote that only reports when pressed) are no longer flagged \"not reporting\" just because their battery reading is old - only real, non-button/non-battery capabilities count towards staleness now. Low battery is still checked separately as before.",
+    "de": "Geräte, die nur beim Drücken aufwachen (z.B. ein Hue Tap Dial oder andere Fernbedienungen), werden nicht mehr als \"meldet sich nicht\" markiert, nur weil ihr Batteriewert alt ist - für die Staleness-Prüfung zählen jetzt nur noch echte Capabilities (kein Button, keine Batterie). Die Batteriewarnung selbst wird weiterhin wie gewohnt separat geprüft."
+  },
   "1.1.0": {
     "en": "New: history log, Homey Timeline notifications, a manual reachability test per device, summary Flow triggers and condition cards for individual devices, and a more robust realtime connection. Plus various settings UI fixes.",
     "de": "Neu: Verlauf-Protokoll, Homey-Zeitleisten-Meldungen, manueller Erreichbarkeits-Test pro Gerät, Sammel-Flow-Trigger sowie Bedingungskarten für einzelne Geräte, und eine robustere Echtzeit-Verbindung. Dazu diverse Verbesserungen an der Einstellungs-Oberfläche."

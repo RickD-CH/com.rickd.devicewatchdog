@@ -187,14 +187,19 @@ describe('buildRuleIndex + findRuleIndexed', () => {
 });
 
 describe('canCheckStaleness', () => {
-  test('true for a device with any non-button capability', () => {
+  test('true for a device with any non-button, non-battery capability', () => {
     assert.equal(scanner.canCheckStaleness(device({ capabilities: ['onoff'] })), true);
-    assert.equal(scanner.canCheckStaleness(device({ capabilities: ['button', 'measure_battery'] })), true);
+    assert.equal(scanner.canCheckStaleness(device({ capabilities: ['button', 'onoff'] })), true);
   });
 
   test('false for a button-only device (incl. multi-instance button.x)', () => {
     assert.equal(scanner.canCheckStaleness(device({ capabilities: ['button'] })), false);
     assert.equal(scanner.canCheckStaleness(device({ capabilities: ['button', 'button.2'] })), false);
+  });
+
+  test('false for a button+battery device (e.g. a Hue Tap Dial or other remote)', () => {
+    assert.equal(scanner.canCheckStaleness(device({ capabilities: ['button', 'measure_battery'] })), false);
+    assert.equal(scanner.canCheckStaleness(device({ capabilities: ['button', 'alarm_battery'] })), false);
   });
 
   test('false for a device with no capabilities at all', () => {
@@ -257,16 +262,19 @@ describe('computeDeviceStatus', () => {
     assert.equal(status.isReporting, true);
   });
 
-  test('a real button device with a battery capability is still staleness-checked', () => {
-    // A physical remote/button (Aqara, IKEA, ...) has measure_battery alongside button -
-    // that one CAN carry a timestamp, so a genuinely silent one is still flagged.
+  test('a button+battery remote is never flagged not reporting, even with a stale battery reading', () => {
+    // A physical remote/button (Hue Tap Dial, Aqara, IKEA, ...) only wakes up to report on a
+    // button press, and measure_battery/alarm_battery piggyback on that same rare cadence - a
+    // months-old battery reading doesn't mean the device went silent, just that it wasn't
+    // pressed (confirmed on the community thread for a Hue Tap Dial: lastUpdated from months
+    // ago, lastSeenAt from today). The battery level itself is still checked separately below.
     const d = device({
       class: 'button',
       capabilities: ['button', 'measure_battery'],
       capabilitiesObj: { measure_battery: { value: 80, lastUpdated: new Date(Date.now() - 25 * HOUR).toISOString() } },
     });
     const status = scanner.computeDeviceStatus(d, null, config);
-    assert.equal(status.isReporting, false);
+    assert.equal(status.isReporting, true);
   });
 
   test('a device with no capabilities at all is not flagged not reporting', () => {
