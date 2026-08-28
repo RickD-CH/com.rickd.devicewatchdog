@@ -331,6 +331,7 @@
     <button class="tab-btn active" data-tab="devices" id="tab-btn-devices">Geräte</button>
     <button class="tab-btn" data-tab="log" id="tab-btn-log">Verlauf</button>
     <button class="tab-btn" data-tab="settings" id="tab-btn-settings">Einstellungen</button>
+    <button class="tab-btn" data-tab="support" id="tab-btn-support">Support</button>
   </div>
 
   <!-- ============ TAB: GERÄTE ============ -->
@@ -488,12 +489,6 @@
       <button class="btn small" id="btn-prune-rules" disabled>Verwaiste Regeln aufräumen</button>
     </div>
 
-    <div class="card">
-      <h2 id="h2-donate">Gefällt dir die App?</h2>
-      <p class="hint" id="hint-donate">Device Watchdog ist kostenlos und wird in der Freizeit weiterentwickelt. Über eine kleine Spende freue ich mich sehr!</p>
-      <button class="btn small" id="btn-donate">☕ Unterstützen (PayPal)</button>
-    </div>
-
     <!-- Destructive, rarely-used action - deliberately last, away from everyday settings
          and away from the much lighter "Verwaiste Regeln" cleanup above. -->
     <div class="card">
@@ -511,6 +506,21 @@
       <button class="btn small" id="btn-clear-log">Verlauf leeren</button>
     </div>
     <div id="log-list" class="device-list"></div>
+  </div>
+
+  <!-- ============ TAB: SUPPORT ============ -->
+  <div class="tab-panel" id="tab-support">
+    <div class="card">
+      <h2 id="h2-forum">Fragen oder Probleme?</h2>
+      <p class="hint" id="hint-forum">Antworten auf häufige Fragen und der direkte Kontakt zum Entwickler gibt's im Community-Forum.</p>
+      <button class="btn small" id="btn-forum">Zum Forum-Thread</button>
+    </div>
+
+    <div class="card">
+      <h2 id="h2-donate">Gefällt dir die App?</h2>
+      <p class="hint" id="hint-donate">Device Watchdog ist kostenlos und wird in der Freizeit weiterentwickelt. Über eine kleine Spende freue ich mich sehr!</p>
+      <button class="btn small" id="btn-donate">☕ Unterstützen (PayPal)</button>
+    </div>
   </div>
 
   <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
@@ -565,6 +575,7 @@
         document.getElementById('tab-btn-devices').textContent = Homey.__('tabs.devices');
         document.getElementById('tab-btn-log').textContent = Homey.__('tabs.log');
         document.getElementById('tab-btn-settings').textContent = Homey.__('tabs.settings');
+        document.getElementById('tab-btn-support').textContent = Homey.__('tabs.support');
         document.getElementById('btn-clear-log').textContent = Homey.__('log.clearButton');
         document.getElementById('btn-clear-search').title = Homey.__('devices.clearSearch');
         document.getElementById('btn-run-scan').textContent = Homey.__('devices.scanNow');
@@ -621,9 +632,12 @@
         document.getElementById('stale-rules-empty').textContent = Homey.__('settingsTab.pruneRulesNone');
         document.getElementById('stale-rules-caption').textContent = Homey.__('settingsTab.pruneRulesAffects');
         document.getElementById('btn-prune-rules').textContent = Homey.__('settingsTab.pruneRulesButton');
-        document.getElementById('h2-donate').textContent = Homey.__('settingsTab.donateTitle');
-        document.getElementById('hint-donate').textContent = Homey.__('settingsTab.donateHint');
-        document.getElementById('btn-donate').textContent = Homey.__('settingsTab.donateButton');
+        document.getElementById('h2-forum').textContent = Homey.__('supportTab.forumTitle');
+        document.getElementById('hint-forum').textContent = Homey.__('supportTab.forumHint');
+        document.getElementById('btn-forum').textContent = Homey.__('supportTab.forumButton');
+        document.getElementById('h2-donate').textContent = Homey.__('supportTab.donateTitle');
+        document.getElementById('hint-donate').textContent = Homey.__('supportTab.donateHint');
+        document.getElementById('btn-donate').textContent = Homey.__('supportTab.donateButton');
       }
       applyStaticTranslations();
 
@@ -1993,6 +2007,9 @@
       });
       document.getElementById('btn-donate').addEventListener('click', function () {
         Homey.openURL('https://paypal.me/RickDch');
+      });
+      document.getElementById('btn-forum').addEventListener('click', function () {
+        Homey.openURL('https://community.homey.app/t/app-pro-device-watchdog-battery-connectivity-staleness-monitoring-for-all-your-devices/157537');
       });
 
       // Switching the unit just re-labels the same value (converts what's displayed,

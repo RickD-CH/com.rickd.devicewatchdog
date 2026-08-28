@@ -12,7 +12,8 @@
   "tabs": {
     "devices": "Devices",
     "log": "Log",
-    "settings": "Settings"
+    "settings": "Settings",
+    "support": "Support"
   },
   "devices": {
     "scanNow": "Run scan now",
@@ -182,7 +183,12 @@
     "colorThemeLight": "Light",
     "colorThemeDark": "Dark",
     "highContrastLabel": "Increase text contrast (dark mode)",
-    "highContrastHint": "Lightens muted/secondary text (hints, timestamps, extra info) further in dark mode - useful in bright ambient light.",
+    "highContrastHint": "Lightens muted/secondary text (hints, timestamps, extra info) further in dark mode - useful in bright ambient light."
+  },
+  "supportTab": {
+    "forumTitle": "Questions or issues?",
+    "forumHint": "Answers to common questions, and a direct line to the developer, live in the community forum thread.",
+    "forumButton": "Open forum thread",
     "donateTitle": "Enjoying the app?",
     "donateHint": "Device Watchdog is free and maintained in my spare time. A small donation is always appreciated!",
     "donateButton": "☕ Support (PayPal)"

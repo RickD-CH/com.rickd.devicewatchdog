@@ -1,4 +1,8 @@
 {
+  "1.9.28": {
+    "en": "New \"Support\" tab with a link to the community forum thread; the donate button moved there too.",
+    "de": "Neue \"Support\"-Lasche mit Link zum Community-Forum-Thread; der Spenden-Button ist dorthin umgezogen."
+  },
   "1.9.27": {
     "en": "Fixed: button/battery-only remotes (e.g. Hue Tap Dial) no longer flagged \"not reporting\" just because their battery reading is old.",
     "de": "Behoben: Reine Button-/Batterie-Fernbedienungen (z.B. Hue Tap Dial) werden nicht mehr als \"meldet sich nicht\" markiert, nur weil ihr Batteriewert alt ist."

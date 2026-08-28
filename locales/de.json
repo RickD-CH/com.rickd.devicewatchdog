@@ -12,7 +12,8 @@
   "tabs": {
     "devices": "Geräte",
     "log": "Verlauf",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "support": "Support"
   },
   "devices": {
     "scanNow": "Scan jetzt ausführen",
@@ -182,7 +183,12 @@
     "colorThemeLight": "Hell",
     "colorThemeDark": "Dunkel",
     "highContrastLabel": "Text-Kontrast erhöhen (Dark Mode)",
-    "highContrastHint": "Hellt grauen/gedämpften Text (Hinweise, Zeitstempel, Zusatzinfos) im Dark Mode nochmals auf - hilfreich bei viel Umgebungslicht.",
+    "highContrastHint": "Hellt grauen/gedämpften Text (Hinweise, Zeitstempel, Zusatzinfos) im Dark Mode nochmals auf - hilfreich bei viel Umgebungslicht."
+  },
+  "supportTab": {
+    "forumTitle": "Fragen oder Probleme?",
+    "forumHint": "Antworten auf häufige Fragen und der direkte Kontakt zum Entwickler gibt's im Community-Forum.",
+    "forumButton": "Zum Forum-Thread",
     "donateTitle": "Gefällt dir die App?",
     "donateHint": "Device Watchdog ist kostenlos und wird in der Freizeit weiterentwickelt. Über eine kleine Spende freue ich mich sehr!",
     "donateButton": "☕ Unterstützen (PayPal)"
