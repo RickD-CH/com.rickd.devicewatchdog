@@ -152,7 +152,11 @@
     "de": "Bugfix \"nicht erreichbar\"-Zähler, plus Optimierungen bei \"Verwaiste Regeln\""
   },
   "1.9.25": {
-    "en": "Devices that can never report capability data (virtual \"button\"/scene-trigger devices, e.g. from Virtual Devices) are no longer flagged \"not reporting\" - their Details now show a short note explaining why instead. New in Details: bulk \"stop monitoring all devices from this app / of this class\", with a preview of exactly which devices are affected.",
-    "de": "Geräte, die prinzipiell keine Capability-Daten melden können (virtuelle \"Button\"-/Szenen-Trigger-Geräte, z. B. aus Virtual Devices), werden nicht mehr als \"meldet sich nicht\" markiert - stattdessen erklärt jetzt ein kurzer Hinweis in den Details, warum. Neu in den Details: Sammelaktion \"alle Geräte dieser App / dieser Klasse nicht mehr überwachen\", mit Vorschau, welche Geräte genau betroffen sind."
+    "en": "Virtual \"button\"/scene-trigger devices are no longer flagged \"not reporting\" - they have no timestamp to check. New bulk action in Details: stop monitoring every device from an app, or of a class, with a preview of what's affected.",
+    "de": "Virtuelle \"Button\"-/Szenen-Trigger-Geräte werden nicht mehr als \"meldet sich nicht\" markiert - sie haben keinen prüfbaren Zeitstempel. Neue Sammelaktion in den Details: alle Geräte einer App oder einer Klasse nicht mehr überwachen, mit Vorschau."
+  },
+  "1.9.26": {
+    "en": "The Details panel is now split into labelled sections. Plus small Details fixes and an internal cleanup of the \"problem since\" history.",
+    "de": "Der Details-Bereich ist jetzt in beschriftete Abschnitte gegliedert. Dazu kleinere Detail-Korrekturen und eine interne Aufräumung der \"Problem seit\"-Historie."
   }
 }

@@ -64,7 +64,8 @@
     "noScanResult": "Noch kein Scan-Ergebnis",
     "skipped": "Wird beim Scan übersprungen",
     "update": "Update: __date__",
-    "noData": "keine Daten"
+    "noData": "keine Daten",
+    "noStalenessCheck": "Keine „meldet sich nicht\"-Prüfung"
   },
   "connection": {
     "zwave": "Z-Wave (__app__)",
@@ -122,7 +123,13 @@
     "bulkIgnoreClassQuestion": "__count__ Geräte der Klasse \"__cls__\" nicht mehr überwachen? Reaktivieren geht pro Gerät oder pro Zone.",
     "bulkIgnoreDetailsToggle": "Welche Geräte?",
     "bulkIgnoreConfirmBtn": "Nicht mehr überwachen",
-    "bulkIgnoreCancelBtn": "Abbrechen"
+    "bulkIgnoreCancelBtn": "Abbrechen",
+    "groupNotReporting": "Meldet sich nicht",
+    "groupUnavailable": "Nicht erreichbar",
+    "groupBattery": "Batterie",
+    "groupPause": "Pause",
+    "groupBulk": "Auf mehrere Geräte anwenden",
+    "groupReset": "Individuelle Einstellungen"
   },
   "zone": {
     "none": "Ohne Zone",

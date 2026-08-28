@@ -263,9 +263,13 @@
     .device-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
     .device-advanced {
       display: none; padding: 12px 12px 16px 62px; background: var(--color-bg-alt);
-      border-bottom: 1px solid var(--color-border); gap: 16px; flex-wrap: wrap; align-items: center;
+      border-bottom: 1px solid var(--color-border); gap: 0; flex-wrap: wrap; align-items: flex-start;
     }
     .device-advanced.open { display: flex; }
+    .adv-group { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 9px; }
+    .adv-group-title { width: 100%; font-size: 11px; font-weight: 600; color: var(--color-muted); border-top: 1px solid var(--color-border); padding-top: 10px; margin-top: 12px; }
+    .device-info + .adv-group > .adv-group-title { margin-top: 2px; border-top: none; padding-top: 0; }
+    .adv-sub { border-left: 2px solid var(--color-border); padding-left: 12px; margin-left: 3px; }
     .device-advanced .f { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--color-muted); }
     .device-advanced .f.chk { flex-direction: row; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap; }
     .device-advanced input[type=number] { width: 90px; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; }
@@ -921,6 +925,9 @@
       }
 
       function metaHtml(view) {
+        // Button-only / trigger devices have no staleness check at all - saying "no data"
+        // here reads like a fault; it's by design (the Details panel explains it).
+        if (view.device.stalenessCheckable === false) return Homey.__('meta.noStalenessCheck');
         if (!view.scanEntry) return view.monitored ? Homey.__('meta.noScanResult') : Homey.__('meta.skipped');
         return Homey.__('meta.update', { date: view.scanEntry.lastUpdated ? new Date(view.scanEntry.lastUpdated).toLocaleString() : Homey.__('meta.noData') });
       }
@@ -1149,61 +1156,86 @@
         renderDevices();
       }
 
+      // Wraps a set of Details fields in a titled section. Returns '' when the section
+      // has no fields to show (e.g. no battery), so the header never appears alone.
+      function advGroup(title, inner) {
+        if (!inner) return '';
+        return '<div class="adv-group"><div class="adv-group-title">' + title + '</div>' + inner + '</div>';
+      }
+
       function deviceAdvancedHtml(view) {
         var r = view.rule || {};
-        var placeholderDefault = Homey.__('advanced.placeholderDefault');
-        var isOpen = !!state.openAdvanced[view.device.id];
-        return '' +
-          '<div class="device-advanced' + (isOpen ? ' open' : '') + '" id="adv-' + view.device.id + '">' +
-          deviceInfoHtml(view) +
-          applyToAppButtonHtml(view) +
-          bulkIgnoreHtml(view) +
-          '<div class="f" title="' + escapeHtml(Homey.__('advanced.pausedUntilHint')) + '"><label>' + Homey.__('advanced.pausedUntil') + '</label><div class="pause-field">' +
-            '<input type="date" data-field="pausedUntil" data-id="' + view.device.id + '" value="' + (r.pausedUntil || '') + '" />' +
-            (r.pausedUntil ? '<button class="btn small link" data-action="clear-pause" data-id="' + view.device.id + '">' + Homey.__('advanced.clearPauseButton') + '</button>' : '') +
-          '</div></div>' +
-          '<div class="f"><label>' + Homey.__('advanced.hoursUntilOffline') + '</label><div class="unit-field">' +
-            '<input type="number" min="0" step="any" data-field="notReportingHours" data-id="' + view.device.id + '" value="' + hoursToDisplay(r.notReportingHours, state.hoursUnit[view.device.id] || 'h') + '" placeholder="' + placeholderDefault + '" />' +
-            '<select class="unit-select" data-unit-for="notReportingHours" data-id="' + view.device.id + '">' +
-              '<option value="h"' + ((state.hoursUnit[view.device.id] || 'h') === 'h' ? ' selected' : '') + '>' + Homey.__('units.hours') + '</option>' +
-              '<option value="d"' + (state.hoursUnit[view.device.id] === 'd' ? ' selected' : '') + '>' + Homey.__('units.days') + '</option>' +
-            '</select>' +
-          '</div></div>' +
-          '<div class="f"><label>' + Homey.__('advanced.includeLastSeen') + '</label>' +
-            '<select data-field="includeLastSeenForReporting" data-id="' + view.device.id + '">' +
-              '<option value=""' + (r.includeLastSeenForReporting == null ? ' selected' : '') + '>' + placeholderDefault + '</option>' +
-              '<option value="yes"' + (r.includeLastSeenForReporting === true ? ' selected' : '') + '>' + Homey.__('advanced.optionYes') + '</option>' +
-              '<option value="no"' + (r.includeLastSeenForReporting === false ? ' selected' : '') + '>' + Homey.__('advanced.optionNo') + '</option>' +
-            '</select>' +
-          '</div>' +
-          '<label class="f chk" title="' + escapeHtml(Homey.__('advanced.excludeFromUnavailableHint')) + '"><input type="checkbox" data-field="excludeFromUnavailable" data-id="' + view.device.id + '"' + (r.excludeFromUnavailable ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeFromUnavailable') + '</label>' +
-          '<div class="f"><label>' + Homey.__('advanced.unavailableDelay') + '</label><div class="unit-field">' +
-            '<input type="number" min="0" step="any" data-field="unavailableDelaySeconds" data-id="' + view.device.id + '" value="' + secondsToDisplay(r.unavailableDelaySeconds, state.secondsUnit[view.device.id] || 's') + '" placeholder="' + placeholderDefault + '" />' +
-            '<select class="unit-select" data-unit-for="unavailableDelaySeconds" data-id="' + view.device.id + '">' +
-              '<option value="s"' + ((state.secondsUnit[view.device.id] || 's') === 's' ? ' selected' : '') + '>' + Homey.__('units.seconds') + '</option>' +
-              '<option value="m"' + (state.secondsUnit[view.device.id] === 'm' ? ' selected' : '') + '>' + Homey.__('units.minutes') + '</option>' +
-            '</select>' +
-          '</div></div>' +
-          (view.device.testCapability ? '' +
-            '<label class="f chk" title="' + escapeHtml(Homey.__('advanced.autoTestOnStaleHint')) + '"><input type="checkbox" data-field="autoTestOnStale" data-id="' + view.device.id + '"' + (r.autoTestOnStale ? ' checked' : '') + ' /> ' + Homey.__('advanced.autoTestOnStale') + '</label>' +
-            (r.autoTestOnStale ? '<label class="f chk" title="' + escapeHtml(Homey.__('advanced.autoTestTriggerOnHealHint')) + '"><input type="checkbox" data-field="autoTestTriggerOnHeal" data-id="' + view.device.id + '"' + (r.autoTestTriggerOnHeal ? ' checked' : '') + ' /> ' + Homey.__('advanced.autoTestTriggerOnHeal') + '</label>' : '')
-          : '') +
-          (view.device.hasBattery ? '' +
-            '<div class="f"><label>' + Homey.__('advanced.batteryThreshold') + '</label><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" data-id="' + view.device.id + '" value="' + (r.batteryThreshold == null ? '' : r.batteryThreshold) + '" placeholder="' + placeholderDefault + '" /></div>' +
-            '<div class="f"><label>' + Homey.__('advanced.lowBatteryDelay') + '</label><div class="unit-field">' +
-              '<input type="number" min="0" step="any" data-field="lowBatteryDelaySeconds" data-id="' + view.device.id + '" value="' + secondsToDisplay(r.lowBatteryDelaySeconds, state.lowBatterySecondsUnit[view.device.id] || 's') + '" placeholder="' + placeholderDefault + '" />' +
-              '<select class="unit-select" data-unit-for="lowBatteryDelaySeconds" data-id="' + view.device.id + '">' +
-                '<option value="s"' + ((state.lowBatterySecondsUnit[view.device.id] || 's') === 's' ? ' selected' : '') + '>' + Homey.__('units.seconds') + '</option>' +
-                '<option value="m"' + (state.lowBatterySecondsUnit[view.device.id] === 'm' ? ' selected' : '') + '>' + Homey.__('units.minutes') + '</option>' +
+        var d = view.device;
+        var id = d.id;
+        var pd = Homey.__('advanced.placeholderDefault');
+        var isOpen = !!state.openAdvanced[id];
+
+        // "Not reporting" section - skipped entirely for devices that can never carry a
+        // capability timestamp (button-only / trigger devices), where none of it applies.
+        var notReportingInner = '';
+        if (d.stalenessCheckable !== false) {
+          notReportingInner =
+            '<div class="f"><label>' + Homey.__('advanced.hoursUntilOffline') + '</label><div class="unit-field">' +
+              '<input type="number" min="0" step="any" data-field="notReportingHours" data-id="' + id + '" value="' + hoursToDisplay(r.notReportingHours, state.hoursUnit[id] || 'h') + '" placeholder="' + pd + '" />' +
+              '<select class="unit-select" data-unit-for="notReportingHours" data-id="' + id + '">' +
+                '<option value="h"' + ((state.hoursUnit[id] || 'h') === 'h' ? ' selected' : '') + '>' + Homey.__('units.hours') + '</option>' +
+                '<option value="d"' + (state.hoursUnit[id] === 'd' ? ' selected' : '') + '>' + Homey.__('units.days') + '</option>' +
               '</select>' +
             '</div></div>' +
-            '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + view.device.id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.onlyBattery') + '</label>' +
-            '<label class="f chk"><input type="checkbox" data-field="excludeBattery" data-id="' + view.device.id + '"' + (r.excludeBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeBattery') + '</label>' +
-            '<div class="f" title="' + escapeHtml(Homey.__('advanced.batteryTypeOverrideHint')) + '"><label>' + Homey.__('advanced.batteryTypeOverride') + '</label>' +
-              '<input type="text" maxlength="40" data-field="batteryTypeOverride" data-id="' + view.device.id + '" value="' + escapeHtml(r.batteryTypeOverride || '') + '" placeholder="' + escapeHtml(formatBatteryTypes(view.device.batteryTypes) || Homey.__('advanced.batteryTypeOverridePlaceholder')) + '" />' +
-            '</div>'
-          : '') +
-          (hasSpecialRules(view) ? '<button class="btn small link" data-action="reset-rule" data-id="' + view.device.id + '">' + Homey.__('advanced.resetButton') + '</button>' : '') +
+            '<div class="f"><label>' + Homey.__('advanced.includeLastSeen') + '</label>' +
+              '<select data-field="includeLastSeenForReporting" data-id="' + id + '">' +
+                '<option value=""' + (r.includeLastSeenForReporting == null ? ' selected' : '') + '>' + pd + '</option>' +
+                '<option value="yes"' + (r.includeLastSeenForReporting === true ? ' selected' : '') + '>' + Homey.__('advanced.optionYes') + '</option>' +
+                '<option value="no"' + (r.includeLastSeenForReporting === false ? ' selected' : '') + '>' + Homey.__('advanced.optionNo') + '</option>' +
+              '</select>' +
+            '</div>' +
+            (d.testCapability ? '' +
+              '<label class="f chk" title="' + escapeHtml(Homey.__('advanced.autoTestOnStaleHint')) + '"><input type="checkbox" data-field="autoTestOnStale" data-id="' + id + '"' + (r.autoTestOnStale ? ' checked' : '') + ' /> ' + Homey.__('advanced.autoTestOnStale') + '</label>' +
+              (r.autoTestOnStale ? '<div class="adv-sub"><label class="f chk" title="' + escapeHtml(Homey.__('advanced.autoTestTriggerOnHealHint')) + '"><input type="checkbox" data-field="autoTestTriggerOnHeal" data-id="' + id + '"' + (r.autoTestTriggerOnHeal ? ' checked' : '') + ' /> ' + Homey.__('advanced.autoTestTriggerOnHeal') + '</label></div>' : '')
+            : '');
+        }
+
+        var unavailableInner =
+          '<label class="f chk" title="' + escapeHtml(Homey.__('advanced.excludeFromUnavailableHint')) + '"><input type="checkbox" data-field="excludeFromUnavailable" data-id="' + id + '"' + (r.excludeFromUnavailable ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeFromUnavailable') + '</label>' +
+          '<div class="f"><label>' + Homey.__('advanced.unavailableDelay') + '</label><div class="unit-field">' +
+            '<input type="number" min="0" step="any" data-field="unavailableDelaySeconds" data-id="' + id + '" value="' + secondsToDisplay(r.unavailableDelaySeconds, state.secondsUnit[id] || 's') + '" placeholder="' + pd + '" />' +
+            '<select class="unit-select" data-unit-for="unavailableDelaySeconds" data-id="' + id + '">' +
+              '<option value="s"' + ((state.secondsUnit[id] || 's') === 's' ? ' selected' : '') + '>' + Homey.__('units.seconds') + '</option>' +
+              '<option value="m"' + (state.secondsUnit[id] === 'm' ? ' selected' : '') + '>' + Homey.__('units.minutes') + '</option>' +
+            '</select>' +
+          '</div></div>';
+
+        var batteryInner = view.device.hasBattery ? '' +
+          '<div class="f"><label>' + Homey.__('advanced.batteryThreshold') + '</label><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" data-id="' + id + '" value="' + (r.batteryThreshold == null ? '' : r.batteryThreshold) + '" placeholder="' + pd + '" /></div>' +
+          '<div class="f"><label>' + Homey.__('advanced.lowBatteryDelay') + '</label><div class="unit-field">' +
+            '<input type="number" min="0" step="any" data-field="lowBatteryDelaySeconds" data-id="' + id + '" value="' + secondsToDisplay(r.lowBatteryDelaySeconds, state.lowBatterySecondsUnit[id] || 's') + '" placeholder="' + pd + '" />' +
+            '<select class="unit-select" data-unit-for="lowBatteryDelaySeconds" data-id="' + id + '">' +
+              '<option value="s"' + ((state.lowBatterySecondsUnit[id] || 's') === 's' ? ' selected' : '') + '>' + Homey.__('units.seconds') + '</option>' +
+              '<option value="m"' + (state.lowBatterySecondsUnit[id] === 'm' ? ' selected' : '') + '>' + Homey.__('units.minutes') + '</option>' +
+            '</select>' +
+          '</div></div>' +
+          '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.onlyBattery') + '</label>' +
+          '<label class="f chk"><input type="checkbox" data-field="excludeBattery" data-id="' + id + '"' + (r.excludeBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeBattery') + '</label>' +
+          '<div class="f" title="' + escapeHtml(Homey.__('advanced.batteryTypeOverrideHint')) + '"><label>' + Homey.__('advanced.batteryTypeOverride') + '</label>' +
+            '<input type="text" maxlength="40" data-field="batteryTypeOverride" data-id="' + id + '" value="' + escapeHtml(r.batteryTypeOverride || '') + '" placeholder="' + escapeHtml(formatBatteryTypes(view.device.batteryTypes) || Homey.__('advanced.batteryTypeOverridePlaceholder')) + '" />' +
+          '</div>'
+        : '';
+
+        var pauseInner =
+          '<div class="f" title="' + escapeHtml(Homey.__('advanced.pausedUntilHint')) + '"><label>' + Homey.__('advanced.pausedUntil') + '</label><div class="pause-field">' +
+            '<input type="date" data-field="pausedUntil" data-id="' + id + '" value="' + (r.pausedUntil || '') + '" />' +
+            (r.pausedUntil ? '<button class="btn small link" data-action="clear-pause" data-id="' + id + '">' + Homey.__('advanced.clearPauseButton') + '</button>' : '') +
+          '</div></div>';
+
+        return '' +
+          '<div class="device-advanced' + (isOpen ? ' open' : '') + '" id="adv-' + id + '">' +
+          deviceInfoHtml(view) +
+          advGroup(Homey.__('advanced.groupNotReporting'), notReportingInner) +
+          advGroup(Homey.__('advanced.groupUnavailable'), unavailableInner) +
+          advGroup(Homey.__('advanced.groupBattery'), batteryInner) +
+          advGroup(Homey.__('advanced.groupPause'), pauseInner) +
+          advGroup(Homey.__('advanced.groupBulk'), applyToAppButtonHtml(view) + bulkIgnoreHtml(view)) +
+          (hasSpecialRules(view) ? advGroup(Homey.__('advanced.groupReset'), '<button class="btn small link" data-action="reset-rule" data-id="' + id + '">' + Homey.__('advanced.resetButton') + '</button>') : '') +
           '</div>';
       }
 
@@ -1762,6 +1794,13 @@
               needsRerender = true;
             } else if (field === 'excludeBattery' && r.excludeBattery && r.onlyCheckBattery) {
               r.onlyCheckBattery = false;
+              needsRerender = true;
+            } else if (field === 'autoTestOnStale') {
+              // The "still trigger Flow on heal" sub-option only renders while this is on -
+              // reflect that immediately. Turning it off also drops a now-orphaned
+              // autoTestTriggerOnHeal, so it doesn't linger invisibly in the rule (which
+              // also blocked cleanupDeviceRule) and come back pre-checked if re-enabled.
+              if (!r.autoTestOnStale) r.autoTestTriggerOnHeal = false;
               needsRerender = true;
             }
           } else if (field === 'notReportingHours') {

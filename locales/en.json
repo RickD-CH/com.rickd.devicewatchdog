@@ -64,7 +64,8 @@
     "noScanResult": "No scan result yet",
     "skipped": "Skipped during scan",
     "update": "Updated: __date__",
-    "noData": "no data"
+    "noData": "no data",
+    "noStalenessCheck": "No \"not reporting\" check"
   },
   "connection": {
     "zwave": "Z-Wave (__app__)",
@@ -122,7 +123,13 @@
     "bulkIgnoreClassQuestion": "Stop monitoring __count__ devices of class \"__cls__\"? Re-enabling is per-device or per-zone.",
     "bulkIgnoreDetailsToggle": "Which devices?",
     "bulkIgnoreConfirmBtn": "Stop monitoring",
-    "bulkIgnoreCancelBtn": "Cancel"
+    "bulkIgnoreCancelBtn": "Cancel",
+    "groupNotReporting": "Not reporting",
+    "groupUnavailable": "Not reachable",
+    "groupBattery": "Battery",
+    "groupPause": "Pause",
+    "groupBulk": "Apply to multiple devices",
+    "groupReset": "Per-device settings"
   },
   "zone": {
     "none": "No zone",

@@ -1255,6 +1255,24 @@ class DeviceWatchdogApp extends Homey.App {
       lowBatteryConfirmed: [...nowLowBatteryConfirmed, ...carriedLowBatteryConfirmed],
     };
     this.homey.settings.set(SETTINGS_KEY_FLAG_STATE, this.flagState);
+
+    // Keep problemSince.notReporting / .lowBattery from silently accumulating orphans.
+    // The recovery loops above only prune an entry when the device is still in flagState
+    // AND was re-scanned this round (scannedIds = result.all only). A device that instead
+    // gets excluded or paused while flagged leaves flagState cleanly (it's in knownIds,
+    // so not carried) but its problemSince entry is skipped (it's in result.excluded, not
+    // scannedIds) - so it would sit there forever. Enforce the invariant directly: these
+    // maps only ever hold ids that are currently flagged. (problemSince.unavailable is
+    // managed separately and already self-heals in _primeAvailabilityMap.)
+    const pruneSince = (map, keepIds) => {
+      const keep = new Set(keepIds);
+      for (const key of Object.keys(map)) {
+        if (!keep.has(key)) delete map[key];
+      }
+    };
+    pruneSince(this.problemSince.notReporting, this.flagState.notReporting);
+    pruneSince(this.problemSince.lowBattery, this.flagState.lowBattery);
+
     this._persistProblemSince();
 
     // Virtual device counter/alarm - gated by confirmation same as the trigger/log/
