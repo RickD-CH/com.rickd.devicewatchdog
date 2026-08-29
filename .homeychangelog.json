@@ -1,4 +1,8 @@
 {
+  "1.9.29": {
+    "en": "Fixed: devices whose only capability is a custom write-only one (e.g. the WhatsApp app's \"send data\") no longer flagged \"not reporting\" forever.",
+    "de": "Behoben: Geräte, deren einzige Fähigkeit eine benutzerdefinierte, nur schreibbare ist (z.B. \"send data\" der WhatsApp-App), werden nicht mehr dauerhaft als \"meldet sich nicht\" markiert."
+  },
   "1.9.28": {
     "en": "New \"Support\" tab with a link to the community forum thread; the donate button moved there too.",
     "de": "Neue \"Support\"-Lasche mit Link zum Community-Forum-Thread; der Spenden-Button ist dorthin umgezogen."

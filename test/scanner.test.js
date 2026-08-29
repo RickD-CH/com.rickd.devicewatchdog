@@ -210,6 +210,28 @@ describe('canCheckStaleness', () => {
     assert.equal(scanner.canCheckStaleness({ capabilitiesObj: { onoff: { value: true } } }), true);
     assert.equal(scanner.canCheckStaleness({ capabilitiesObj: { button: { value: null } } }), false);
   });
+
+  test('false for a device whose only capability is a custom write-only (getable: false) one', () => {
+    // e.g. the WhatsApp app's `send_data` capability: setable-only, never carries a value or
+    // lastUpdated, so it can't be hardcoded into NON_INFORMATIVE_STALENESS_CAP_BASES by name -
+    // the getable flag itself is the generic signal.
+    const d = device({
+      capabilities: ['send_data'],
+      capabilitiesObj: { send_data: { value: null, getable: false, setable: true } },
+    });
+    assert.equal(scanner.canCheckStaleness(d), false);
+  });
+
+  test('true for a device with a getable capability even if some other capability is write-only', () => {
+    const d = device({
+      capabilities: ['send_data', 'onoff'],
+      capabilitiesObj: {
+        send_data: { value: null, getable: false, setable: true },
+        onoff: { value: true, getable: true },
+      },
+    });
+    assert.equal(scanner.canCheckStaleness(d), true);
+  });
 });
 
 describe('computeDeviceStatus', () => {
@@ -279,6 +301,20 @@ describe('computeDeviceStatus', () => {
 
   test('a device with no capabilities at all is not flagged not reporting', () => {
     const d = device({ capabilities: [], capabilitiesObj: {} });
+    const status = scanner.computeDeviceStatus(d, null, config);
+    assert.equal(status.isReporting, true);
+  });
+
+  test('a device whose only capability is a custom write-only one is never flagged not reporting', () => {
+    // Community-reported: a WhatsApp-app device whose only capability is a custom `send_data`
+    // boolean (setable, not getable) was permanently flagged "not reporting" since it never
+    // carries a lastUpdated - same failure shape as the button-only case, for a capability name
+    // that can't be hardcoded up front.
+    const d = device({
+      class: 'other',
+      capabilities: ['send_data'],
+      capabilitiesObj: { send_data: { value: null, getable: false, setable: true } },
+    });
     const status = scanner.computeDeviceStatus(d, null, config);
     assert.equal(status.isReporting, true);
   });
