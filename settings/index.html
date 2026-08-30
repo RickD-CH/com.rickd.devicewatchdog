@@ -1024,8 +1024,14 @@
         if (d.stalenessCheckable === false) {
           bits.push('<span class="sn-warn">⚠ <b>' + Homey.__('info.noStalenessCheck') + '</b> ' + Homey.__('info.noStalenessCheckHint') + '</span>');
         }
-        // Contextual "what to do" hint, server-computed, only present for a flagged device.
-        if (d.recommendation && d.recommendation.key) {
+        // Contextual "what to do" hint, server-computed. Also gated on the device still
+        // being flagged per the current (freshest) scan state - state.devices/recommendation
+        // is only re-pulled on load, save and "Scan now", so without this a recommendation
+        // could linger on a device that just recovered, or be stale after a fix.
+        var flaggedNow = view.unavailable
+          || (view.scanEntry && view.scanEntry.status === 'NOK')
+          || view.isLowBattery;
+        if (flaggedNow && d.recommendation && d.recommendation.key) {
           bits.push('<div class="sn-rec"><span class="sn-rec-i" aria-hidden="true">💡</span><span><b>'
             + Homey.__('recommend.label') + '</b> — '
             + Homey.__('recommend.' + d.recommendation.key, d.recommendation.params || {}) + '</span></div>');
@@ -2096,14 +2102,14 @@
         var btn = document.getElementById('btn-run-scan');
         btn.disabled = true;
         btn.textContent = Homey.__('devices.scanning');
-        Promise.all([
-          apiCall('POST', '/scan'),
-          apiCall('GET', '/devices/raw'),
-          apiCall('GET', '/devices/unavailable'),
-        ]).then(function (results) {
-          state.lastScan = results[0];
-          state.devices = results[1];
-          state.unavailableIds = results[2].ids;
+        apiCall('POST', '/scan').then(function (scan) {
+          state.lastScan = scan;
+          // /devices/raw after the scan, not alongside it - it carries the scan-derived
+          // per-device recommendation, which is computed against this.lastScan server-side.
+          return Promise.all([apiCall('GET', '/devices/raw'), apiCall('GET', '/devices/unavailable')]);
+        }).then(function (results) {
+          state.devices = results[0];
+          state.unavailableIds = results[1].ids;
           renderDevices();
         }).catch(function (err) {
           Homey.alert(Homey.__('devices.scanFailed', { error: err && err.message ? err.message : err }));
@@ -2154,9 +2160,16 @@
           // Gespeicherte Regeln (z.B. "Batterie ignorieren") wirken sich auf den Status aus -
           // ohne frischen Scan wuerde die Liste noch die alten Badges/Filter-Zugehoerigkeiten zeigen.
           setSaveStatus(Homey.__('save.savingRefresh'), false);
-          return Promise.all([apiCall('POST', '/scan'), apiCall('GET', '/devices/unavailable')]);
+          return apiCall('POST', '/scan');
+        }).then(function (scan) {
+          state.lastScan = scan;
+          // Re-pull /devices/raw AFTER the scan (not in parallel with it): it carries
+          // scan-derived data now (the per-device recommendation), computed server-side
+          // against this.lastScan - fetching it before the scan settles would hand back a
+          // recommendation for the pre-save state.
+          return Promise.all([apiCall('GET', '/devices/raw'), apiCall('GET', '/devices/unavailable')]);
         }).then(function (results) {
-          state.lastScan = results[0];
+          state.devices = results[0];
           state.unavailableIds = results[1].ids;
           renderDevices();
           var newAnchorRow = anchorId ? document.querySelector('.device-row[data-id="' + anchorId + '"]') : null;
