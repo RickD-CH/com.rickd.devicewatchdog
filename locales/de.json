@@ -132,6 +132,21 @@
     "groupBulk": "Auf mehrere Geräte anwenden",
     "groupReset": "Individuelle Einstellungen"
   },
+  "recommend": {
+    "label": "Empfehlung",
+    "unavailableAppRestart": "Mehrere Geräte dieser App sind gleichzeitig weggefallen - meist ein App-Neustart. „Verzögerung bis ‚nicht erreichbar' zählt\" für diese Geräte höher setzen.",
+    "unavailableBattery": "Batteriegeräte fallen weg, wenn die Batterie leer ist oder sie zu tief schlafen. Batterie prüfen.",
+    "unavailableCheck": "Nur dieses Gerät ist nicht erreichbar. Strom und Reichweite prüfen; Zigbee/Z-Wave-Geräte müssen manchmal neu angelernt werden.",
+    "staleBattery": "Der Batteriewert ist Wochen alt - das Gerät ist evtl. verstummt, nicht wirklich leer. Direkt prüfen.",
+    "batteryAlarm": "Das Gerät meldet selbst „Batterie schwach\". Batterie ersetzen.",
+    "batteryReplace": "Die Batterie ist auf oder unter der Schwelle. Zeit zum Wechseln.",
+    "notMonitorable": "Dieses Gerät hat nichts, was veralten kann (nur Trigger). Am besten aus der Überwachung nehmen.",
+    "neverReported": "Dieses Gerät hat noch nie Daten gemeldet. Wenn es nur für Flows oder als Anzeige dient: nicht mehr überwachen - siehe „Auf mehrere Geräte anwenden\" unten.",
+    "eventSensor": "Kontakt- und Bewegungssensoren melden nur bei Änderung - lange ruhige Phasen sind normal. Die Schwelle für dieses Gerät hochsetzen, oder „Zuletzt gesehen mitzählen\" auf Ja.",
+    "tryTest": "Homey sieht das Gerät noch. Test-Button probieren - reagiert es, „Auto-Test vor Alarmierung\" aktivieren.",
+    "silentlyGone": "Dieses Gerät kommuniziert gar nicht mehr, aber Homey hat es nicht offline gesetzt. Strom, Batterie und Reichweite prüfen; evtl. neu anlernen.",
+    "notReportingGeneric": "Homey zeigt es verbunden, aber es kamen keine neuen Daten. Die Schwelle für dieses Gerät hochsetzen, oder wenn es nur selten meldet: „Zuletzt gesehen mitzählen\" aktivieren."
+  },
   "zone": {
     "none": "Ohne Zone",
     "issues": "__count__ Problem(e)",

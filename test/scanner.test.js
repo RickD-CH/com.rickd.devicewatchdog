@@ -234,6 +234,130 @@ describe('canCheckStaleness', () => {
   });
 });
 
+describe('deviceRecommendation', () => {
+  const DAY = 24 * HOUR;
+
+  test('returns null when the device is not flagged', () => {
+    assert.equal(scanner.deviceRecommendation(device({}), { category: null }), null);
+    assert.equal(scanner.deviceRecommendation(device({}), {}), null);
+  });
+
+  test('unavailable: several peers from the same app -> app-restart hint', () => {
+    const r = scanner.deviceRecommendation(device({ capabilities: ['onoff'] }), {
+      category: 'unavailable', unavailablePeersSameApp: 3,
+    });
+    assert.equal(r.key, 'unavailableAppRestart');
+  });
+
+  test('unavailable: battery device -> battery hint', () => {
+    const r = scanner.deviceRecommendation(device({ capabilities: ['onoff', 'measure_battery'] }), {
+      category: 'unavailable', unavailablePeersSameApp: 0,
+    });
+    assert.equal(r.key, 'unavailableBattery');
+  });
+
+  test('unavailable: otherwise -> generic check hint', () => {
+    const r = scanner.deviceRecommendation(device({ capabilities: ['onoff'] }), { category: 'unavailable' });
+    assert.equal(r.key, 'unavailableCheck');
+  });
+
+  test('lowBattery: a battery reading older than 30 days -> staleBattery', () => {
+    const d = device({
+      capabilities: ['measure_battery'],
+      capabilitiesObj: { measure_battery: { value: 5, lastUpdated: new Date(Date.now() - 40 * DAY).toISOString() } },
+    });
+    assert.equal(scanner.deviceRecommendation(d, { category: 'lowBattery' }).key, 'staleBattery');
+  });
+
+  test('lowBattery: a fresh reading -> batteryReplace', () => {
+    const d = device({
+      capabilities: ['measure_battery'],
+      capabilitiesObj: { measure_battery: { value: 5, lastUpdated: new Date().toISOString() } },
+    });
+    assert.equal(scanner.deviceRecommendation(d, { category: 'lowBattery' }).key, 'batteryReplace');
+  });
+
+  test('lowBattery: an active alarm_battery -> batteryAlarm', () => {
+    const d = device({ capabilities: ['alarm_battery'], capabilitiesObj: { alarm_battery: { value: true } } });
+    assert.equal(scanner.deviceRecommendation(d, { category: 'lowBattery' }).key, 'batteryAlarm');
+  });
+
+  test('notReporting: a device that has never reported any value -> neverReported', () => {
+    const d = device({
+      capabilities: ['alarm_contact'],
+      capabilitiesObj: { alarm_contact: { value: null } },
+    });
+    assert.equal(scanner.deviceRecommendation(d, { category: 'notReporting' }).key, 'neverReported');
+  });
+
+  test('notReporting: an event sensor still being seen -> eventSensor', () => {
+    const d = device({
+      class: 'sensor',
+      capabilities: ['alarm_motion'],
+      capabilitiesObj: { alarm_motion: { value: false, lastUpdated: new Date(Date.now() - 40 * HOUR).toISOString() } },
+      lastSeenAt: new Date(Date.now() - HOUR).toISOString(),
+    });
+    assert.equal(scanner.deviceRecommendation(d, { category: 'notReporting', thresholdHrs: 24 }).key, 'eventSensor');
+  });
+
+  test('notReporting: a class:sensor meter WITHOUT an alarm cap is not treated as an event sensor', () => {
+    // A power/air-quality meter reports continuously - a long gap is a real concern, so it
+    // must NOT get the "quiet is normal, raise the threshold" hint.
+    const d = device({
+      class: 'sensor',
+      capabilities: ['measure_power'],
+      capabilitiesObj: { measure_power: { value: 12, lastUpdated: new Date(Date.now() - 40 * HOUR).toISOString() } },
+      lastSeenAt: new Date(Date.now() - HOUR).toISOString(),
+    });
+    assert.equal(scanner.deviceRecommendation(d, { category: 'notReporting', thresholdHrs: 24 }).key, 'notReportingGeneric');
+  });
+
+  test('notReporting: a testable device Homey still sees -> tryTest', () => {
+    const d = device({
+      class: 'light',
+      capabilities: ['onoff'],
+      capabilitiesObj: { onoff: { value: true, lastUpdated: new Date(Date.now() - 40 * HOUR).toISOString() } },
+      lastSeenAt: new Date(Date.now() - 40 * HOUR).toISOString(),
+      available: true,
+    });
+    assert.equal(scanner.deviceRecommendation(d, { category: 'notReporting', thresholdHrs: 24, testCapability: 'onoff' }).key, 'tryTest');
+  });
+
+  test('notReporting: a device that is both testable and event-driven -> tryTest wins', () => {
+    const d = device({
+      class: 'light',
+      capabilities: ['onoff', 'alarm_generic'],
+      capabilitiesObj: {
+        onoff: { value: true, lastUpdated: new Date(Date.now() - 40 * HOUR).toISOString() },
+        alarm_generic: { value: false, lastUpdated: new Date(Date.now() - 40 * HOUR).toISOString() },
+      },
+      lastSeenAt: new Date(Date.now() - HOUR).toISOString(),
+      available: true,
+    });
+    assert.equal(scanner.deviceRecommendation(d, { category: 'notReporting', thresholdHrs: 24, testCapability: 'onoff' }).key, 'tryTest');
+  });
+
+  test('notReporting: not testable, last seen also stale -> silentlyGone', () => {
+    const d = device({
+      class: 'light',
+      capabilities: ['onoff'],
+      capabilitiesObj: { onoff: { value: true, lastUpdated: new Date(Date.now() - 40 * HOUR).toISOString() } },
+      lastSeenAt: new Date(Date.now() - 40 * HOUR).toISOString(),
+      available: true,
+    });
+    assert.equal(scanner.deviceRecommendation(d, { category: 'notReporting', thresholdHrs: 24 }).key, 'silentlyGone');
+  });
+
+  test('notReporting: nothing specific matches -> notReportingGeneric', () => {
+    const d = device({
+      class: 'light',
+      capabilities: ['onoff'],
+      capabilitiesObj: { onoff: { value: true, lastUpdated: new Date(Date.now() - 40 * HOUR).toISOString() } },
+    });
+    assert.equal(scanner.deviceRecommendation(d, { category: 'notReporting', thresholdHrs: 24 }).key, 'notReportingGeneric');
+  });
+});
+
 describe('computeDeviceStatus', () => {
   const config = { notReportingThresholdHours: 24, batteryThresholdPercent: 30 };
 

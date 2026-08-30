@@ -9,6 +9,8 @@
       --color-ok: #2e7d32;
       --color-nok: #c62828;
       --color-warn: #ef6c00;
+      --color-info: #1565c0;
+      --color-info-bg: #e8f1fb;
       --color-muted: #757575;
       --color-border: #e0e0e0;
       --color-bg-alt: #fafafa;
@@ -28,6 +30,8 @@
       --color-text: #ececec;
       --color-input-bg: #2a2a2c;
       --color-muted: #a3a3a8;
+      --color-info: #7cb3ec;
+      --color-info-bg: #182a3d;
     }
     html.theme-dark.high-contrast {
       --color-muted: #c8c8cc;
@@ -278,6 +282,15 @@
     /* Full-width so it sits on its own line below the "live status" bit, not inline with it. */
     .device-info .sn-warn { width: 100%; color: var(--color-warn); }
     .device-info .sn-warn b { color: var(--color-warn); }
+    /* "What to do" recommendation for a flagged device - info-blue box, deliberately calmer
+       than the orange problem badge (a suggestion, not an alarm). */
+    .device-info .sn-rec {
+      width: 100%; margin-top: 8px; display: flex; gap: 8px; align-items: flex-start;
+      background: var(--color-info-bg); border-radius: 6px; padding: 8px 10px; line-height: 1.5;
+      color: var(--color-text);
+    }
+    .device-info .sn-rec b { color: var(--color-info); font-weight: 600; }
+    .device-info .sn-rec-i { flex-shrink: 0; }
     .bulk-ignore { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
     .apply-to-app-trigger { width: 100%; }
     .apply-to-app-trigger .hint { margin: 2px 0 0; }
@@ -1010,6 +1023,12 @@
         // here so the missing "last update" line doesn't just look like a bug.
         if (d.stalenessCheckable === false) {
           bits.push('<span class="sn-warn">⚠ <b>' + Homey.__('info.noStalenessCheck') + '</b> ' + Homey.__('info.noStalenessCheckHint') + '</span>');
+        }
+        // Contextual "what to do" hint, server-computed, only present for a flagged device.
+        if (d.recommendation && d.recommendation.key) {
+          bits.push('<div class="sn-rec"><span class="sn-rec-i" aria-hidden="true">💡</span><span><b>'
+            + Homey.__('recommend.label') + '</b> — '
+            + Homey.__('recommend.' + d.recommendation.key, d.recommendation.params || {}) + '</span></div>');
         }
         return '<div class="device-info">' + bits.join('') + '</div>';
       }

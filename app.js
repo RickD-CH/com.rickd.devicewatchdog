@@ -785,11 +785,43 @@ class DeviceWatchdogApp extends Homey.App {
     // devices simply fall back to their raw ownerUri app id further down the chain.
     const appNameMap = await this._getAppNameMap();
 
+    // Current problem state, for the per-device "what to do" recommendation
+    // (scanner.deviceRecommendation). Category priority matches the Settings badge:
+    // unavailable > not reporting > low battery.
+    const notReportingSet = new Set(this.lastScan ? this.lastScan.notReporting : []);
+    const lowBatterySet = new Set(this.lastScan ? this.lastScan.lowBattery : []);
+    const unavailableSet = new Set(
+      Array.from(this._confirmedUnavailable).filter((id) => !this._isExcludedFromUnavailable(id)),
+    );
+    const unavailableByOwner = {};
+    for (const id of unavailableSet) {
+      const owner = devices[id] && devices[id].ownerUri;
+      if (owner) unavailableByOwner[owner] = (unavailableByOwner[owner] || 0) + 1;
+    }
+
     return Object.values(devices)
       .filter((device) => !this._isOwnDevice(device))
       .map((device) => {
         const ownerAppId = device.ownerUri ? device.ownerUri.replace(/^homey:app:/, '') : null;
         const { rule } = scanner.findRuleIndexed({ id: device.id }, this._ruleIndex);
+        const testCapability = this._findTestCapability(device);
+
+        let category = null;
+        if (unavailableSet.has(device.id)) category = 'unavailable';
+        else if (notReportingSet.has(device.id)) category = 'notReporting';
+        else if (lowBatterySet.has(device.id)) category = 'lowBattery';
+
+        let recommendation = null;
+        if (category) {
+          const ownerUnavail = device.ownerUri ? (unavailableByOwner[device.ownerUri] || 0) : 0;
+          recommendation = scanner.deviceRecommendation(device, {
+            category,
+            thresholdHrs: (rule && rule.notReportingHours) || this.config.notReportingThresholdHours,
+            testCapability,
+            unavailablePeersSameApp: category === 'unavailable' ? Math.max(0, ownerUnavail - 1) : ownerUnavail,
+          });
+        }
+
         return {
           id: device.id,
           name: device.name,
@@ -797,7 +829,7 @@ class DeviceWatchdogApp extends Homey.App {
           zoneOrder: device.zone && zoneOrderMap[device.zone] !== undefined ? zoneOrderMap[device.zone] : Number.MAX_SAFE_INTEGER,
           class: device.class || null,
           available: device.available !== false,
-          testCapability: this._findTestCapability(device),
+          testCapability,
           hasBattery: BATTERY_CAPABILITIES.some((id) => (device.capabilities || []).includes(id)),
           // Driver-declared, not computed by Homey - many apps never set this, so it's
           // frequently null even for a device that clearly has a battery. Raw array (one
@@ -820,6 +852,9 @@ class DeviceWatchdogApp extends Homey.App {
           // Settings UI shows a "no staleness check possible" note for these instead of
           // ever flagging them "not reporting". Same helper the scan itself uses.
           stalenessCheckable: scanner.canCheckStaleness(device),
+          // { key, params } short "what to do" hint, only for a currently-flagged device;
+          // null otherwise. The Settings UI turns the key into localized copy.
+          recommendation,
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name));

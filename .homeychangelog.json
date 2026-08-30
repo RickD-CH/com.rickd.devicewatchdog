@@ -1,4 +1,8 @@
 {
+  "1.9.30": {
+    "en": "Flagged devices now show a short recommendation in their Details - what it's likely about (never reported, event sensor, stale battery reading, app restart, ...) and what to try.",
+    "de": "Geflaggte Geräte zeigen jetzt in den Details eine kurze Empfehlung - woran es liegen könnte (nie gemeldet, Event-Sensor, alter Batteriewert, App-Neustart, …) und was zu versuchen ist."
+  },
   "1.9.29": {
     "en": "Fixed: devices whose only capability is a custom write-only one (e.g. the WhatsApp app's \"send data\") no longer flagged \"not reporting\" forever.",
     "de": "Behoben: Geräte, deren einzige Fähigkeit eine benutzerdefinierte, nur schreibbare ist (z.B. \"send data\" der WhatsApp-App), werden nicht mehr dauerhaft als \"meldet sich nicht\" markiert."

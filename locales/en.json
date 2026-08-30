@@ -132,6 +132,21 @@
     "groupBulk": "Apply to multiple devices",
     "groupReset": "Per-device settings"
   },
+  "recommend": {
+    "label": "Recommendation",
+    "unavailableAppRestart": "Several devices from this app dropped at once - usually the app restarting. Raise \"Delay before 'unavailable' counts\" for these.",
+    "unavailableBattery": "Battery devices drop off when the battery dies or they sleep too deeply. Check the battery.",
+    "unavailableCheck": "Only this device is unreachable. Check its power and range; Zigbee/Z-Wave devices sometimes need re-pairing.",
+    "staleBattery": "The battery reading is weeks old - the device may have gone quiet rather than actually being low. Check it directly.",
+    "batteryAlarm": "The device is signalling low battery itself. Replace the battery.",
+    "batteryReplace": "The battery is at or below the threshold. Time to replace it.",
+    "notMonitorable": "This device has nothing that can go stale (trigger-only). Best taken out of monitoring.",
+    "neverReported": "This device has never reported any data. If it's only used for Flows or as a display, stop monitoring it - see \"Apply to multiple devices\" below.",
+    "eventSensor": "Contact and motion sensors only report on change, so long quiet gaps are normal. Raise this device's threshold, or set \"Count 'last seen'\" to Yes.",
+    "tryTest": "Homey still sees this device. Try the Test button - if it responds, turn on \"Auto-test before flagging\".",
+    "silentlyGone": "This device hasn't communicated at all recently, but Homey hasn't marked it offline. Check power, battery and range; it may need re-pairing.",
+    "notReportingGeneric": "Homey still shows it connected but no new data has arrived. Raise this device's threshold, or if it only reports rarely, turn on \"Count 'last seen'\"."
+  },
   "zone": {
     "none": "No zone",
     "issues": "__count__ issue(s)",
