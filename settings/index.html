@@ -768,6 +768,11 @@
               renderLog();
             }).catch(function () {}); // keep showing the last-known log rather than erroring out
           }
+          // Same idea for the device list/counts: catch up to a scan that ran server-side
+          // while another tab was showing, without waiting for the 60s poll.
+          if (btn.dataset.tab === 'devices') {
+            refreshIfScanChanged();
+          }
         });
       });
 
@@ -2190,6 +2195,33 @@
           }
         });
       }
+
+      // ---------------------------------------------------------------
+      // Background freshness
+      // ---------------------------------------------------------------
+      // The page is otherwise a snapshot from page-load / the last save. A scheduled scan
+      // (or one triggered from a Flow) running server-side while it sits open wouldn't show
+      // up - stale badges, counts and recommendations until a manual reload. Poll the cheap
+      // /status endpoint; only when its lastScan timestamp has actually moved do we re-pull
+      // the heavier device data and re-render. Held off while a save is in flight or queued.
+      var pollInFlight = false;
+      function refreshIfScanChanged() {
+        if (pollInFlight || saveInFlight || autoSaveTimer) return Promise.resolve();
+        pollInFlight = true;
+        return apiCall('GET', '/status').then(function (status) {
+          var freshAt = status && status.lastScan && status.lastScan.generatedAt;
+          if (!freshAt || freshAt === (state.lastScan && state.lastScan.generatedAt)) return null;
+          return Promise.all([apiCall('GET', '/devices/raw'), apiCall('GET', '/devices/unavailable')]).then(function (r) {
+            var scrollY = window.scrollY;
+            state.lastScan = status.lastScan;
+            state.devices = r[0];
+            state.unavailableIds = r[1].ids;
+            renderDevices();
+            window.scrollTo(0, scrollY);
+          });
+        }).catch(function () {}).finally(function () { pollInFlight = false; });
+      }
+      setInterval(function () { if (!document.hidden) refreshIfScanChanged(); }, 60000);
 
       // ---------------------------------------------------------------
       // Initial load

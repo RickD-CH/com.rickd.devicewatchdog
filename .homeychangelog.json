@@ -1,4 +1,8 @@
 {
+  "1.9.31": {
+    "en": "The Settings page now refreshes itself when a background scan changes something, instead of only on reload.",
+    "de": "Die Einstellungs-Seite aktualisiert sich jetzt selbst, wenn ein Hintergrund-Scan etwas ändert - nicht mehr nur bei Reload."
+  },
   "1.9.30": {
     "en": "Flagged devices now show a short recommendation in their Details - what it's likely about (never reported, event sensor, stale battery reading, app restart, ...) and what to try.",
     "de": "Geflaggte Geräte zeigen jetzt in den Details eine kurze Empfehlung - woran es liegen könnte (nie gemeldet, Event-Sensor, alter Batteriewert, App-Neustart, …) und was zu versuchen ist."
