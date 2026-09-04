@@ -1,4 +1,8 @@
 {
+  "1.9.32": {
+    "en": "Fixed: the \"unavailable\" count/list could include devices long deleted from Homey, inflating the count past what actually shows.",
+    "de": "Behoben: der \"nicht erreichbar\"-Zähler/-Liste konnte längst aus Homey gelöschte Geräte enthalten und dadurch höher als die tatsächliche Liste ausfallen."
+  },
   "1.9.31": {
     "en": "The Settings page now refreshes itself when a background scan changes something, instead of only on reload.",
     "de": "Die Einstellungs-Seite aktualisiert sich jetzt selbst, wenn ein Hintergrund-Scan etwas ändert - nicht mehr nur bei Reload."

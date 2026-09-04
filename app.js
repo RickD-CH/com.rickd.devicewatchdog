@@ -1044,6 +1044,31 @@ class DeviceWatchdogApp extends Homey.App {
       this._handleDeviceUpdate(device);
     }
 
+    // A device deleted from Homey while it was confirmed-unavailable (or still mid-grace-
+    // period) is never revisited by _handleDeviceUpdate above - that loop only runs for
+    // devices that still exist. Left alone, its id sits in _confirmedUnavailable forever
+    // (only a full app restart re-primes the whole map from scratch, via
+    // _primeAvailabilityMap), inflating getUnavailableStatus()'s count/list - and the
+    // widget/virtual device counters, which read the same set - past what's actually still
+    // on Homey (confirmed live: 3 of 4 "unavailable" ids pointing at long-deleted devices).
+    // Reconcile against the very device set this scan just fetched.
+    let unavailablePruned = false;
+    for (const id of Array.from(this._confirmedUnavailable)) {
+      if (id in devices) continue;
+      this._confirmedUnavailable.delete(id);
+      this._availabilityMap.delete(id);
+      delete this.problemSince.unavailable[id];
+      unavailablePruned = true;
+    }
+    for (const id of Array.from(this._pendingUnavailableTimers.keys())) {
+      if (!(id in devices)) this._cancelPendingUnavailableConfirmation(id);
+    }
+    if (unavailablePruned) {
+      this._persistProblemSince();
+      this._updateWatchdogDevice({ unavailableCount: this._countUnavailable() })
+        .catch((err) => this.error('Watchdog-Gerät-Update fehlgeschlagen:', err));
+    }
+
     const result = scanner.runScan({
       devices, zones, rules: this.rules, config: this.config,
     });
