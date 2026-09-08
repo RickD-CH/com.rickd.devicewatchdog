@@ -1,4 +1,8 @@
 {
+  "1.9.33": {
+    "en": "The scan log now names the affected devices, not just a count - more useful in submitted diagnostic reports. Widget: an \"unavailable\" device without a last-seen timestamp now shows \"no data\" instead of a blank line.",
+    "de": "Das Scan-Protokoll nennt jetzt die betroffenen Geräte, nicht nur eine Zahl - hilfreicher in eingereichten Diagnoseberichten. Widget: ein \"nicht erreichbar\"-Gerät ohne Zuletzt-gesehen-Zeitstempel zeigt jetzt \"keine Daten\" statt einer leeren Zeile."
+  },
   "1.9.32": {
     "en": "Fixed: the \"unavailable\" count/list could include devices long deleted from Homey, inflating the count past what actually shows.",
     "de": "Behoben: der \"nicht erreichbar\"-Zähler/-Liste konnte längst aus Homey gelöschte Geräte enthalten und dadurch höher als die tatsächliche Liste ausfallen."

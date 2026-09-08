@@ -1112,7 +1112,15 @@ class DeviceWatchdogApp extends Homey.App {
 
     await this._fireEdgeTriggers(result);
 
-    this.log(`Scan abgeschlossen: ${result.all.length} Geräte, ${result.notReporting.length} offline, ${result.lowBattery.length} Batteriewarnungen`);
+    // Names, not just counts - a submitted diagnostic report only shows this log buffer,
+    // and "9 offline" alone gives zero clue which devices unless the user separately
+    // describes them. Capped so a large flagged set doesn't blow up the log line.
+    const nameList = (entries) => {
+      const names = entries.map((d) => d.name);
+      const extra = names.length - 10;
+      return names.length ? ` (${names.slice(0, 10).join(', ')}${extra > 0 ? ` +${extra} weitere` : ''})` : '';
+    };
+    this.log(`Scan abgeschlossen: ${result.all.length} Geräte, ${result.notReporting.length} offline${nameList(result.notReporting)}, ${result.lowBattery.length} Batteriewarnungen${nameList(result.lowBattery)}`);
 
     return this.lastScan;
   }

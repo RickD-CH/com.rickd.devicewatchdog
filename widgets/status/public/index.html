@@ -149,8 +149,10 @@
       if (catKey === 'notReporting' && entry.lastUpdated) {
         return Homey.__('widget.lastUpdated', { date: new Date(entry.lastUpdated).toLocaleString() });
       }
-      if (catKey === 'unavailable' && entry.lastSeenAt) {
-        return Homey.__('widget.lastSeen', { date: new Date(entry.lastSeenAt).toLocaleString() });
+      if (catKey === 'unavailable') {
+        return entry.lastSeenAt
+          ? Homey.__('widget.lastSeen', { date: new Date(entry.lastSeenAt).toLocaleString() })
+          : Homey.__('widget.lastSeenUnknown');
       }
       return '';
     }

@@ -247,6 +247,7 @@
     "since": "Seit __date__",
     "lastUpdated": "Letztes Update: __date__",
     "lastSeen": "Zuletzt gesehen: __date__",
+    "lastSeenUnknown": "Zuletzt gesehen: keine Daten",
     "noProblems": "Alle Geräte OK",
     "loading": "Lädt…",
     "scanNow": "Jetzt scannen",
