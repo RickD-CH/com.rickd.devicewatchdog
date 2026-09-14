@@ -130,7 +130,17 @@
     "groupBattery": "Battery",
     "groupPause": "Pause",
     "groupBulk": "Apply to multiple devices",
-    "groupReset": "Per-device settings"
+    "groupReset": "Per-device settings",
+    "groupCapabilities": "Capabilities",
+    "capabilitiesToggle": "Show raw capability values",
+    "capabilitiesHint": "Expand to load this device's current capability values, straight from Homey - the same data Developer Tools shows.",
+    "capabilitiesLoading": "Loading…",
+    "capabilitiesEmpty": "This device has no capabilities.",
+    "capabilitiesError": "Couldn't load capabilities: __error__",
+    "capabilitiesLegend": "🟢 updated within the __hours__h \"Hours until offline\" threshold · 🔴 older than that · no colour = not used for this check (e.g. button/battery-only capabilities).",
+    "capabilitiesLegendNone": "This device isn't checked for staleness (only battery is checked, or nothing here ever carries a meaningful timestamp), so values below aren't coloured.",
+    "capabilitiesRefresh": "🔄 Refresh",
+    "capabilitiesRefreshing": "Refreshing…"
   },
   "recommend": {
     "label": "Recommendation",

@@ -130,7 +130,17 @@
     "groupBattery": "Batterie",
     "groupPause": "Pause",
     "groupBulk": "Auf mehrere Geräte anwenden",
-    "groupReset": "Individuelle Einstellungen"
+    "groupReset": "Individuelle Einstellungen",
+    "groupCapabilities": "Capabilities",
+    "capabilitiesToggle": "Rohe Capability-Werte anzeigen",
+    "capabilitiesHint": "Aufklappen, um die aktuellen Capability-Werte dieses Geräts direkt von Homey zu laden - dieselben Daten wie in den Developer Tools.",
+    "capabilitiesLoading": "Lädt…",
+    "capabilitiesEmpty": "Dieses Gerät hat keine Capabilities.",
+    "capabilitiesError": "Capabilities konnten nicht geladen werden: __error__",
+    "capabilitiesLegend": "🟢 innerhalb der __hours__h-Schwelle \"Stunden bis offline\" aktualisiert · 🔴 älter als das · keine Farbe = zählt nicht für diese Prüfung (z.B. Button- oder reine Batterie-Capabilities).",
+    "capabilitiesLegendNone": "Bei diesem Gerät wird nicht auf Aktualität geprüft (entweder wird nur die Batterie geprüft, oder nichts hier trägt je einen brauchbaren Zeitstempel) - die Werte unten sind deshalb nicht eingefärbt.",
+    "capabilitiesRefresh": "🔄 Aktualisieren",
+    "capabilitiesRefreshing": "Aktualisiert…"
   },
   "recommend": {
     "label": "Empfehlung",

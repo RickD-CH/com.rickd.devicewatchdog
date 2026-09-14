@@ -277,6 +277,21 @@
     .device-advanced .f { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--color-muted); }
     .device-advanced .f.chk { flex-direction: row; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap; }
     .device-advanced input[type=number] { width: 90px; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; }
+    .cap-block { width: 100%; max-width: 100%; }
+    .cap-block summary { cursor: pointer; color: var(--color-muted); font-size: 12.5px; }
+    .cap-block .cap-body { margin-top: 8px; }
+    .cap-legend { margin-bottom: 10px; }
+    .cap-list { width: 100%; }
+    .cap-row { padding: 6px 0 6px 8px; border-bottom: 1px solid var(--color-border); border-left: 3px solid transparent; }
+    .cap-row:last-child { border-bottom: none; }
+    .cap-row.cap-fresh { border-left-color: var(--color-ok); }
+    .cap-row.cap-stale { border-left-color: var(--color-nok); }
+    .cap-row-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; font-size: 12.5px; }
+    .cap-row-head .cap-id { color: var(--color-muted); font-family: monospace; font-size: 11px; word-break: break-all; }
+    .cap-row-body { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-top: 2px; font-size: 12px; color: var(--color-muted); }
+    .cap-row-body .cap-ts { white-space: nowrap; }
+    .cap-row.cap-fresh .cap-ts { color: var(--color-ok); font-weight: 600; }
+    .cap-row.cap-stale .cap-ts { color: var(--color-nok); font-weight: 600; }
     .device-info { width: 100%; display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 12px; color: var(--color-muted); margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--color-border); }
     .device-info b { color: #212121; font-weight: 600; }
     /* Full-width so it sits on its own line below the "live status" bit, not inline with it. */
@@ -548,6 +563,14 @@
         filterMode: null,
         zoneOpenOverride: {},
         openAdvanced: {},
+        // "Capabilities" sub-panel per device (nested inside "Details"), lazy-loaded on
+        // first expand - see loadDeviceCapabilities. capOpen mirrors the nested <details>'
+        // own open state across renders (same reason zoneOpenOverride exists); capData/
+        // capError hold the last successful/failed fetch, keyed by device id.
+        capOpen: {},
+        capLoading: {},
+        capData: {},
+        capError: {},
         hoursUnit: {},
         hoursUnitGlobal: 'h',
         secondsUnit: {},
@@ -1280,7 +1303,124 @@
           advGroup(Homey.__('advanced.groupPause'), pauseInner) +
           advGroup(Homey.__('advanced.groupBulk'), applyToAppButtonHtml(view) + bulkIgnoreHtml(view)) +
           (hasSpecialRules(view) ? advGroup(Homey.__('advanced.groupReset'), '<button class="btn small link" data-action="reset-rule" data-id="' + id + '">' + Homey.__('advanced.resetButton') + '</button>') : '') +
+          advGroup(Homey.__('advanced.groupCapabilities'), capabilitiesBlockHtml(view)) +
           '</div>';
+      }
+
+      // Raw per-capability values + timestamps for one device, analogous to Homey's own
+      // Developer Tools - nested <details> so it stays collapsed (and unfetched) until
+      // actually asked for; see loadDeviceCapabilities for the lazy fetch.
+      function capabilitiesBlockHtml(view) {
+        var id = view.device.id;
+        var isOpen = !!state.capOpen[id];
+        return '' +
+          '<details class="cap-block" data-id="' + id + '"' + (isOpen ? ' open' : '') + '>' +
+            '<summary>' + Homey.__('advanced.capabilitiesToggle') + '</summary>' +
+            '<div class="cap-body">' + capabilitiesBodyHtml(view) + '</div>' +
+          '</details>';
+      }
+
+      // Client-side mirror of lib/scanner.js#NON_INFORMATIVE_STALENESS_CAP_BASES - must stay
+      // in sync. These never carry a meaningful "last changed" (button is momentary,
+      // measure_battery/alarm_battery only update when the device happens to wake up), so
+      // the fresh/stale colouring below leaves them neutral rather than falsely flagging them.
+      var NON_INFORMATIVE_STALENESS_CAP_BASES = { button: true, measure_battery: true, alarm_battery: true };
+
+      // Whether a single capability's own lastUpdated should be judged against the "hours
+      // until offline" threshold at all - mirrors lib/scanner.js#canCheckStaleness's per-
+      // capability half (getable:false / non-informative base), applied per-row here instead
+      // of device-wide.
+      function capCountsForStaleness(c) {
+        return c.getable !== false && !NON_INFORMATIVE_STALENESS_CAP_BASES[String(c.id).split('.')[0]];
+      }
+
+      // Shared by every state that already has (or tried to get) data - the error case
+      // doubles as "retry", the loaded case as "refresh" (values are only ever fetched once
+      // per expand otherwise, so without this a long-open panel just goes stale).
+      function capabilitiesRefreshButtonHtml(id) {
+        var loading = !!state.capLoading[id];
+        return '<button class="btn small link" data-action="refresh-capabilities" data-id="' + id + '"' + (loading ? ' disabled' : '') + '>'
+          + (loading ? Homey.__('advanced.capabilitiesRefreshing') : Homey.__('advanced.capabilitiesRefresh')) + '</button>';
+      }
+
+      function capabilitiesBodyHtml(view) {
+        var id = view.device.id;
+        if (state.capError[id]) {
+          return '<p class="hint sn-warn">' + escapeHtml(Homey.__('advanced.capabilitiesError', { error: state.capError[id] })) + '</p>'
+            + capabilitiesRefreshButtonHtml(id);
+        }
+        var data = state.capData[id];
+        if (!data) {
+          return '<p class="hint">' + Homey.__(state.capLoading[id] ? 'advanced.capabilitiesLoading' : 'advanced.capabilitiesHint') + '</p>';
+        }
+        if (!data.length) {
+          return '<p class="hint">' + Homey.__('advanced.capabilitiesEmpty') + '</p>' + capabilitiesRefreshButtonHtml(id);
+        }
+
+        var r = view.rule || {};
+        var d = view.device;
+        // Same gate lib/scanner.js#computeDeviceStatus uses before it even looks at
+        // timestamps - "onlyCheckBattery" replaces the staleness check entirely, and a
+        // device that can never carry a meaningful timestamp (see stalenessCheckable) isn't
+        // judged on one either. Either way, colouring rows fresh/stale would just be wrong.
+        var checkApplies = d.stalenessCheckable !== false && !r.onlyCheckBattery;
+        var thresholdHrs = effectiveNotReportingHours(view).hours;
+        var thresholdMs = thresholdHrs * 3600000;
+        var now = Date.now();
+
+        var legend = (checkApplies
+          ? '<p class="hint cap-legend">' + Homey.__('advanced.capabilitiesLegend', { hours: thresholdHrs }) + '</p>'
+          : '<p class="hint cap-legend">' + Homey.__('advanced.capabilitiesLegendNone') + '</p>')
+          + capabilitiesRefreshButtonHtml(id);
+
+        // Stacked rows, not a table - the Details panel is only ~300px wide on a phone
+        // (62px left padding eats most of the screen), nowhere near enough for 4 fixed
+        // table columns; this wraps naturally at any width instead of getting clipped
+        // off-screen (see forum/mobile report).
+        var rows = data.map(function (c) {
+          var val = (c.value === null || c.value === undefined) ? '–' : String(c.value);
+          if (c.units) val += ' ' + c.units;
+          var ts = c.lastUpdated ? new Date(c.lastUpdated).toLocaleString() : Homey.__('meta.noData');
+
+          var freshness = null; // null = neutral (not part of the staleness check)
+          if (checkApplies && c.lastUpdated && capCountsForStaleness(c)) {
+            var age = now - new Date(c.lastUpdated).getTime();
+            freshness = age < thresholdMs ? 'fresh' : 'stale';
+          }
+
+          return '' +
+            '<div class="cap-row' + (freshness ? ' cap-' + freshness : '') + '">' +
+              '<div class="cap-row-head"><b>' + escapeHtml(c.title) + '</b><span class="cap-id">' + escapeHtml(c.id) + '</span></div>' +
+              '<div class="cap-row-body"><span>' + escapeHtml(val) + '</span><span class="cap-ts">' + escapeHtml(ts) + '</span></div>' +
+            '</div>';
+        }).join('');
+
+        return legend + '<div class="cap-list">' + rows + '</div>';
+      }
+
+      // Fetched on first expand (not part of getRawDevices, which already covers every
+      // device up front - this is only ever needed for the one panel actually open), and
+      // again on demand via the "Refresh" button (force=true) since a long-open panel
+      // otherwise never updates on its own. capOpen keeps the <details> itself open across
+      // the re-renders below; the render right after setting capLoading is what makes the
+      // "Loading…" text / disabled Refresh button actually show up before the round trip.
+      function loadDeviceCapabilities(id, force) {
+        if (state.capLoading[id]) return;
+        if (!force && state.capData[id]) return;
+        state.capLoading[id] = true;
+        renderDevices();
+        apiCall('GET', '/devices/' + id + '/capabilities')
+          .then(function (result) {
+            state.capData[id] = result || [];
+            delete state.capLoading[id];
+            delete state.capError[id];
+            renderDevices();
+          })
+          .catch(function (err) {
+            delete state.capLoading[id];
+            state.capError[id] = (err && err.message) || String(err);
+            renderDevices();
+          });
       }
 
       function hasSpecialRules(view) {
@@ -1440,6 +1580,18 @@
             });
           });
         }
+
+        // Same phantom-toggle guard as the zone groups above, for the nested "Capabilities"
+        // sub-panel inside each device's Details - only load its data on a real user expand.
+        container.querySelectorAll('details.cap-block').forEach(function (det) {
+          var ignorePhantomToggle = det.open;
+          det.addEventListener('toggle', function () {
+            if (ignorePhantomToggle) { ignorePhantomToggle = false; return; }
+            var capId = det.dataset.id;
+            state.capOpen[capId] = det.open;
+            if (det.open) loadDeviceCapabilities(capId);
+          });
+        });
       }
 
       function bulkSetZoneMonitored(zoneKey, monitored) {
@@ -1683,6 +1835,11 @@
             e.preventDefault();
             e.stopPropagation();
             runDeviceTest(e.target);
+          }
+          if (e.target.dataset.action === 'refresh-capabilities') {
+            e.preventDefault();
+            e.stopPropagation();
+            loadDeviceCapabilities(e.target.dataset.id, true);
           }
           if (e.target.dataset.action === 'reset-rule') {
             e.preventDefault();

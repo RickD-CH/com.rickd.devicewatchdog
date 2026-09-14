@@ -932,6 +932,35 @@ class DeviceWatchdogApp extends Homey.App {
     }
   }
 
+  // Raw per-capability snapshot for a single device (id/title/type/value/units/lastUpdated),
+  // the same data Homey's own Developer Tools shows. Fetched on demand (not part of
+  // getRawDevices, which is already sent for every device on every load) since this is
+  // only ever needed for the one device whose "Capabilities" panel is actually expanded.
+  async getDeviceCapabilities(deviceId) {
+    await this._ensureApi();
+
+    const device = await this.api.devices.getDevice({ id: deviceId });
+    if (!device) throw new Error(this.homey.__('backend.deviceNotFound'));
+
+    const capsObj = device.capabilitiesObj || {};
+    return Object.keys(capsObj).sort().map((capId) => {
+      const cap = capsObj[capId] || {};
+      return {
+        id: capId,
+        title: cap.title || capId,
+        type: cap.type || null,
+        value: cap.value === undefined ? null : cap.value,
+        units: cap.units || null,
+        lastUpdated: cap.lastUpdated || null,
+        // Lets the Settings UI mirror the same "does this capability even count toward
+        // staleness" rule the scan itself uses (lib/scanner.js#canCheckStaleness) when
+        // colouring each row - a write-only capability never carries a meaningful
+        // lastUpdated, so it shouldn't be judged fresh/stale either.
+        getable: cap.getable !== false,
+      };
+    });
+  }
+
   getStatus() {
     return {
       config: this.config,

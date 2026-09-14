@@ -1,4 +1,8 @@
 {
+  "1.9.34": {
+    "en": "Device Details now has a \"Capabilities\" section showing every raw capability value and its last-changed timestamp, the same data as Homey's Developer Tools - expand it only when you need it.",
+    "de": "Die Geräte-Details haben jetzt einen Bereich \"Capabilities\" mit allen rohen Capability-Werten und deren Zeitstempel der letzten Änderung - dieselben Daten wie in Homeys Developer Tools, nur bei Bedarf aufklappbar."
+  },
   "1.9.33": {
     "en": "The scan log now names the affected devices, not just a count - more useful in submitted diagnostic reports. Widget: an \"unavailable\" device without a last-seen timestamp now shows \"no data\" instead of a blank line.",
     "de": "Das Scan-Protokoll nennt jetzt die betroffenen Geräte, nicht nur eine Zahl - hilfreicher in eingereichten Diagnoseberichten. Widget: ein \"nicht erreichbar\"-Gerät ohne Zuletzt-gesehen-Zeitstempel zeigt jetzt \"keine Daten\" statt einer leeren Zeile."

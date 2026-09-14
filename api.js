@@ -33,6 +33,10 @@ module.exports = {
     return homey.app.testDevice(params.id);
   },
 
+  async getDeviceCapabilities({ homey, params }) {
+    return homey.app.getDeviceCapabilities(params.id);
+  },
+
   async getLog({ homey }) {
     return homey.app.getLog();
   },
