@@ -69,7 +69,12 @@ describe('sanitizeRule', () => {
     assert.equal(sanitized.excludeFromUnavailable, false);
     assert.equal(sanitized.autoTestOnStale, false);
     assert.equal(sanitized.autoTestTriggerOnHeal, false);
-    assert.equal(sanitized.includeBatteryForReporting, false);
+  });
+
+  test('includeBatteryForReporting defaults to true, only false when explicitly opted out', () => {
+    assert.equal(rulesLib.sanitizeRule({ matchType: 'id', matchValue: 'dev-2' }).includeBatteryForReporting, true);
+    assert.equal(rulesLib.sanitizeRule({ matchType: 'id', matchValue: 'dev-2', includeBatteryForReporting: false }).includeBatteryForReporting, false);
+    assert.equal(rulesLib.sanitizeRule({ matchType: 'id', matchValue: 'dev-2', includeBatteryForReporting: true }).includeBatteryForReporting, true);
   });
 
   test('nullable fields default to null, not undefined, when absent', () => {

@@ -12,6 +12,7 @@ const SETTINGS_KEY_FLAG_STATE = 'flagState';
 const SETTINGS_KEY_LAST_SCAN = 'lastScan';
 const SETTINGS_KEY_EVENT_LOG = 'eventLog';
 const SETTINGS_KEY_PROBLEM_SINCE = 'problemSince';
+const SETTINGS_KEY_BATTERY_DEFAULT_MIGRATED = 'includeBatteryForReportingDefaultMigrated';
 
 // Capabilities safe to re-set with their own current value as a reachability test:
 // this round-trips to the hardware (so a failure means the device is truly unreachable)
@@ -74,6 +75,19 @@ function migrateRuleToHours(rule) {
   return { ...rest, notReportingHours: notReportingDays * 24 };
 }
 
+// One-time migration: includeBatteryForReporting shipped in 1.9.35 defaulting to false,
+// and the Settings UI client wrote that `false` onto every rule it saved regardless of
+// whether the user ever touched that particular field. The default has since flipped to
+// true, so a blanket `false` inherited from 1.9.35 needs clearing once, otherwise every
+// existing rule would look like a deliberate per-device opt-out. Guarded by
+// SETTINGS_KEY_BATTERY_DEFAULT_MIGRATED so a `false` a user sets afterward, for real,
+// isn't wiped again on the next restart.
+function migrateIncludeBatteryDefault(rule) {
+  if (rule.includeBatteryForReporting !== false) return rule;
+  const { includeBatteryForReporting, ...rest } = rule;
+  return rest;
+}
+
 class DeviceWatchdogApp extends Homey.App {
 
   async onInit() {
@@ -81,6 +95,10 @@ class DeviceWatchdogApp extends Homey.App {
 
     this.config = { ...DEFAULT_CONFIG, ...(this.homey.settings.get(SETTINGS_KEY_CONFIG) || {}) };
     this._setRules((this.homey.settings.get(SETTINGS_KEY_RULES) || DEFAULT_RULES).map(migrateRuleToHours));
+    if (!this.homey.settings.get(SETTINGS_KEY_BATTERY_DEFAULT_MIGRATED)) {
+      this._setRules(this.rules.map(migrateIncludeBatteryDefault));
+      this.homey.settings.set(SETTINGS_KEY_BATTERY_DEFAULT_MIGRATED, true);
+    }
     this.homey.settings.set(SETTINGS_KEY_RULES, this.rules);
     this.flagState = this.homey.settings.get(SETTINGS_KEY_FLAG_STATE)
       // lowBatteryConfirmed is the delay-gated subset of lowBattery (see

@@ -95,7 +95,7 @@
     "onlyBattery": "Nur Batterie prüfen",
     "excludeBattery": "Batterie ignorieren",
     "includeBatteryForReporting": "Batterie-Zeitstempel bei \"meldet sich nicht\" mitzählen",
-    "includeBatteryForReportingHint": "Standardmäßig aus: ein aktualisierter Batteriewert allein zählt nicht als Lebenszeichen, da viele Geräte die Batterie unabhängig vom eigentlichen Messwert melden - ein eingefrorener Temperatur-/Feuchtigkeitswert würde sonst durch die noch laufende Batteriemeldung verdeckt. Aktivieren, falls bei diesem Gerät ausschließlich die Batterie zuverlässig meldet und das als Lebenszeichen ausreichen soll.",
+    "includeBatteryForReportingHint": "Standardmäßig an: ein aktualisierter Batteriewert zählt wie jede andere Capability als Lebenszeichen. Deaktivieren, wenn bei diesem Gerät die Batterie unabhängig vom eigentlichen Messwert meldet - dann würde ein eingefrorener Temperatur-/Feuchtigkeitswert sonst durch die weiterhin nach eigenem Zeitplan meldende Batterie verdeckt.",
     "excludeFromUnavailable": "Nicht erreichbar ignorieren",
     "excludeFromUnavailableHint": "Betrifft nur Sammelmeldung, Zeitleiste, Verlauf, den Zähler im virtuellen Gerät und das Dashboard-Widget. Die Pro-Gerät-Flow-Karte und -Bedingung funktionieren weiterhin.",
     "unavailableDelay": "Verzögerung bis \"nicht erreichbar\" zählt",
