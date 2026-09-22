@@ -322,6 +322,14 @@
     .apply-to-app-confirm details { margin-bottom: 8px; }
     .apply-to-app-confirm summary { cursor: pointer; color: var(--color-muted); }
     .apply-to-app-list { list-style: none; margin: 6px 0 0; padding-left: 18px; max-height: 160px; overflow-y: auto; }
+    .bulk-ignore-driver-label {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      font-size: 11px; font-weight: 600; color: var(--color-muted); margin: 10px 0 2px;
+    }
+    /* first-of-type, not first-child: this div is always preceded by the <details><summary>
+       sibling, so it's never literally the first child of its parent. */
+    .bulk-ignore-driver-label:first-of-type { margin-top: 0; }
+    .bulk-ignore-driver-label .btn.link { font-size: 11px; font-weight: 400; padding: 0; }
     /* .f.chk (elsewhere: short one-line toggle labels) sets white-space:nowrap and
        flex-shrink:0 - fine for "Nur Batterie prüfen" etc., but sibling names here can be
        much longer (full device name plus a Homey-appended "[MAC]" suffix). nowrap forced
@@ -1084,6 +1092,25 @@
         }).map(function (d) { return d.id; });
       }
 
+      // Splits a flat id list into per-driver groups for the bulk-ignore "app" checklist -
+      // an app like Fibaro/IKEA exposes many unrelated device types under one ownerUri, so a
+      // flat list is hard to scan. Label is the raw driverId's last colon-segment (e.g.
+      // "FGS-214"), matching the existing convention of showing raw driverId text elsewhere
+      // (applyToAppButtonHtml's hint line). Devices with no driverId fall into one shared
+      // group. Sorted alphabetically by label for a stable, scannable order.
+      function groupIdsByDriver(ids) {
+        var groups = {};
+        ids.forEach(function (id) {
+          var d = state.devices.find(function (x) { return x.id === id; });
+          var driverId = (d && d.driverId) || '';
+          var label = driverId ? driverId.split(':').pop() : Homey.__('advanced.bulkIgnoreOtherDriverLabel');
+          var key = driverId || ' other';
+          if (!groups[key]) groups[key] = { label: label, ids: [] };
+          groups[key].ids.push(id);
+        });
+        return Object.values(groups).sort(function (a, b) { return a.label.localeCompare(b.label); });
+      }
+
       function applyToAppButtonHtml(view) {
         var siblingIds = sameDriverSiblingIds(view.device);
         var sourceHasPause = !!(view.rule && view.rule.pausedUntil);
@@ -1175,13 +1202,31 @@
             return '<button class="btn small link" data-action="bulk-ignore-start" data-key="' + escapeHtml(key) + '">' + escapeHtml(btnLabel) + '</button>';
           }
 
-          var listItems = affectedIds.map(function (id) {
+          function pickLi(id) {
             var dev = state.devices.find(function (x) { return x.id === id; });
             var name = dev ? dev.name : id;
             var zone = dev && dev.zone ? ' · ' + dev.zone : '';
             var checked = !state.bulkIgnoreExcludedIds[id];
             return '<li><label class="f chk"><input type="checkbox" class="bulk-ignore-pick" data-pick-id="' + escapeHtml(id) + '"' + (checked ? ' checked' : '') + ' /> ' + escapeHtml(name) + escapeHtml(zone) + '</label></li>';
-          }).join('');
+          }
+
+          // Same-app checklists mix every device type the app owns (e.g. Fibaro's plugs,
+          // dimmers and sensors all share one ownerUri) - grouping by driver makes a long
+          // list scannable. Not worth it for a single-driver result (nothing to separate),
+          // and "class" checklists stay flat - a device class isn't tied to one driver.
+          var driverGroups = g.mode === 'app' ? groupIdsByDriver(affectedIds) : [];
+          var listItems = driverGroups.length > 1
+            ? driverGroups.map(function (dg) {
+                var allChecked = dg.ids.every(function (id) { return !state.bulkIgnoreExcludedIds[id]; });
+                var toggleLabel = allChecked ? Homey.__('advanced.bulkIgnoreGroupDeselectAll') : Homey.__('advanced.bulkIgnoreGroupSelectAll');
+                return '<div class="bulk-ignore-driver-label">' +
+                    '<span>' + escapeHtml(dg.label) + ' (' + dg.ids.length + ')</span>' +
+                    '<button class="btn small link" data-action="bulk-ignore-group-toggle" data-group-ids="' + escapeHtml(dg.ids.join(',')) + '">' + escapeHtml(toggleLabel) + '</button>' +
+                  '</div>' +
+                  '<ul class="apply-to-app-list">' + dg.ids.map(pickLi).join('') + '</ul>';
+              }).join('')
+            : affectedIds.map(pickLi).join('');
+          var listHtml = driverGroups.length > 1 ? listItems : '<ul class="apply-to-app-list">' + listItems + '</ul>';
 
           var question = g.mode === 'app'
             ? Homey.__('advanced.bulkIgnoreAppQuestion', { count: affectedIds.length, app: g.label })
@@ -1190,7 +1235,7 @@
           return '<div class="apply-to-app-confirm">' +
             '<p>' + escapeHtml(question) + '</p>' +
             '<details><summary>' + Homey.__('advanced.bulkIgnoreDetailsToggle') + '</summary>' +
-              '<ul class="apply-to-app-list">' + listItems + '</ul>' +
+              listHtml +
             '</details>' +
             '<div class="apply-to-app-actions">' +
               '<button class="btn small primary" data-action="bulk-ignore-confirm" data-key="' + escapeHtml(key) + '">' + Homey.__('advanced.bulkIgnoreConfirmBtn') + '</button>' +
@@ -1922,6 +1967,26 @@
             e.preventDefault();
             e.stopPropagation();
             confirmBulkIgnore(e.target.dataset.key);
+          }
+          if (e.target.dataset.action === 'bulk-ignore-group-toggle') {
+            e.preventDefault();
+            e.stopPropagation();
+            // Toggles the checkboxes directly instead of calling renderDevices() - a full
+            // re-render would regenerate the <details> element from scratch, and since its
+            // open/closed state lives only in the DOM (not in `state`), that would silently
+            // collapse the "Which devices?" panel the user just opened to click this.
+            var groupIds = {};
+            e.target.dataset.groupIds.split(',').forEach(function (id) { groupIds[id] = true; });
+            var idsInGroup = Object.keys(groupIds);
+            var allChecked = idsInGroup.every(function (id) { return !state.bulkIgnoreExcludedIds[id]; });
+            var newChecked = !allChecked;
+            container.querySelectorAll('.bulk-ignore-pick').forEach(function (cb) {
+              if (!groupIds[cb.dataset.pickId]) return;
+              cb.checked = newChecked;
+              if (newChecked) delete state.bulkIgnoreExcludedIds[cb.dataset.pickId];
+              else state.bulkIgnoreExcludedIds[cb.dataset.pickId] = true;
+            });
+            e.target.textContent = newChecked ? Homey.__('advanced.bulkIgnoreGroupDeselectAll') : Homey.__('advanced.bulkIgnoreGroupSelectAll');
           }
         });
 
