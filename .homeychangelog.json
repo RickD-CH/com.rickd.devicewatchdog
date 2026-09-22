@@ -1,11 +1,7 @@
 {
-  "1.9.36": {
-    "en": "Reverted the 1.9.35 default: battery updates count toward \"not reporting\" again (a still-updating battery is normally real evidence a device is alive). The per-device toggle in Details > Battery is now an opt-out for the rare device where that isn't true - the battery's own last-updated time is still shown in Device Details either way.",
-    "de": "Die Standardeinstellung aus 1.9.35 wurde zurückgenommen: Batterie-Updates zählen wieder bei \"meldet sich nicht\" mit (eine noch aktualisierte Batterie ist normalerweise ein echtes Lebenszeichen). Der Schalter pro Gerät (Details > Batterie) ist jetzt ein Opt-out für die seltenen Fälle, wo das nicht zutrifft - der Zeitstempel der letzten Batteriemeldung wird weiterhin in jedem Fall angezeigt."
-  },
   "1.9.35": {
-    "en": "\"Not reporting\" now ignores battery updates by default, so a device with a frozen sensor value no longer hides behind a battery that keeps checking in on its own schedule. A new per-device toggle (Details > Battery) opts back in for devices where only the battery reliably reports; the battery's own last-updated time is now shown in Device Details either way.",
-    "de": "\"Meldet sich nicht\" ignoriert jetzt standardmäßig Batterie-Updates, damit ein Gerät mit eingefrorenem Messwert sich nicht mehr hinter einer nach eigenem Zeitplan meldenden Batterie verstecken kann. Ein neuer Schalter pro Gerät (Details > Batterie) aktiviert das Mitzählen wieder für Geräte, bei denen nur die Batterie zuverlässig meldet - der Zeitstempel der letzten Batteriemeldung wird in den Geräte-Details nun in jedem Fall angezeigt."
+    "en": "Device Details now shows the battery capability's own last-updated timestamp. A new per-device toggle (Details > Battery, on by default) lets you exclude a device's battery updates from counting toward \"not reporting\" - useful for a device whose battery updates independently of its actual measured value, which could otherwise mask a frozen sensor reading.",
+    "de": "Die Geräte-Details zeigen jetzt den Zeitstempel der letzten Batteriemeldung. Ein neuer Schalter pro Gerät (Details > Batterie, standardmäßig an) erlaubt es, Batterie-Updates eines Geräts von der \"meldet sich nicht\"-Zählung auszuschließen - nützlich für Geräte, deren Batterie unabhängig vom eigentlichen Messwert meldet und so einen eingefrorenen Messwert verdecken könnte."
   },
   "1.9.34": {
     "en": "Device Details now has a \"Capabilities\" section showing every raw capability value and its last-changed timestamp, the same data as Homey's Developer Tools - expand it only when you need it.",
