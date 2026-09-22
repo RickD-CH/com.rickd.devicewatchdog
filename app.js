@@ -13,6 +13,13 @@ const SETTINGS_KEY_LAST_SCAN = 'lastScan';
 const SETTINGS_KEY_EVENT_LOG = 'eventLog';
 const SETTINGS_KEY_PROBLEM_SINCE = 'problemSince';
 const SETTINGS_KEY_BATTERY_DEFAULT_MIGRATED = 'includeBatteryForReportingDefaultMigrated';
+const SETTINGS_KEY_UPDATE_STATS = 'updateStats';
+
+// Rolling per-device window of recent "it reported something" timestamps, used to derive a
+// suggested "not reporting" threshold (see lib/scanner.js#computeUpdateStats) instead of the
+// user guessing. 20/device keeps ~305 real devices in the same order of magnitude as what's
+// already persisted (lastScan + eventLog together).
+const MAX_UPDATE_STATS_ENTRIES = 20;
 
 // Capabilities safe to re-set with their own current value as a reachability test:
 // this round-trips to the hardware (so a failure means the device is truly unreachable)
@@ -117,6 +124,12 @@ class DeviceWatchdogApp extends Homey.App {
     // doesn't write again if nothing actually changed while the app was down.
     this._lastPersistedScanSignature = this._scanSignature(this.lastScan);
     this.eventLog = this.homey.settings.get(SETTINGS_KEY_EVENT_LOG) || [];
+    // { [deviceId]: [ts1, ts2, ...] }, oldest first, capped at MAX_UPDATE_STATS_ENTRIES per
+    // device - see _recordUpdateStat. Written to settings only at scan cadence (_updateStatsDirty),
+    // not on every realtime event - a lively device fleet would otherwise mean a disk write
+    // on every single capability change.
+    this._updateStats = this.homey.settings.get(SETTINGS_KEY_UPDATE_STATS) || {};
+    this._updateStatsDirty = false;
 
     this._zoneMap = {};
     this._availabilityMap = new Map();
@@ -427,6 +440,30 @@ class DeviceWatchdogApp extends Homey.App {
         }
       }
     }
+
+    this._recordUpdateStat(device);
+  }
+
+  // Appends this device's freshest capability timestamp to its rolling update-stats window,
+  // if it's actually newer than the last one recorded - this fires on every scan pass too
+  // (see _runScanInternal), not just genuine realtime changes, so the dedupe check matters.
+  _recordUpdateStat(device) {
+    if (!scanner.canCheckStaleness(device)) return;
+
+    let freshest = null;
+    for (const cap of Object.values(device.capabilitiesObj || {})) {
+      if (!cap || !cap.lastUpdated) continue;
+      const time = new Date(cap.lastUpdated).getTime();
+      if (Number.isFinite(time) && (freshest === null || time > freshest)) freshest = time;
+    }
+    if (freshest === null) return;
+
+    const arr = this._updateStats[device.id] || [];
+    if (arr.length && freshest <= arr[arr.length - 1]) return;
+    arr.push(freshest);
+    if (arr.length > MAX_UPDATE_STATS_ENTRIES) arr.shift();
+    this._updateStats[device.id] = arr;
+    this._updateStatsDirty = true;
   }
 
   _getUnavailableDelaySeconds(deviceId) {
@@ -992,6 +1029,14 @@ class DeviceWatchdogApp extends Homey.App {
     });
   }
 
+  // Reporting-frequency summary for a single device, derived from its rolling update-stats
+  // window (see _recordUpdateStat) - purely computed from already-in-memory data, no
+  // HomeyAPI round trip needed. Fetched on demand, same reasoning as getDeviceCapabilities
+  // above: only ever needed for the one Details panel actually open.
+  async getDeviceUpdateStats(deviceId) {
+    return scanner.computeUpdateStats(this._updateStats[deviceId] || []);
+  }
+
   getStatus() {
     return {
       config: this.config,
@@ -1129,6 +1174,15 @@ class DeviceWatchdogApp extends Homey.App {
         .catch((err) => this.error('Watchdog-Gerät-Update fehlgeschlagen:', err));
     }
 
+    // Same reconciliation as _confirmedUnavailable above, for the update-stats history -
+    // a deleted device's entry would otherwise sit in settings forever.
+    for (const id of Object.keys(this._updateStats)) {
+      if (!(id in devices)) {
+        delete this._updateStats[id];
+        this._updateStatsDirty = true;
+      }
+    }
+
     const result = scanner.runScan({
       devices, zones, rules: this.rules, config: this.config,
     });
@@ -1160,6 +1214,13 @@ class DeviceWatchdogApp extends Homey.App {
     if (scanSignature !== this._lastPersistedScanSignature) {
       this._lastPersistedScanSignature = scanSignature;
       this.homey.settings.set(SETTINGS_KEY_LAST_SCAN, this.lastScan);
+    }
+
+    // Batched like lastScan above, not written on every realtime event - see
+    // _recordUpdateStat/_updateStatsDirty.
+    if (this._updateStatsDirty) {
+      this.homey.settings.set(SETTINGS_KEY_UPDATE_STATS, this._updateStats);
+      this._updateStatsDirty = false;
     }
 
     // lowBatteryCount is deliberately NOT set here - _fireEdgeTriggers below applies the

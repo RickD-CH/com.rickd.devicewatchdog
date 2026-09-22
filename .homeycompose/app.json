@@ -1,6 +1,6 @@
 {
   "id": "com.rickd.devicewatchdog",
-  "version": "1.9.36",
+  "version": "1.9.37",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -103,6 +103,10 @@
     "getDeviceCapabilities": {
       "method": "get",
       "path": "/devices/:id/capabilities"
+    },
+    "getDeviceUpdateStats": {
+      "method": "get",
+      "path": "/devices/:id/stats"
     },
     "getLog": {
       "method": "get",

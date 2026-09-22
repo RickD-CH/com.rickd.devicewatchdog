@@ -322,6 +322,8 @@
     .apply-to-app-confirm details { margin-bottom: 8px; }
     .apply-to-app-confirm summary { cursor: pointer; color: var(--color-muted); }
     .apply-to-app-list { list-style: none; margin: 6px 0 0; padding-left: 18px; max-height: 160px; overflow-y: auto; }
+    .stats-block { width: 100%; margin: -6px 0 14px; }
+    .stats-block .stats-recommend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
     .bulk-ignore-driver-label {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       font-size: 11px; font-weight: 600; color: var(--color-muted); margin: 10px 0 2px;
@@ -584,6 +586,12 @@
         capLoading: {},
         capData: {},
         capError: {},
+        // "Reporting stats" sub-panel per device (nested inside "Not reporting"), same
+        // lazy-load shape as the capabilities maps above - see loadDeviceUpdateStats.
+        statsOpen: {},
+        statsLoading: {},
+        statsData: {},
+        statsError: {},
         hoursUnit: {},
         hoursUnitGlobal: 'h',
         secondsUnit: {},
@@ -1300,6 +1308,7 @@
                 '<option value="d"' + (state.hoursUnit[id] === 'd' ? ' selected' : '') + '>' + Homey.__('units.days') + '</option>' +
               '</select>' +
             '</div></div>' +
+            statsBlockHtml(view) +
             '<div class="f"><label>' + Homey.__('advanced.includeLastSeen') + '</label>' +
               '<select data-field="includeLastSeenForReporting" data-id="' + id + '">' +
                 '<option value=""' + (r.includeLastSeenForReporting == null ? ' selected' : '') + '>' + pd + '</option>' +
@@ -1358,6 +1367,83 @@
           (hasSpecialRules(view) ? advGroup(Homey.__('advanced.groupReset'), '<button class="btn small link" data-action="reset-rule" data-id="' + id + '">' + Homey.__('advanced.resetButton') + '</button>') : '') +
           advGroup(Homey.__('advanced.groupCapabilities'), capabilitiesBlockHtml(view)) +
           '</div>';
+      }
+
+      // How often this device has actually been reporting recently, and a suggested "Hours
+      // until offline" threshold derived from it - shown directly under that field (not
+      // collapsed behind a click, unlike Capabilities below: this is meant to inform the
+      // very setting right above it, not a rarely-needed diagnostic). Loaded once, when the
+      // Details panel itself opens - see the 'toggle-advanced' handler in bindDeviceListEvents.
+      function formatStatsInterval(ms) {
+        if (ms < 3600000) return { value: String(Math.round(ms / 60000)), unitKey: 'advanced.statsUnitMin' };
+        if (ms < 86400000) return { value: (ms / 3600000).toFixed(1), unitKey: 'advanced.statsUnitHour' };
+        return { value: (ms / 86400000).toFixed(1), unitKey: 'advanced.statsUnitDay' };
+      }
+
+      // Picks whichever of hour/day/week keeps the rate readable (e.g. "0.2 updates per
+      // hour" is worse than "4.8 updates per day" for a device that reports every 5 hours).
+      function formatStatsRate(avgIntervalMs) {
+        var perHour = 3600000 / avgIntervalMs;
+        if (perHour >= 1) return { value: perHour.toFixed(1), unitKey: 'advanced.statsUnitHour' };
+        var perDay = perHour * 24;
+        if (perDay >= 1) return { value: perDay.toFixed(1), unitKey: 'advanced.statsUnitDay' };
+        return { value: (perDay * 7).toFixed(1), unitKey: 'advanced.statsUnitWeek' };
+      }
+
+      function statsBodyHtml(view) {
+        var id = view.device.id;
+        if (state.statsError[id]) {
+          return '<p class="hint sn-warn">' + escapeHtml(Homey.__('advanced.statsError', { error: state.statsError[id] })) + '</p>';
+        }
+        var data = state.statsData[id];
+        if (!data) {
+          return '<p class="hint">' + Homey.__('advanced.statsLoading') + '</p>';
+        }
+        if (data.avgIntervalMs == null) {
+          return '<p class="hint">' + Homey.__('advanced.statsCollecting', { count: data.count }) + '</p>';
+        }
+
+        var interval = formatStatsInterval(data.avgIntervalMs);
+        var rate = formatStatsRate(data.avgIntervalMs);
+        var html = '<p class="hint">' +
+            Homey.__('advanced.statsInterval', { value: interval.value, unit: Homey.__(interval.unitKey) }) +
+            ' · ' + Homey.__('advanced.statsRate', { value: rate.value, unit: Homey.__(rate.unitKey) }) +
+          '</p>';
+
+        var currentHours = effectiveNotReportingHours(view).hours;
+        if (data.recommendedHours != null && data.recommendedHours !== currentHours) {
+          html += '<p class="hint stats-recommend">' +
+              Homey.__('advanced.statsRecommendation', { current: currentHours, recommended: data.recommendedHours }) +
+              ' <button class="btn small link" data-action="apply-stats-threshold" data-id="' + id + '" data-hours="' + data.recommendedHours + '">' +
+                Homey.__('advanced.statsApplyButton', { recommended: data.recommendedHours }) +
+              '</button>' +
+            '</p>';
+        }
+        return html;
+      }
+
+      function statsBlockHtml(view) {
+        return '<div class="stats-block">' + statsBodyHtml(view) + '</div>';
+      }
+
+      // Fetched once when the Details panel opens (see 'toggle-advanced' in
+      // bindDeviceListEvents) - not part of getRawDevices, which already covers every device
+      // up front, since the underlying history is only ever needed for the one open panel.
+      function loadDeviceUpdateStats(id) {
+        if (state.statsLoading[id] || state.statsData[id]) return;
+        state.statsLoading[id] = true;
+        apiCall('GET', '/devices/' + id + '/stats')
+          .then(function (result) {
+            state.statsData[id] = result;
+            delete state.statsLoading[id];
+            delete state.statsError[id];
+            renderDevices();
+          })
+          .catch(function (err) {
+            delete state.statsLoading[id];
+            state.statsError[id] = (err && err.message) || String(err);
+            renderDevices();
+          });
       }
 
       // Raw per-capability values + timestamps for one device, analogous to Homey's own
@@ -1883,6 +1969,7 @@
             if (panel) {
               panel.classList.toggle('open');
               state.openAdvanced[e.target.dataset.id] = panel.classList.contains('open');
+              if (state.openAdvanced[e.target.dataset.id]) loadDeviceUpdateStats(e.target.dataset.id);
             }
             return;
           }
@@ -1987,6 +2074,17 @@
               else state.bulkIgnoreExcludedIds[cb.dataset.pickId] = true;
             });
             e.target.textContent = newChecked ? Homey.__('advanced.bulkIgnoreGroupDeselectAll') : Homey.__('advanced.bulkIgnoreGroupSelectAll');
+          }
+          if (e.target.dataset.action === 'apply-stats-threshold') {
+            e.preventDefault();
+            e.stopPropagation();
+            var statsId = e.target.dataset.id;
+            var editedDevice = state.devices.find(function (dv) { return dv.id === statsId; });
+            var rule = ensureDeviceRule(statsId, editedDevice ? editedDevice.name : '');
+            rule.notReportingHours = Number(e.target.dataset.hours);
+            cleanupDeviceRule(statsId);
+            scheduleAutoSave(true);
+            renderDevices();
           }
         });
 

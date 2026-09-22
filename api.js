@@ -37,6 +37,10 @@ module.exports = {
     return homey.app.getDeviceCapabilities(params.id);
   },
 
+  async getDeviceUpdateStats({ homey, params }) {
+    return homey.app.getDeviceUpdateStats(params.id);
+  },
+
   async getLog({ homey }) {
     return homey.app.getLog();
   },

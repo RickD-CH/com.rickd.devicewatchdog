@@ -1,4 +1,8 @@
 {
+  "1.9.37": {
+    "en": "Device Details (\"Not reporting\" section) now shows how often a device has actually been reporting recently, and suggests a threshold based on it, with a one-click \"Apply\" - no more guessing. Needs a few real updates to collect before it shows up for a given device.",
+    "de": "Die Geräte-Details (Bereich \"Meldet sich nicht\") zeigen jetzt, wie oft ein Gerät sich in letzter Zeit tatsächlich gemeldet hat, und schlagen darauf basierend einen Schwellwert vor, per 1-Klick übernehmbar - kein Raten mehr nötig. Braucht für ein Gerät erst ein paar echte Meldungen, bevor es angezeigt wird."
+  },
   "1.9.36": {
     "en": "The \"Stop monitoring all devices from this app\" checklist (Details > Apply to multiple devices) now groups devices by driver instead of one flat list - handy for an app with many different device types (e.g. Fibaro, IKEA) - with a per-group \"select/deselect all\". The \"several devices from this app dropped at once\" recommendation now also suggests restarting the app itself if raising the delay doesn't stop it recurring.",
     "de": "Die Checkliste \"Alle Geräte dieser App nicht mehr überwachen\" (Details > Auf mehrere Geräte anwenden) gruppiert Geräte jetzt nach Treiber statt einer flachen Liste - praktisch bei Apps mit vielen unterschiedlichen Gerätetypen (z. B. Fibaro, IKEA) - inklusive \"Alle auswählen/abwählen\" pro Gruppe. Die Empfehlung \"mehrere Geräte dieser App gleichzeitig weggefallen\" schlägt jetzt zusätzlich einen manuellen App-Neustart vor, falls sich das trotz höherer Verzögerung wiederholt."
