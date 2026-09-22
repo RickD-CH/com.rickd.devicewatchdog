@@ -302,15 +302,16 @@
     /* Full-width so it sits on its own line below the "live status" bit, not inline with it. */
     .device-info .sn-warn { width: 100%; color: var(--color-warn); }
     .device-info .sn-warn b { color: var(--color-warn); }
-    /* "What to do" recommendation for a flagged device - info-blue box, deliberately calmer
-       than the orange problem badge (a suggestion, not an alarm). */
-    .device-info .sn-rec {
+    /* "What to do" recommendation - info-blue box, deliberately calmer than the orange
+       problem badge (a suggestion, not an alarm). Not scoped to .device-info: also reused
+       by the reporting-stats threshold recommendation inside "Not reporting" (stats-block). */
+    .sn-rec {
       width: 100%; margin-top: 8px; display: flex; gap: 8px; align-items: flex-start;
       background: var(--color-info-bg); border-radius: 6px; padding: 8px 10px; line-height: 1.5;
       color: var(--color-text);
     }
-    .device-info .sn-rec b { color: var(--color-info); font-weight: 600; }
-    .device-info .sn-rec-i { flex-shrink: 0; }
+    .sn-rec b { color: var(--color-info); font-weight: 600; }
+    .sn-rec-i { flex-shrink: 0; }
     .bulk-ignore { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
     .apply-to-app-trigger { width: 100%; }
     .apply-to-app-trigger .hint { margin: 2px 0 0; }
@@ -323,7 +324,7 @@
     .apply-to-app-confirm summary { cursor: pointer; color: var(--color-muted); }
     .apply-to-app-list { list-style: none; margin: 6px 0 0; padding-left: 18px; max-height: 160px; overflow-y: auto; }
     .stats-block { width: 100%; margin: -6px 0 14px; }
-    .stats-block .stats-recommend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .stats-block .stats-recommend .btn.link { padding: 0 0 0 4px; }
     .bulk-ignore-driver-label {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       font-size: 11px; font-weight: 600; color: var(--color-muted); margin: 10px 0 2px;
@@ -1412,12 +1413,16 @@
 
         var currentHours = effectiveNotReportingHours(view).hours;
         if (data.recommendedHours != null && data.recommendedHours !== currentHours) {
-          html += '<p class="hint stats-recommend">' +
+          // Same box style as the per-device "what to do" recommendation above (.sn-rec) -
+          // this is the same kind of suggestion, just derived from observed activity instead
+          // of the current problem category.
+          html += '<div class="sn-rec stats-recommend"><span class="sn-rec-i" aria-hidden="true">💡</span><span>' +
+              '<b>' + Homey.__('recommend.label') + '</b> — ' +
               Homey.__('advanced.statsRecommendation', { current: currentHours, recommended: data.recommendedHours }) +
               ' <button class="btn small link" data-action="apply-stats-threshold" data-id="' + id + '" data-hours="' + data.recommendedHours + '">' +
                 Homey.__('advanced.statsApplyButton', { recommended: data.recommendedHours }) +
               '</button>' +
-            '</p>';
+            '</span></div>';
         }
         return html;
       }

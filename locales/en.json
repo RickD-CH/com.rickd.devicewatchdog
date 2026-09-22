@@ -91,7 +91,7 @@
   "advanced": {
     "hoursUntilOffline": "Hours until \"offline\"",
     "statsLoading": "Loading…",
-    "statsCollecting": "Collecting data - __count__ reports seen so far.",
+    "statsCollecting": "Collecting data - __count__ reports seen so far. Either wait for more (a rarely-active device can take a while), or set the threshold above manually based on what you know about this device.",
     "statsInterval": "Reports about every ~__value__ __unit__",
     "statsRate": "~__value__ updates per __unit__",
     "statsRecommendation": "Based on that, a __recommended__h threshold would still catch real problems reliably - yours is currently set to __current__h.",
