@@ -150,7 +150,7 @@
   },
   "recommend": {
     "label": "Recommendation",
-    "unavailableAppRestart": "Several devices from this app dropped at once - usually the app restarting. Raise \"Delay before 'unavailable' counts\" for these.",
+    "unavailableAppRestart": "Several devices from this app dropped at once - usually the app restarting. Raise \"Delay before 'unavailable' counts\" for these; if it keeps happening, try restarting the app itself.",
     "unavailableBattery": "Battery devices drop off when the battery dies or they sleep too deeply. Check the battery.",
     "unavailableCheck": "Only this device is unreachable. Check its power and range; Zigbee/Z-Wave devices sometimes need re-pairing.",
     "staleBattery": "The battery reading is weeks old - the device may have gone quiet rather than actually being low. Check it directly.",

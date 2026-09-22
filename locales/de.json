@@ -150,7 +150,7 @@
   },
   "recommend": {
     "label": "Empfehlung",
-    "unavailableAppRestart": "Mehrere Geräte dieser App sind gleichzeitig weggefallen - meist ein App-Neustart. „Verzögerung bis ‚nicht erreichbar' zählt\" für diese Geräte höher setzen.",
+    "unavailableAppRestart": "Mehrere Geräte dieser App sind gleichzeitig weggefallen - meist ein App-Neustart. „Verzögerung bis ‚nicht erreichbar' zählt\" für diese Geräte höher setzen; wiederholt sich das, hilft oft ein manueller Neustart der App.",
     "unavailableBattery": "Batteriegeräte fallen weg, wenn die Batterie leer ist oder sie zu tief schlafen. Batterie prüfen.",
     "unavailableCheck": "Nur dieses Gerät ist nicht erreichbar. Strom und Reichweite prüfen; Zigbee/Z-Wave-Geräte müssen manchmal neu angelernt werden.",
     "staleBattery": "Der Batteriewert ist Wochen alt - das Gerät ist evtl. verstummt, nicht wirklich leer. Direkt prüfen.",
