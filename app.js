@@ -124,18 +124,34 @@ class DeviceWatchdogApp extends Homey.App {
     // doesn't write again if nothing actually changed while the app was down.
     this._lastPersistedScanSignature = this._scanSignature(this.lastScan);
     this.eventLog = this.homey.settings.get(SETTINGS_KEY_EVENT_LOG) || [];
-    // { [deviceId]: [ts1, ts2, ...] }, oldest first, capped at MAX_UPDATE_STATS_ENTRIES per
-    // device - see _recordUpdateStat. Written to settings only at scan cadence (_updateStatsDirty),
-    // not on every realtime event - a lively device fleet would otherwise mean a disk write
-    // on every single capability change.
+    // { [deviceId]: { entries: [{ts, capId}, ...], maxGapMs } }, entries oldest first and
+    // capped at MAX_UPDATE_STATS_ENTRIES - see _recordUpdateStat. maxGapMs is the largest
+    // gap ever observed for this device, tracked separately from `entries` on purpose: a
+    // chatty device's entries only span its last ~20 updates (minutes, for something that
+    // reports every minute), so a long-but-real quiet spell (e.g. a monitored PC being off
+    // overnight) would otherwise scroll back out of the window the next morning and the
+    // recommendation would quietly forget it ever happened. maxGapMs never shrinks on its
+    // own - only the manual "reset stats" button clears it.
     this._updateStats = this.homey.settings.get(SETTINGS_KEY_UPDATE_STATS) || {};
-    // One-off migration: pre-release entries were plain numbers (just a timestamp) before
-    // capId tracking was added. Never shipped/published, but this Homey already has some on
-    // disk from earlier this session - upgrade in place rather than losing them.
+    // One-off migration: pre-release entries were a bare array (or even bare numbers before
+    // capId tracking) before maxGapMs tracking was added. Never shipped/published, but this
+    // Homey already has some on disk from earlier this session - upgrade in place, and
+    // reconstruct maxGapMs from whatever history is still in the (short) entries list rather
+    // than starting it back at null.
     for (const id of Object.keys(this._updateStats)) {
-      this._updateStats[id] = this._updateStats[id].map(
-        (entry) => (typeof entry === 'number' ? { ts: entry, capId: null } : entry),
-      );
+      const raw = this._updateStats[id];
+      let entries;
+      if (Array.isArray(raw)) {
+        entries = raw.map((entry) => (typeof entry === 'number' ? { ts: entry, capId: null } : entry));
+      } else {
+        entries = (raw && Array.isArray(raw.entries)) ? raw.entries : [];
+      }
+      let maxGapMs = (raw && typeof raw.maxGapMs === 'number') ? raw.maxGapMs : null;
+      for (let i = 1; i < entries.length; i += 1) {
+        const gap = entries[i].ts - entries[i - 1].ts;
+        if (maxGapMs === null || gap > maxGapMs) maxGapMs = gap;
+      }
+      this._updateStats[id] = { entries, maxGapMs };
     }
     this._updateStatsDirty = false;
 
@@ -483,11 +499,21 @@ class DeviceWatchdogApp extends Homey.App {
     }
     if (freshest === null) return;
 
-    const arr = this._updateStats[device.id] || [];
-    if (arr.length && freshest <= arr[arr.length - 1].ts) return;
-    arr.push({ ts: freshest, capId: freshestCapId });
-    if (arr.length > MAX_UPDATE_STATS_ENTRIES) arr.shift();
-    this._updateStats[device.id] = arr;
+    const bucket = this._updateStats[device.id] || { entries: [], maxGapMs: null };
+    const { entries } = bucket;
+    const last = entries.length ? entries[entries.length - 1] : null;
+    if (last && freshest <= last.ts) return;
+
+    // Track the all-time max gap here, not just derived from `entries` at read time - see
+    // the field comment on this._updateStats above for why that distinction matters.
+    if (last) {
+      const gap = freshest - last.ts;
+      if (bucket.maxGapMs === null || gap > bucket.maxGapMs) bucket.maxGapMs = gap;
+    }
+
+    entries.push({ ts: freshest, capId: freshestCapId });
+    if (entries.length > MAX_UPDATE_STATS_ENTRIES) entries.shift();
+    this._updateStats[device.id] = bucket;
     this._updateStatsDirty = true;
   }
 
@@ -1059,7 +1085,8 @@ class DeviceWatchdogApp extends Homey.App {
   // HomeyAPI round trip needed. Fetched on demand, same reasoning as getDeviceCapabilities
   // above: only ever needed for the one Details panel actually open.
   async getDeviceUpdateStats(deviceId) {
-    return scanner.computeUpdateStats(this._updateStats[deviceId] || []);
+    const bucket = this._updateStats[deviceId] || { entries: [], maxGapMs: null };
+    return scanner.computeUpdateStats(bucket.entries, bucket.maxGapMs);
   }
 
   getStatus() {

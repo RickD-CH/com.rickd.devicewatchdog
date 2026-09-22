@@ -658,6 +658,42 @@ describe('computeUpdateStats', () => {
     assert.equal(result.entries[0].capId, 'measure_power');
     assert.equal(result.entries[1].capId, 'measure_voltage');
   });
+
+  test('persistedMaxGapMs wins over the window when larger - the "PC monitored by a plug" case', () => {
+    // A power plug reporting every ~1 min while the monitored PC is on - the visible window
+    // is 5 entries spanning only ~4 minutes, nowhere near long enough to contain last
+    // night's several-hour "PC was off" gap. Without persistedMaxGapMs this would recommend
+    // a 1h threshold and falsely flag "not reporting" the next time the PC is switched off.
+    const start = 1_700_000_000_000;
+    const entries = [0, 1, 2, 3, 4].map((i) => entry(start + i * 60 * 1000));
+    const eightHours = 8 * 60 * 60 * 1000;
+    const result = scanner.computeUpdateStats(entries, eightHours);
+    assert.equal(result.maxIntervalMs, eightHours);
+    // ceil(8h * 1.5) = 12h.
+    assert.equal(result.recommendedHours, 12);
+  });
+
+  test('persistedMaxGapMs is ignored when the current window already has a larger gap', () => {
+    const start = 1_700_000_000_000;
+    const entries = [
+      entry(start),
+      entry(start + 10 * 60 * 1000),
+      entry(start + 20 * 60 * 1000),
+      entry(start + 3 * HOUR + 20 * 60 * 1000),
+      entry(start + 3 * HOUR + 30 * 60 * 1000),
+    ];
+    const result = scanner.computeUpdateStats(entries, 30 * 60 * 1000); // a stale, smaller persisted gap
+    assert.equal(result.maxIntervalMs, 3 * HOUR);
+  });
+
+  test('a null/undefined persistedMaxGapMs is ignored, not treated as 0', () => {
+    const start = 1_700_000_000_000;
+    const entries = [0, 1, 2, 3, 4, 5].map((i) => entry(start + i * HOUR));
+    const withNull = scanner.computeUpdateStats(entries, null);
+    const withUndefined = scanner.computeUpdateStats(entries);
+    assert.equal(withNull.maxIntervalMs, HOUR);
+    assert.equal(withUndefined.maxIntervalMs, HOUR);
+  });
 });
 
 describe('isRulePaused', () => {
