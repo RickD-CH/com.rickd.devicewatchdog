@@ -325,6 +325,11 @@
     .apply-to-app-list { list-style: none; margin: 6px 0 0; padding-left: 18px; max-height: 160px; overflow-y: auto; }
     .stats-block { width: 100%; margin: -6px 0 14px; }
     .stats-block .stats-recommend .btn.link { padding: 0 0 0 4px; }
+    .stats-history {
+      list-style: none; margin: 0 0 8px; padding: 0; max-height: 120px; overflow-y: auto;
+      font-size: 11px; color: var(--color-muted);
+    }
+    .stats-history li { padding: 1px 0; }
     .bulk-ignore-driver-label {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       font-size: 11px; font-weight: 600; color: var(--color-muted); margin: 10px 0 2px;
@@ -1391,6 +1396,17 @@
         return { value: (perDay * 7).toFixed(1), unitKey: 'advanced.statsUnitWeek' };
       }
 
+      // Newest first (data.timestamps is stored oldest-first) - a plain always-visible list,
+      // not another collapsible <details>, per the same "this is important, don't hide it
+      // behind a click" reasoning as the section itself.
+      function statsTimestampListHtml(data) {
+        if (!data.timestamps || !data.timestamps.length) return '';
+        var items = data.timestamps.slice().reverse().map(function (ts) {
+          return '<li>' + escapeHtml(new Date(ts).toLocaleString()) + '</li>';
+        }).join('');
+        return '<ul class="stats-history">' + items + '</ul>';
+      }
+
       function statsBodyHtml(view) {
         var id = view.device.id;
         if (state.statsError[id]) {
@@ -1401,7 +1417,7 @@
           return '<p class="hint">' + Homey.__('advanced.statsLoading') + '</p>';
         }
         if (data.avgIntervalMs == null) {
-          return '<p class="hint">' + Homey.__('advanced.statsCollecting', { count: data.count }) + '</p>';
+          return '<p class="hint">' + Homey.__('advanced.statsCollecting', { count: data.count }) + '</p>' + statsTimestampListHtml(data);
         }
 
         var interval = formatStatsInterval(data.avgIntervalMs);
@@ -1409,7 +1425,7 @@
         var html = '<p class="hint">' +
             Homey.__('advanced.statsInterval', { value: interval.value, unit: Homey.__(interval.unitKey) }) +
             ' · ' + Homey.__('advanced.statsRate', { value: rate.value, unit: Homey.__(rate.unitKey) }) +
-          '</p>';
+          '</p>' + statsTimestampListHtml(data);
 
         var currentHours = effectiveNotReportingHours(view).hours;
         if (data.recommendedHours != null && data.recommendedHours !== currentHours) {

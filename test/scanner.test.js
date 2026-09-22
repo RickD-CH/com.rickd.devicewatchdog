@@ -590,9 +590,10 @@ describe('computeDeviceStatus', () => {
 });
 
 describe('computeUpdateStats', () => {
-  test('fewer than 5 samples: reports the count, no averages/recommendation', () => {
+  test('fewer than 5 samples: reports the count and raw timestamps, no averages/recommendation', () => {
     const result = scanner.computeUpdateStats([1000, 2000, 3000]);
     assert.equal(result.count, 3);
+    assert.deepEqual(result.timestamps, [1000, 2000, 3000]);
     assert.equal(result.avgIntervalMs, null);
     assert.equal(result.maxIntervalMs, null);
     assert.equal(result.recommendedHours, null);
@@ -614,6 +615,7 @@ describe('computeUpdateStats', () => {
     const timestamps = [0, 1, 2, 3, 4, 5].map((i) => start + i * HOUR);
     const result = scanner.computeUpdateStats(timestamps);
     assert.equal(result.count, 6);
+    assert.deepEqual(result.timestamps, timestamps);
     assert.equal(result.avgIntervalMs, HOUR);
     assert.equal(result.maxIntervalMs, HOUR);
   });
