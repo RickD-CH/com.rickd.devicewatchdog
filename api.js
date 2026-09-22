@@ -49,6 +49,10 @@ module.exports = {
     return homey.app.clearLog();
   },
 
+  async resetUpdateStats({ homey }) {
+    return homey.app.resetUpdateStats();
+  },
+
   async getStaleRules({ homey }) {
     return homey.app.getStaleRules();
   },

@@ -364,6 +364,17 @@ class DeviceWatchdogApp extends Homey.App {
     return this.eventLog;
   }
 
+  // Manual escape hatch for the reporting-frequency history (see _recordUpdateStat) -
+  // everything rebuilds itself from the next real update per device, so this is safe/cheap,
+  // just a way to force a clean slate (e.g. after a device's actual reporting behaviour
+  // changed for good, so old samples would only skew the recommendation).
+  resetUpdateStats() {
+    this._updateStats = {};
+    this._updateStatsDirty = false;
+    this.homey.settings.set(SETTINGS_KEY_UPDATE_STATS, this._updateStats);
+    return this._updateStats;
+  }
+
   // ---------------------------------------------------------------------
   // Realtime availability ("device_unavailable" trigger, delayed by the
   // configurable grace period - see _getUnavailableDelaySeconds)

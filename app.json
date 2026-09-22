@@ -117,6 +117,10 @@
       "method": "delete",
       "path": "/log"
     },
+    "resetUpdateStats": {
+      "method": "delete",
+      "path": "/devices/stats"
+    },
     "getStaleRules": {
       "method": "get",
       "path": "/rules/stale"

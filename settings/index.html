@@ -331,6 +331,9 @@
     }
     .stats-history li { padding: 1px 0; }
     .stats-history-cap { font-family: monospace; }
+    .stats-history-sort { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--color-muted); margin: 4px 0; }
+    .stats-history-sort .stats-sort-btn { padding: 0 4px; }
+    .stats-history-sort .stats-sort-btn.active { font-weight: 600; color: var(--color-info); }
     .bulk-ignore-driver-label {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       font-size: 11px; font-weight: 600; color: var(--color-muted); margin: 10px 0 2px;
@@ -545,6 +548,8 @@
       <h2 id="h2-reset">Zurücksetzen</h2>
       <p class="hint" id="hint-reset-settings">Setzt alle Einstellungen (Standardwerte + Pro-Gerät-Regeln) auf die Werkseinstellungen zurück. Verlauf und letzter Scan bleiben erhalten.</p>
       <button class="btn small danger" id="btn-reset-settings">Auf Werkseinstellungen zurücksetzen</button>
+      <p class="hint" id="hint-reset-stats" style="margin-top:14px;">Löscht die gesammelte Melde-Historie aller Geräte (Details &gt; Meldet sich nicht &gt; Statistik). Baut sich ab dem nächsten Update jedes Geräts von neuem auf.</p>
+      <button class="btn small danger" id="btn-reset-stats">Melde-Statistik zurücksetzen</button>
     </div>
   </div>
 
@@ -599,6 +604,9 @@
         statsLoading: {},
         statsData: {},
         statsError: {},
+        // Shared across every device's recent-reports list (not per-device) - a simple UI
+        // preference, not data, so one setting for whichever panel is open is enough.
+        statsSort: { field: 'ts', dir: 'desc' },
         hoursUnit: {},
         hoursUnitGlobal: 'h',
         secondsUnit: {},
@@ -689,6 +697,8 @@
         document.getElementById('h2-reset').textContent = Homey.__('settingsTab.resetTitle');
         document.getElementById('hint-reset-settings').textContent = Homey.__('settingsTab.resetHint');
         document.getElementById('btn-reset-settings').textContent = Homey.__('settingsTab.resetButton');
+        document.getElementById('hint-reset-stats').textContent = Homey.__('settingsTab.resetStatsHint');
+        document.getElementById('btn-reset-stats').textContent = Homey.__('settingsTab.resetStatsButton');
         document.getElementById('h2-prune-rules').textContent = Homey.__('settingsTab.pruneRulesTitle');
         document.getElementById('hint-prune-rules').textContent = Homey.__('settingsTab.pruneRulesHint');
         // Reuses the same "nothing found" text the post-click alert already shows -
@@ -1403,13 +1413,40 @@
       // a bare timestamp - a device with several informative capabilities (e.g. a power plug
       // with measure_power AND measure_voltage) can otherwise look like it's reporting more
       // often than any single capability actually does.
+      // Sortable by clicking these, not a real <table> - same mobile-width reasoning as
+      // capabilitiesBodyHtml above (fixed columns clip on a ~300px-wide phone panel), so
+      // "sortable" means reordering the stacked rows, not literal table columns/headers.
+      function statsSortButtonHtml(field, label) {
+        var active = state.statsSort.field === field;
+        var arrow = active ? (state.statsSort.dir === 'asc' ? ' ▲' : ' ▼') : '';
+        return '<button class="btn small link stats-sort-btn' + (active ? ' active' : '') + '" data-action="sort-stats-history" data-field="' + field + '">'
+          + escapeHtml(label) + arrow + '</button>';
+      }
+
+      // Newest-first by default (data.entries is stored oldest-first) - a plain always-
+      // visible list, not another collapsible <details>, per the same "this is important,
+      // don't hide it behind a click" reasoning as the section itself. Shows which
+      // capability reported, not just a bare timestamp - a device with several informative
+      // capabilities (e.g. a power plug with measure_power AND measure_voltage) can
+      // otherwise look like it's reporting more often than any single capability actually does.
       function statsTimestampListHtml(data) {
         if (!data.entries || !data.entries.length) return '';
-        var items = data.entries.slice().reverse().map(function (e) {
+        var sort = state.statsSort;
+        var sorted = data.entries.slice().sort(function (a, b) {
+          var av = sort.field === 'capId' ? (a.capId || '') : a.ts;
+          var bv = sort.field === 'capId' ? (b.capId || '') : b.ts;
+          var cmp = av < bv ? -1 : (av > bv ? 1 : 0);
+          return sort.dir === 'asc' ? cmp : -cmp;
+        });
+        var items = sorted.map(function (e) {
           return '<li>' + escapeHtml(new Date(e.ts).toLocaleString())
             + (e.capId ? ' <span class="stats-history-cap">— ' + escapeHtml(e.capId) + '</span>' : '') + '</li>';
         }).join('');
-        return '<ul class="stats-history">' + items + '</ul>';
+        return '<div class="stats-history-sort">' + Homey.__('advanced.statsSortLabel') + ' '
+            + statsSortButtonHtml('ts', Homey.__('advanced.statsSortTime'))
+            + statsSortButtonHtml('capId', Homey.__('advanced.statsSortCap')) +
+          '</div>' +
+          '<ul class="stats-history">' + items + '</ul>';
       }
 
       function statsBodyHtml(view) {
@@ -2112,6 +2149,18 @@
             scheduleAutoSave(true);
             renderDevices();
           }
+          if (e.target.dataset.action === 'sort-stats-history') {
+            e.preventDefault();
+            e.stopPropagation();
+            var sortField = e.target.dataset.field;
+            if (state.statsSort.field === sortField) {
+              state.statsSort.dir = state.statsSort.dir === 'asc' ? 'desc' : 'asc';
+            } else {
+              state.statsSort.field = sortField;
+              state.statsSort.dir = sortField === 'capId' ? 'asc' : 'desc';
+            }
+            renderDevices();
+          }
         });
 
         container.addEventListener('change', function (e) {
@@ -2342,6 +2391,28 @@
             renderDevices();
           }).catch(function (apiErr) {
             Homey.alert(Homey.__('settingsTab.resetFailed', { error: apiErr && apiErr.message ? apiErr.message : apiErr }));
+          }).finally(function () {
+            btn.disabled = false;
+          });
+        });
+      });
+
+      document.getElementById('btn-reset-stats').addEventListener('click', function () {
+        Homey.confirm(Homey.__('settingsTab.resetStatsConfirm'), null, function (err, confirmed) {
+          if (err || !confirmed) return;
+
+          var btn = document.getElementById('btn-reset-stats');
+          btn.disabled = true;
+          apiCall('DELETE', '/devices/stats').then(function () {
+            // Clear the client-side cache too, not just the server data - otherwise an
+            // already-open Details panel keeps showing its stale fetched copy until closed
+            // and reopened.
+            state.statsData = {};
+            state.statsLoading = {};
+            state.statsError = {};
+            renderDevices();
+          }).catch(function (apiErr) {
+            Homey.alert(Homey.__('settingsTab.resetStatsFailed', { error: apiErr && apiErr.message ? apiErr.message : apiErr }));
           }).finally(function () {
             btn.disabled = false;
           });
