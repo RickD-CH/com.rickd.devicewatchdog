@@ -94,7 +94,7 @@
     "statsCollecting": "Collecting data - __count__ reports seen so far.",
     "statsInterval": "Reports about every ~__value__ __unit__",
     "statsRate": "~__value__ updates per __unit__",
-    "statsRecommendation": "Current threshold: __current__h. Based on recent activity, __recommended__h would still catch real problems reliably.",
+    "statsRecommendation": "Based on that, a __recommended__h threshold would still catch real problems reliably - yours is currently set to __current__h.",
     "statsApplyButton": "Apply __recommended__h",
     "statsError": "Couldn't load stats: __error__",
     "statsUnitMin": "min",
