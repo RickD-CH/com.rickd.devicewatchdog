@@ -1,4 +1,8 @@
 {
+  "1.9.35": {
+    "en": "\"Not reporting\" now ignores battery updates by default, so a device with a frozen sensor value no longer hides behind a battery that keeps checking in on its own schedule. A new per-device toggle (Details > Battery) opts back in for devices where only the battery reliably reports; the battery's own last-updated time is now shown in Device Details either way.",
+    "de": "\"Meldet sich nicht\" ignoriert jetzt standardmäßig Batterie-Updates, damit ein Gerät mit eingefrorenem Messwert sich nicht mehr hinter einer nach eigenem Zeitplan meldenden Batterie verstecken kann. Ein neuer Schalter pro Gerät (Details > Batterie) aktiviert das Mitzählen wieder für Geräte, bei denen nur die Batterie zuverlässig meldet - der Zeitstempel der letzten Batteriemeldung wird in den Geräte-Details nun in jedem Fall angezeigt."
+  },
   "1.9.34": {
     "en": "Device Details now has a \"Capabilities\" section showing every raw capability value and its last-changed timestamp, the same data as Homey's Developer Tools - expand it only when you need it.",
     "de": "Die Geräte-Details haben jetzt einen Bereich \"Capabilities\" mit allen rohen Capability-Werten und deren Zeitstempel der letzten Änderung - dieselben Daten wie in Homeys Developer Tools, nur bei Bedarf aufklappbar."
