@@ -276,6 +276,11 @@
     .adv-sub { border-left: 2px solid var(--color-border); padding-left: 12px; margin-left: 3px; }
     .device-advanced .f { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--color-muted); }
     .device-advanced .f.chk { flex-direction: row; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap; }
+    /* Opt-out for a .f.chk whose label is too long to fit on one line (e.g. the German
+       "includeBatteryForReporting" text) - nowrap above pushes it past the screen edge
+       instead of wrapping, so it's unreadable on narrow phones (only overflow-y was ever
+       set on ancestors, so there's no horizontal scroll to reveal the rest either). */
+    .device-advanced .f.chk.chk-wrap { white-space: normal; align-items: flex-start; }
     .device-advanced input[type=number] { width: 90px; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; }
     .cap-block { width: 100%; max-width: 100%; }
     .cap-block summary { cursor: pointer; color: var(--color-muted); font-size: 12.5px; }
@@ -1285,7 +1290,7 @@
           '</div></div>' +
           '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.onlyBattery') + '</label>' +
           '<label class="f chk"><input type="checkbox" data-field="excludeBattery" data-id="' + id + '"' + (r.excludeBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeBattery') + '</label>' +
-          '<label class="f chk" title="' + escapeHtml(Homey.__('advanced.includeBatteryForReportingHint')) + '"><input type="checkbox" data-field="includeBatteryForReporting" data-id="' + id + '"' + (r.includeBatteryForReporting ? ' checked' : '') + ' /> ' + Homey.__('advanced.includeBatteryForReporting') + '</label>' +
+          '<label class="f chk chk-wrap" title="' + escapeHtml(Homey.__('advanced.includeBatteryForReportingHint')) + '"><input type="checkbox" data-field="includeBatteryForReporting" data-id="' + id + '"' + (r.includeBatteryForReporting ? ' checked' : '') + ' /> ' + Homey.__('advanced.includeBatteryForReporting') + '</label>' +
           '<div class="f" title="' + escapeHtml(Homey.__('advanced.batteryTypeOverrideHint')) + '"><label>' + Homey.__('advanced.batteryTypeOverride') + '</label>' +
             '<input type="text" maxlength="40" data-field="batteryTypeOverride" data-id="' + id + '" value="' + escapeHtml(r.batteryTypeOverride || '') + '" placeholder="' + escapeHtml(formatBatteryTypes(view.device.batteryTypes) || Homey.__('advanced.batteryTypeOverridePlaceholder')) + '" />' +
           '</div>'
