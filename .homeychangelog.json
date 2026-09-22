@@ -1,4 +1,8 @@
 {
+  "1.9.35": {
+    "en": "Devices are no longer marked \"not reporting\" just because their battery is still ticking - a frozen sensor value (e.g. a stuck temperature reading) is now caught even if the battery keeps reporting on its own schedule. A new per-device toggle under Details > Battery (off by default) restores the old behaviour for devices where only the battery reliably reports.",
+    "de": "Geräte gelten nicht mehr allein deshalb als \"meldet sich nicht\", weil noch Batteriewerte eintreffen - ein eingefrorener Sensorwert (z. B. eine feststeckende Temperatur) wird jetzt erkannt, auch wenn die Batterie weiterhin nach eigenem Rhythmus meldet. Ein neuer Schalter pro Gerät unter Details > Batterie (standardmäßig aus) stellt das alte Verhalten für Geräte wieder her, bei denen nur die Batterie zuverlässig meldet."
+  },
   "1.9.34": {
     "en": "Device Details now has a \"Capabilities\" section showing every raw capability value and its last-changed timestamp, the same data as Homey's Developer Tools - expand it only when you need it.",
     "de": "Die Geräte-Details haben jetzt einen Bereich \"Capabilities\" mit allen rohen Capability-Werten und deren Zeitstempel der letzten Änderung - dieselben Daten wie in Homeys Developer Tools, nur bei Bedarf aufklappbar."
