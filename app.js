@@ -129,6 +129,14 @@ class DeviceWatchdogApp extends Homey.App {
     // not on every realtime event - a lively device fleet would otherwise mean a disk write
     // on every single capability change.
     this._updateStats = this.homey.settings.get(SETTINGS_KEY_UPDATE_STATS) || {};
+    // One-off migration: pre-release entries were plain numbers (just a timestamp) before
+    // capId tracking was added. Never shipped/published, but this Homey already has some on
+    // disk from earlier this session - upgrade in place rather than losing them.
+    for (const id of Object.keys(this._updateStats)) {
+      this._updateStats[id] = this._updateStats[id].map(
+        (entry) => (typeof entry === 'number' ? { ts: entry, capId: null } : entry),
+      );
+    }
     this._updateStatsDirty = false;
 
     this._zoneMap = {};
@@ -447,20 +455,26 @@ class DeviceWatchdogApp extends Homey.App {
   // Appends this device's freshest capability timestamp to its rolling update-stats window,
   // if it's actually newer than the last one recorded - this fires on every scan pass too
   // (see _runScanInternal), not just genuine realtime changes, so the dedupe check matters.
+  // Records which capability was freshest too (not just when), so the Settings UI can show
+  // what actually reported, not just a bare timestamp.
   _recordUpdateStat(device) {
     if (!scanner.canCheckStaleness(device)) return;
 
     let freshest = null;
-    for (const cap of Object.values(device.capabilitiesObj || {})) {
+    let freshestCapId = null;
+    for (const [capId, cap] of Object.entries(device.capabilitiesObj || {})) {
       if (!cap || !cap.lastUpdated) continue;
       const time = new Date(cap.lastUpdated).getTime();
-      if (Number.isFinite(time) && (freshest === null || time > freshest)) freshest = time;
+      if (Number.isFinite(time) && (freshest === null || time > freshest)) {
+        freshest = time;
+        freshestCapId = capId;
+      }
     }
     if (freshest === null) return;
 
     const arr = this._updateStats[device.id] || [];
-    if (arr.length && freshest <= arr[arr.length - 1]) return;
-    arr.push(freshest);
+    if (arr.length && freshest <= arr[arr.length - 1].ts) return;
+    arr.push({ ts: freshest, capId: freshestCapId });
     if (arr.length > MAX_UPDATE_STATS_ENTRIES) arr.shift();
     this._updateStats[device.id] = arr;
     this._updateStatsDirty = true;

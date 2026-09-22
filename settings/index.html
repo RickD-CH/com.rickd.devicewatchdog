@@ -330,6 +330,7 @@
       font-size: 11px; color: var(--color-muted);
     }
     .stats-history li { padding: 1px 0; }
+    .stats-history-cap { font-family: monospace; }
     .bulk-ignore-driver-label {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       font-size: 11px; font-weight: 600; color: var(--color-muted); margin: 10px 0 2px;
@@ -1396,13 +1397,17 @@
         return { value: (perDay * 7).toFixed(1), unitKey: 'advanced.statsUnitWeek' };
       }
 
-      // Newest first (data.timestamps is stored oldest-first) - a plain always-visible list,
-      // not another collapsible <details>, per the same "this is important, don't hide it
-      // behind a click" reasoning as the section itself.
+      // Newest first (data.entries is stored oldest-first) - a plain always-visible list, not
+      // another collapsible <details>, per the same "this is important, don't hide it behind
+      // a click" reasoning as the section itself. Shows which capability reported, not just
+      // a bare timestamp - a device with several informative capabilities (e.g. a power plug
+      // with measure_power AND measure_voltage) can otherwise look like it's reporting more
+      // often than any single capability actually does.
       function statsTimestampListHtml(data) {
-        if (!data.timestamps || !data.timestamps.length) return '';
-        var items = data.timestamps.slice().reverse().map(function (ts) {
-          return '<li>' + escapeHtml(new Date(ts).toLocaleString()) + '</li>';
+        if (!data.entries || !data.entries.length) return '';
+        var items = data.entries.slice().reverse().map(function (e) {
+          return '<li>' + escapeHtml(new Date(e.ts).toLocaleString())
+            + (e.capId ? ' <span class="stats-history-cap">— ' + escapeHtml(e.capId) + '</span>' : '') + '</li>';
         }).join('');
         return '<ul class="stats-history">' + items + '</ul>';
       }

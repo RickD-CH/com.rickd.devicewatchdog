@@ -590,16 +590,21 @@ describe('computeDeviceStatus', () => {
 });
 
 describe('computeUpdateStats', () => {
-  test('fewer than 5 samples: reports the count and raw timestamps, no averages/recommendation', () => {
-    const result = scanner.computeUpdateStats([1000, 2000, 3000]);
+  function entry(ts, capId) {
+    return { ts, capId: capId || 'measure_power' };
+  }
+
+  test('fewer than 5 samples: reports the count and raw entries, no averages/recommendation', () => {
+    const entries = [entry(1000), entry(2000), entry(3000)];
+    const result = scanner.computeUpdateStats(entries);
     assert.equal(result.count, 3);
-    assert.deepEqual(result.timestamps, [1000, 2000, 3000]);
+    assert.deepEqual(result.entries, entries);
     assert.equal(result.avgIntervalMs, null);
     assert.equal(result.maxIntervalMs, null);
     assert.equal(result.recommendedHours, null);
   });
 
-  test('no timestamps at all behaves the same as too few', () => {
+  test('no entries at all behaves the same as too few', () => {
     const result = scanner.computeUpdateStats([]);
     assert.equal(result.count, 0);
     assert.equal(result.recommendedHours, null);
@@ -612,10 +617,10 @@ describe('computeUpdateStats', () => {
 
   test('5+ evenly-spaced samples: avg/max interval match the spacing exactly', () => {
     const start = 1_700_000_000_000;
-    const timestamps = [0, 1, 2, 3, 4, 5].map((i) => start + i * HOUR);
-    const result = scanner.computeUpdateStats(timestamps);
+    const entries = [0, 1, 2, 3, 4, 5].map((i) => entry(start + i * HOUR));
+    const result = scanner.computeUpdateStats(entries);
     assert.equal(result.count, 6);
-    assert.deepEqual(result.timestamps, timestamps);
+    assert.deepEqual(result.entries, entries);
     assert.equal(result.avgIntervalMs, HOUR);
     assert.equal(result.maxIntervalMs, HOUR);
   });
@@ -623,14 +628,14 @@ describe('computeUpdateStats', () => {
   test('recommendedHours is 1.5x the WORST gap, not the average - an occasional slow spell should not be masked', () => {
     // Mostly reports every 10 min, one 3h gap in the middle.
     const start = 1_700_000_000_000;
-    const timestamps = [
-      start,
-      start + 10 * 60 * 1000,
-      start + 20 * 60 * 1000,
-      start + 3 * HOUR + 20 * 60 * 1000,
-      start + 3 * HOUR + 30 * 60 * 1000,
+    const entries = [
+      entry(start),
+      entry(start + 10 * 60 * 1000),
+      entry(start + 20 * 60 * 1000),
+      entry(start + 3 * HOUR + 20 * 60 * 1000),
+      entry(start + 3 * HOUR + 30 * 60 * 1000),
     ];
-    const result = scanner.computeUpdateStats(timestamps);
+    const result = scanner.computeUpdateStats(entries);
     assert.equal(result.maxIntervalMs, 3 * HOUR);
     // ceil(3h * 1.5) = 5h.
     assert.equal(result.recommendedHours, 5);
@@ -638,9 +643,20 @@ describe('computeUpdateStats', () => {
 
   test('recommendedHours is never below the 1h floor for a very chatty device', () => {
     const start = 1_700_000_000_000;
-    const timestamps = [0, 1, 2, 3, 4, 5].map((i) => start + i * 60 * 1000); // every minute
-    const result = scanner.computeUpdateStats(timestamps);
+    const entries = [0, 1, 2, 3, 4, 5].map((i) => entry(start + i * 60 * 1000)); // every minute
+    const result = scanner.computeUpdateStats(entries);
     assert.equal(result.recommendedHours, 1);
+  });
+
+  test('each entry keeps its own capId, so the caller can show which capability reported', () => {
+    const start = 1_700_000_000_000;
+    const entries = [
+      entry(start, 'measure_power'),
+      entry(start + HOUR, 'measure_voltage'),
+    ];
+    const result = scanner.computeUpdateStats(entries);
+    assert.equal(result.entries[0].capId, 'measure_power');
+    assert.equal(result.entries[1].capId, 'measure_voltage');
   });
 });
 
