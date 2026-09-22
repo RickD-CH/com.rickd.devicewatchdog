@@ -30,6 +30,7 @@ describe('sanitizeRule', () => {
     batteryTypeOverride: '4x AA',
     autoTestOnStale: true,
     autoTestTriggerOnHeal: true,
+    includeBatteryForReporting: true,
   };
 
   test('every known field survives the round-trip unchanged', () => {
@@ -68,6 +69,7 @@ describe('sanitizeRule', () => {
     assert.equal(sanitized.excludeFromUnavailable, false);
     assert.equal(sanitized.autoTestOnStale, false);
     assert.equal(sanitized.autoTestTriggerOnHeal, false);
+    assert.equal(sanitized.includeBatteryForReporting, false);
   });
 
   test('nullable fields default to null, not undefined, when absent', () => {

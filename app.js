@@ -831,6 +831,11 @@ class DeviceWatchdogApp extends Homey.App {
           available: device.available !== false,
           testCapability,
           hasBattery: BATTERY_CAPABILITIES.some((id) => (device.capabilities || []).includes(id)),
+          // Raw battery capability timestamp, shown in the Settings UI's battery details
+          // next to the "count battery toward reporting" toggle - independent of whether
+          // that toggle is on, so the user can see it before deciding.
+          batteryLastUpdated: (device.capabilitiesObj?.measure_battery?.lastUpdated
+            || device.capabilitiesObj?.alarm_battery?.lastUpdated) || null,
           // Driver-declared, not computed by Homey - many apps never set this, so it's
           // frequently null even for a device that clearly has a battery. Raw array (one
           // entry per physical cell, e.g. ["AA","AA"]) - left unformatted for callers to

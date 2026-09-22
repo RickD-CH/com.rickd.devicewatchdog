@@ -423,6 +423,46 @@ describe('computeDeviceStatus', () => {
     assert.equal(status.isReporting, true);
   });
 
+  test('a fresh battery reading does not mask a frozen primary sensor value by default', () => {
+    // The exact case a competing app's pitch calls out: temperature frozen for weeks,
+    // battery still reporting every couple of hours because it's on its own cadence -
+    // without excluding battery from the max, this device would wrongly show as reporting.
+    const d = device({
+      capabilities: ['measure_temperature', 'measure_battery'],
+      capabilitiesObj: {
+        measure_temperature: { value: 21, lastUpdated: new Date(Date.now() - 21 * 24 * HOUR).toISOString() },
+        measure_battery: { value: 80, lastUpdated: new Date(Date.now() - 2 * HOUR).toISOString() },
+      },
+    });
+    const status = scanner.computeDeviceStatus(d, null, config);
+    assert.equal(status.isReporting, false);
+  });
+
+  test('includeBatteryForReporting opts a device back into counting its battery timestamp', () => {
+    const d = device({
+      capabilities: ['measure_temperature', 'measure_battery'],
+      capabilitiesObj: {
+        measure_temperature: { value: 21, lastUpdated: new Date(Date.now() - 21 * 24 * HOUR).toISOString() },
+        measure_battery: { value: 80, lastUpdated: new Date(Date.now() - 2 * HOUR).toISOString() },
+      },
+    });
+    const status = scanner.computeDeviceStatus(d, { includeBatteryForReporting: true }, config);
+    assert.equal(status.isReporting, true);
+  });
+
+  test('batteryLastUpdated is exposed regardless of includeBatteryForReporting', () => {
+    const ts = new Date(Date.now() - 2 * HOUR).toISOString();
+    const d = device({
+      capabilities: ['measure_temperature', 'measure_battery'],
+      capabilitiesObj: {
+        measure_temperature: { value: 21, lastUpdated: new Date().toISOString() },
+        measure_battery: { value: 80, lastUpdated: ts },
+      },
+    });
+    assert.equal(scanner.computeDeviceStatus(d, null, config).batteryLastUpdated, ts);
+    assert.equal(scanner.computeDeviceStatus(d, { includeBatteryForReporting: true }, config).batteryLastUpdated, ts);
+  });
+
   test('a device with no capabilities at all is not flagged not reporting', () => {
     const d = device({ capabilities: [], capabilitiesObj: {} });
     const status = scanner.computeDeviceStatus(d, null, config);

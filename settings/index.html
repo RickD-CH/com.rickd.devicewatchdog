@@ -882,7 +882,7 @@
             excludeBattery: false, onlyCheckBattery: false, excludeAll: false,
             excludeFromUnavailable: false, unavailableDelaySeconds: null, lowBatteryDelaySeconds: null,
             includeLastSeenForReporting: null, pausedUntil: null, batteryTypeOverride: null,
-            autoTestOnStale: false, autoTestTriggerOnHeal: false,
+            autoTestOnStale: false, autoTestTriggerOnHeal: false, includeBatteryForReporting: false,
           };
           state.rules.push(rule);
         }
@@ -897,7 +897,8 @@
           && rule.unavailableDelaySeconds == null && rule.lowBatteryDelaySeconds == null
           && rule.includeLastSeenForReporting == null
           && rule.pausedUntil == null && !rule.batteryTypeOverride
-          && !rule.autoTestOnStale && !rule.autoTestTriggerOnHeal;
+          && !rule.autoTestOnStale && !rule.autoTestTriggerOnHeal
+          && !rule.includeBatteryForReporting;
         if (isEmpty) state.rules = state.rules.filter(function (r) { return r !== rule; });
       }
 
@@ -1273,6 +1274,7 @@
           '</div></div>';
 
         var batteryInner = view.device.hasBattery ? '' +
+          (view.device.batteryLastUpdated ? '<p class="hint">' + Homey.__('info.batteryLastUpdated') + ' ' + new Date(view.device.batteryLastUpdated).toLocaleString() + '</p>' : '') +
           '<div class="f"><label>' + Homey.__('advanced.batteryThreshold') + '</label><input type="number" min="0" max="100" step="1" data-field="batteryThreshold" data-id="' + id + '" value="' + (r.batteryThreshold == null ? '' : r.batteryThreshold) + '" placeholder="' + pd + '" /></div>' +
           '<div class="f"><label>' + Homey.__('advanced.lowBatteryDelay') + '</label><div class="unit-field">' +
             '<input type="number" min="0" step="any" data-field="lowBatteryDelaySeconds" data-id="' + id + '" value="' + secondsToDisplay(r.lowBatteryDelaySeconds, state.lowBatterySecondsUnit[id] || 's') + '" placeholder="' + pd + '" />' +
@@ -1283,6 +1285,7 @@
           '</div></div>' +
           '<label class="f chk"><input type="checkbox" data-field="onlyCheckBattery" data-id="' + id + '"' + (r.onlyCheckBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.onlyBattery') + '</label>' +
           '<label class="f chk"><input type="checkbox" data-field="excludeBattery" data-id="' + id + '"' + (r.excludeBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeBattery') + '</label>' +
+          '<label class="f chk" title="' + escapeHtml(Homey.__('advanced.includeBatteryForReportingHint')) + '"><input type="checkbox" data-field="includeBatteryForReporting" data-id="' + id + '"' + (r.includeBatteryForReporting ? ' checked' : '') + ' /> ' + Homey.__('advanced.includeBatteryForReporting') + '</label>' +
           '<div class="f" title="' + escapeHtml(Homey.__('advanced.batteryTypeOverrideHint')) + '"><label>' + Homey.__('advanced.batteryTypeOverride') + '</label>' +
             '<input type="text" maxlength="40" data-field="batteryTypeOverride" data-id="' + id + '" value="' + escapeHtml(r.batteryTypeOverride || '') + '" placeholder="' + escapeHtml(formatBatteryTypes(view.device.batteryTypes) || Homey.__('advanced.batteryTypeOverridePlaceholder')) + '" />' +
           '</div>'
@@ -1321,17 +1324,23 @@
       }
 
       // Client-side mirror of lib/scanner.js#NON_INFORMATIVE_STALENESS_CAP_BASES - must stay
-      // in sync. These never carry a meaningful "last changed" (button is momentary,
-      // measure_battery/alarm_battery only update when the device happens to wake up), so
-      // the fresh/stale colouring below leaves them neutral rather than falsely flagging them.
-      var NON_INFORMATIVE_STALENESS_CAP_BASES = { button: true, measure_battery: true, alarm_battery: true };
+      // in sync. `button` never carries a meaningful "last changed" at all, so it's always
+      // neutral. measure_battery/alarm_battery are neutral by default too (see
+      // BATTERY_STALENESS_CAP_BASES in lib/scanner.js) unless the device's rule opts in via
+      // includeBatteryForReporting - see capCountsForStaleness below.
+      var NON_INFORMATIVE_STALENESS_CAP_BASES = { button: true };
+      var BATTERY_STALENESS_CAP_BASES = { measure_battery: true, alarm_battery: true };
 
       // Whether a single capability's own lastUpdated should be judged against the "hours
-      // until offline" threshold at all - mirrors lib/scanner.js#canCheckStaleness's per-
-      // capability half (getable:false / non-informative base), applied per-row here instead
-      // of device-wide.
-      function capCountsForStaleness(c) {
-        return c.getable !== false && !NON_INFORMATIVE_STALENESS_CAP_BASES[String(c.id).split('.')[0]];
+      // until offline" threshold at all - mirrors lib/scanner.js#computeDeviceStatus's per-
+      // capability filtering (getable:false / non-informative base / battery opt-in), applied
+      // per-row here instead of device-wide.
+      function capCountsForStaleness(c, includeBattery) {
+        if (c.getable === false) return false;
+        var base = String(c.id).split('.')[0];
+        if (NON_INFORMATIVE_STALENESS_CAP_BASES[base]) return false;
+        if (BATTERY_STALENESS_CAP_BASES[base] && !includeBattery) return false;
+        return true;
       }
 
       // Shared by every state that already has (or tried to get) data - the error case
@@ -1383,7 +1392,7 @@
           var ts = c.lastUpdated ? new Date(c.lastUpdated).toLocaleString() : Homey.__('meta.noData');
 
           var freshness = null; // null = neutral (not part of the staleness check)
-          if (checkApplies && c.lastUpdated && capCountsForStaleness(c)) {
+          if (checkApplies && c.lastUpdated && capCountsForStaleness(c, !!r.includeBatteryForReporting)) {
             var age = now - new Date(c.lastUpdated).getTime();
             freshness = age < thresholdMs ? 'fresh' : 'stale';
           }
@@ -1429,7 +1438,7 @@
           || r.excludeBattery || r.onlyCheckBattery || r.excludeFromUnavailable
           || r.unavailableDelaySeconds != null || r.lowBatteryDelaySeconds != null
           || r.includeLastSeenForReporting != null
-          || r.batteryTypeOverride || r.autoTestOnStale));
+          || r.batteryTypeOverride || r.autoTestOnStale || r.includeBatteryForReporting));
       }
 
       function availDotHtml(d) {
@@ -1671,7 +1680,7 @@
             && (r.notReportingHours != null || r.batteryThreshold != null || r.excludeBattery || r.onlyCheckBattery
               || r.excludeFromUnavailable || r.unavailableDelaySeconds != null || r.lowBatteryDelaySeconds != null
               || r.includeLastSeenForReporting != null
-              || r.batteryTypeOverride || r.autoTestOnStale);
+              || r.batteryTypeOverride || r.autoTestOnStale || r.includeBatteryForReporting);
         }).length;
 
         function statCard(filterKey, num, color, label) {
@@ -1796,6 +1805,7 @@
           sr.unavailableDelaySeconds = r.unavailableDelaySeconds != null ? r.unavailableDelaySeconds : null;
           sr.lowBatteryDelaySeconds = r.lowBatteryDelaySeconds != null ? r.lowBatteryDelaySeconds : null;
           sr.includeLastSeenForReporting = r.includeLastSeenForReporting != null ? r.includeLastSeenForReporting : null;
+          sr.includeBatteryForReporting = !!r.includeBatteryForReporting;
           sr.batteryTypeOverride = r.batteryTypeOverride || null;
           // Only meaningful for a sibling that also has a testable capability - a device
           // without one simply never becomes an auto-test candidate (see _runAutoTests),
@@ -1857,6 +1867,7 @@
               rule.batteryTypeOverride = null;
               rule.autoTestOnStale = false;
               rule.autoTestTriggerOnHeal = false;
+              rule.includeBatteryForReporting = false;
               cleanupDeviceRule(e.target.dataset.id);
               scheduleAutoSave(true);
               renderDevices();
