@@ -811,10 +811,16 @@ class DeviceWatchdogApp extends Homey.App {
     const unavailableSet = new Set(
       Array.from(this._confirmedUnavailable).filter((id) => !this._isExcludedFromUnavailable(id)),
     );
+    // Keyed by ownerUri + driverId, not just ownerUri: an app can expose multiple
+    // drivers with unrelated failure domains (e.g. Shelly's LAN vs. BLE devices),
+    // so lumping them together would overcount how many peers are actually down.
     const unavailableByOwner = {};
     for (const id of unavailableSet) {
-      const owner = devices[id] && devices[id].ownerUri;
-      if (owner) unavailableByOwner[owner] = (unavailableByOwner[owner] || 0) + 1;
+      const device = devices[id];
+      const owner = device && device.ownerUri;
+      if (!owner) continue;
+      const key = `${owner}::${device.driverId || ''}`;
+      unavailableByOwner[key] = (unavailableByOwner[key] || 0) + 1;
     }
 
     return Object.values(devices)
@@ -831,7 +837,9 @@ class DeviceWatchdogApp extends Homey.App {
 
         let recommendation = null;
         if (category) {
-          const ownerUnavail = device.ownerUri ? (unavailableByOwner[device.ownerUri] || 0) : 0;
+          const ownerUnavail = device.ownerUri
+            ? (unavailableByOwner[`${device.ownerUri}::${device.driverId || ''}`] || 0)
+            : 0;
           recommendation = scanner.deviceRecommendation(device, {
             category,
             thresholdHrs: (rule && rule.notReportingHours) || this.config.notReportingThresholdHours,

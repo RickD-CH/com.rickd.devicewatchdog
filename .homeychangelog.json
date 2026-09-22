@@ -1,4 +1,8 @@
 {
+  "1.9.36": {
+    "en": "Fixed: the \"restart the app\" recommendation could fire based on unrelated device types from the same app (e.g. an app exposing both LAN and Bluetooth devices) going unavailable together, instead of only devices that actually share a failure domain.",
+    "de": "Behoben: Die Empfehlung \"App neu starten\" konnte ausgelöst werden, wenn unzusammenhängende Gerätetypen derselben App (z. B. LAN- und Bluetooth-Geräte einer App) gleichzeitig nicht erreichbar waren, statt nur bei Geräten mit tatsächlich gemeinsamer Fehlerdomäne."
+  },
   "1.9.35": {
     "en": "Device Details now shows the battery capability's own last-updated timestamp. A new per-device toggle (Details > Battery, on by default) lets you exclude a device's battery updates from counting toward \"not reporting\" - useful for a device whose battery updates independently of its actual measured value, which could otherwise mask a frozen sensor reading.",
     "de": "Die Geräte-Details zeigen jetzt den Zeitstempel der letzten Batteriemeldung. Ein neuer Schalter pro Gerät (Details > Batterie, standardmäßig an) erlaubt es, Batterie-Updates eines Geräts von der \"meldet sich nicht\"-Zählung auszuschließen - nützlich für Geräte, deren Batterie unabhängig vom eigentlichen Messwert meldet und so einen eingefrorenen Messwert verdecken könnte."
