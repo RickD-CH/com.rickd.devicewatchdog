@@ -1464,10 +1464,17 @@
 
         var interval = formatStatsInterval(data.avgIntervalMs);
         var rate = formatStatsRate(data.avgIntervalMs);
+        var maxGap = formatStatsInterval(data.maxIntervalMs);
         var html = '<p class="hint">' +
             Homey.__('advanced.statsInterval', { value: interval.value, unit: Homey.__(interval.unitKey) }) +
             ' · ' + Homey.__('advanced.statsRate', { value: rate.value, unit: Homey.__(rate.unitKey) }) +
-          '</p>' + statsTimestampListHtml(data);
+          '</p>' +
+          // The raw number the recommendation is actually built from (average interval alone
+          // hides it - a device could average every 5 min and still have had one real 8h
+          // gap) - requested by a beta tester (forum feedback on the 1.9.37 test build), who
+          // pointed out the average alone doesn't tell you the worst case it's based on.
+          '<p class="hint">' + Homey.__('advanced.statsMaxGap', { value: maxGap.value, unit: Homey.__(maxGap.unitKey) }) + '</p>' +
+          statsTimestampListHtml(data);
 
         var currentHours = effectiveNotReportingHours(view).hours;
         if (data.recommendedHours != null && data.recommendedHours !== currentHours) {

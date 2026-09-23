@@ -94,6 +94,7 @@
     "statsCollecting": "Sammle noch Daten - bisher __count__ Meldungen gesehen. Entweder abwarten (bei einem selten aktiven Gerät kann das dauern), oder den Schwellwert oben manuell nach eigenem Wissen über dieses Gerät einstellen.",
     "statsInterval": "Meldet sich etwa alle ~__value__ __unit__",
     "statsRate": "~__value__ Meldungen pro __unit__",
+    "statsMaxGap": "Längste stille Phase bisher: ~__value__ __unit__",
     "statsRecommendation": "Basierend darauf würde ein Schwellwert von __recommended__h Probleme weiterhin zuverlässig erkennen - aktuell ist __current__h eingestellt.",
     "statsApplyButton": "__recommended__h übernehmen",
     "statsError": "Statistik konnte nicht geladen werden: __error__",
