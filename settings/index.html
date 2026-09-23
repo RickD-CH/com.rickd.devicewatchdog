@@ -631,6 +631,11 @@
         // [{device, current, recommended}] list actually rendered - see loadRecommendations.
         recommendationsRaw: null,
         recommendations: [],
+        // Per-row "Letzte Meldungen anzeigen" open/closed state - renderRecommendations()
+        // rebuilds the whole list's innerHTML (e.g. once loadDeviceUpdateStats' fetch
+        // completes), and a plain <details> without this would silently re-close on every
+        // such rebuild since the fresh markup never carries the open attribute otherwise.
+        recEntriesOpen: {},
         hoursUnit: {},
         hoursUnitGlobal: 'h',
         secondsUnit: {},
@@ -2513,7 +2518,7 @@
                   Homey.__('recommendations.rowInterval', { value: interval.value, unit: Homey.__(interval.unitKey) }) +
                   ' · ' + Homey.__('recommendations.rowMaxGap', { value: maxGap.value, unit: Homey.__(maxGap.unitKey) }) +
                 '</div>' +
-                '<details class="rec-entries" data-id="' + d.id + '">' +
+                '<details class="rec-entries" data-id="' + d.id + '"' + (state.recEntriesOpen[d.id] ? ' open' : '') + '>' +
                   '<summary>' + Homey.__('recommendations.entriesToggle') + '</summary>' +
                   '<div class="rec-entries-body">' + entriesBody + '</div>' +
                 '</details>' +
@@ -2526,13 +2531,14 @@
             '</div>';
         }).join('');
 
-        // Same phantom-toggle guard as renderDeviceContainer's cap-block handling - only
-        // fetch on a real user expand, not the async 'toggle' a freshly-parsed <details>
-        // fires even when it starts closed... except here nothing starts open, so this is
-        // mostly future-proofing if that ever changes.
+        // Same phantom-toggle guard as renderDeviceContainer's cap-block handling - a
+        // freshly-parsed <details open> (now a real case here, since rows re-open
+        // themselves across a rebuild via recEntriesOpen below) fires one async 'toggle'
+        // even though nothing was actually clicked; only re-fetch on a genuine user toggle.
         document.getElementById('recommendations-list').querySelectorAll('details.rec-entries').forEach(function (det) {
           var ignorePhantomToggle = det.open;
           det.addEventListener('toggle', function () {
+            state.recEntriesOpen[det.dataset.id] = det.open;
             if (ignorePhantomToggle) { ignorePhantomToggle = false; return; }
             if (det.open) loadDeviceUpdateStats(det.dataset.id);
           });
