@@ -18,8 +18,10 @@
   },
   "recommendations": {
     "hint": "Devices whose current threshold (\"Hours until 'offline'\") doesn't match what's actually been observed.",
+    "minDaysLabel": "Minimum observation period (days)",
+    "minDaysHint": "A device observed for less than this won't show up yet, even if it already has enough samples.",
     "loading": "Loading…",
-    "empty": "No recommendations right now - either every threshold already matches, or there isn't enough data yet.",
+    "empty": "No recommendations right now - either every threshold already matches, or there isn't enough data/observation time yet.",
     "rowSummary": "Current: __current__h → Recommended: __recommended__h",
     "applyAllButton": "Apply all",
     "applyAllConfirm": "Apply the recommended threshold to all __count__ listed devices?",

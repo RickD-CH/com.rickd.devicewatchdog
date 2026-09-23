@@ -124,20 +124,27 @@ class DeviceWatchdogApp extends Homey.App {
     // doesn't write again if nothing actually changed while the app was down.
     this._lastPersistedScanSignature = this._scanSignature(this.lastScan);
     this.eventLog = this.homey.settings.get(SETTINGS_KEY_EVENT_LOG) || [];
-    // { [deviceId]: { entries: [{ts, capId}, ...], maxGapMs } }, entries oldest first and
-    // capped at MAX_UPDATE_STATS_ENTRIES - see _recordUpdateStat. maxGapMs is the largest
-    // gap ever observed for this device, tracked separately from `entries` on purpose: a
-    // chatty device's entries only span its last ~20 updates (minutes, for something that
-    // reports every minute), so a long-but-real quiet spell (e.g. a monitored PC being off
-    // overnight) would otherwise scroll back out of the window the next morning and the
-    // recommendation would quietly forget it ever happened. maxGapMs never shrinks on its
-    // own - only the manual "reset stats" button clears it.
+    // { [deviceId]: { entries: [{ts, capId}, ...], maxGapMs, firstSeenTs } }, entries oldest
+    // first and capped at MAX_UPDATE_STATS_ENTRIES - see _recordUpdateStat. maxGapMs is the
+    // largest gap ever observed for this device, tracked separately from `entries` on
+    // purpose: a chatty device's entries only span its last ~20 updates (minutes, for
+    // something that reports every minute), so a long-but-real quiet spell (e.g. a monitored
+    // PC being off overnight) would otherwise scroll back out of the window the next morning
+    // and the recommendation would quietly forget it ever happened. firstSeenTs is the
+    // timestamp of the very first entry ever recorded for this device - used by the
+    // Recommendations tab's "minimum observation period" filter, so a device isn't trusted
+    // with a recommendation just because it happened to produce 5 updates in its first ten
+    // minutes. Neither maxGapMs nor firstSeenTs ever change on their own - only the manual
+    // "reset stats" button clears them.
     this._updateStats = this.homey.settings.get(SETTINGS_KEY_UPDATE_STATS) || {};
     // One-off migration: pre-release entries were a bare array (or even bare numbers before
-    // capId tracking) before maxGapMs tracking was added. Never shipped/published, but this
-    // Homey already has some on disk from earlier this session - upgrade in place, and
-    // reconstruct maxGapMs from whatever history is still in the (short) entries list rather
-    // than starting it back at null.
+    // capId tracking) before maxGapMs/firstSeenTs tracking was added. Never shipped/
+    // published, but this Homey already has some on disk from earlier this session - upgrade
+    // in place, and reconstruct maxGapMs/firstSeenTs from whatever history is still in the
+    // (short) entries list rather than starting back at null (firstSeenTs reconstructed this
+    // way is a best-effort underestimate for a chatty device whose true first entry has
+    // already scrolled out of the capped list - acceptable, it only makes the "minimum
+    // observation period" filter slightly more conservative, never less).
     for (const id of Object.keys(this._updateStats)) {
       const raw = this._updateStats[id];
       let entries;
@@ -151,7 +158,12 @@ class DeviceWatchdogApp extends Homey.App {
         const gap = entries[i].ts - entries[i - 1].ts;
         if (maxGapMs === null || gap > maxGapMs) maxGapMs = gap;
       }
-      this._updateStats[id] = { entries, maxGapMs };
+      const firstSeenTs = (raw && typeof raw.firstSeenTs === 'number')
+        ? raw.firstSeenTs
+        : (entries.length ? entries[0].ts : null);
+      this._updateStats[id] = {
+        entries, maxGapMs, firstSeenTs,
+      };
     }
     this._updateStatsDirty = false;
 
@@ -508,7 +520,7 @@ class DeviceWatchdogApp extends Homey.App {
     }
     if (freshest === null) return;
 
-    const bucket = this._updateStats[device.id] || { entries: [], maxGapMs: null };
+    const bucket = this._updateStats[device.id] || { entries: [], maxGapMs: null, firstSeenTs: null };
     const { entries } = bucket;
     const last = entries.length ? entries[entries.length - 1] : null;
     if (last && freshest <= last.ts) return;
@@ -519,6 +531,7 @@ class DeviceWatchdogApp extends Homey.App {
       const gap = freshest - last.ts;
       if (bucket.maxGapMs === null || gap > bucket.maxGapMs) bucket.maxGapMs = gap;
     }
+    if (bucket.firstSeenTs === null) bucket.firstSeenTs = freshest;
 
     entries.push({ ts: freshest, capId: freshestCapId });
     if (entries.length > MAX_UPDATE_STATS_ENTRIES) entries.shift();
@@ -1094,15 +1107,17 @@ class DeviceWatchdogApp extends Homey.App {
   // HomeyAPI round trip needed. Fetched on demand, same reasoning as getDeviceCapabilities
   // above: only ever needed for the one Details panel actually open.
   async getDeviceUpdateStats(deviceId) {
-    const bucket = this._updateStats[deviceId] || { entries: [], maxGapMs: null };
-    return scanner.computeUpdateStats(bucket.entries, bucket.maxGapMs);
+    const bucket = this._updateStats[deviceId] || { entries: [], maxGapMs: null, firstSeenTs: null };
+    return { ...scanner.computeUpdateStats(bucket.entries, bucket.maxGapMs), firstSeenTs: bucket.firstSeenTs };
   }
 
   // Same computation as getDeviceUpdateStats, for every device at once - used by the
   // Settings UI's "Empfehlungen" tab, which needs every device's recommendation to build
   // its list. Skips `entries` (only useful for the one-device Details view, would just be
   // dead weight repeated across ~300 devices in one response) and any device with nothing
-  // recorded yet at all.
+  // recorded yet at all. firstSeenTs lets that tab filter out a device that's only been
+  // observed for a few minutes, even if it already has 5+ samples - a user-configurable
+  // "minimum observation period" there.
   async getAllUpdateStats() {
     const result = {};
     for (const [deviceId, bucket] of Object.entries(this._updateStats)) {
@@ -1110,7 +1125,9 @@ class DeviceWatchdogApp extends Homey.App {
         avgIntervalMs, maxIntervalMs, recommendedHours,
       } = scanner.computeUpdateStats(bucket.entries, bucket.maxGapMs);
       if (recommendedHours == null) continue;
-      result[deviceId] = { avgIntervalMs, maxIntervalMs, recommendedHours };
+      result[deviceId] = {
+        avgIntervalMs, maxIntervalMs, recommendedHours, firstSeenTs: bucket.firstSeenTs,
+      };
     }
     return result;
   }

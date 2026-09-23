@@ -18,8 +18,10 @@
   },
   "recommendations": {
     "hint": "Geräte, deren aktueller Schwellwert (\"Stunden bis 'offline'\") vom beobachteten Meldeverhalten abweicht.",
+    "minDaysLabel": "Mindest-Beobachtungsdauer (Tage)",
+    "minDaysHint": "Ein Gerät, das erst kürzer als das beobachtet wird, taucht noch nicht auf, auch wenn schon genug Meldungen vorliegen.",
     "loading": "Wird geladen…",
-    "empty": "Aktuell keine Empfehlungen - entweder passen alle Schwellwerte schon, oder es liegen noch nicht genug Daten vor.",
+    "empty": "Aktuell keine Empfehlungen - entweder passen alle Schwellwerte schon, oder es liegen noch nicht genug Daten/Beobachtungszeit vor.",
     "rowSummary": "Aktuell: __current__h → Empfohlen: __recommended__h",
     "applyAllButton": "Alle übernehmen",
     "applyAllConfirm": "Den empfohlenen Schwellwert für alle __count__ aufgelisteten Geräte übernehmen?",

@@ -419,8 +419,13 @@
   <!-- ============ TAB: EMPFEHLUNGEN ============ -->
   <div class="tab-panel" id="tab-recommendations">
     <p class="hint" id="rec-hint">Geräte, deren aktueller Schwellwert ("Stunden bis 'offline'") vom beobachteten Meldeverhalten abweicht.</p>
+    <div class="field-row">
+      <label for="rec-min-days" id="lbl-rec-min-days">Mindest-Beobachtungsdauer (Tage)</label>
+      <input type="number" id="rec-min-days" min="0" step="1" value="7" />
+      <p class="hint" id="hint-rec-min-days">Geräte, die erst kürzer als das beobachtet werden, tauchen noch nicht auf, auch wenn schon genug Meldungen vorliegen.</p>
+    </div>
     <p class="hint" id="rec-loading" style="display:none;">Wird geladen…</p>
-    <p class="hint" id="rec-empty" style="display:none;">Aktuell keine Empfehlungen - entweder passen alle Schwellwerte schon, oder es liegen noch nicht genug Daten vor.</p>
+    <p class="hint" id="rec-empty" style="display:none;">Aktuell keine Empfehlungen - entweder passen alle Schwellwerte schon, oder es liegen noch nicht genug Daten/Beobachtungszeit vor.</p>
     <button class="btn small" id="btn-apply-all-recommendations" style="display:none;">Alle übernehmen</button>
     <div id="recommendations-list"></div>
   </div>
@@ -617,8 +622,11 @@
         // Shared across every device's recent-reports list (not per-device) - a simple UI
         // preference, not data, so one setting for whichever panel is open is enough.
         statsSort: { field: 'ts', dir: 'desc' },
-        // "Empfehlungen" tab - [{device, current, recommended}], built client-side from
-        // GET /devices/stats + state.devices/state.rules - see loadRecommendations.
+        // "Empfehlungen" tab. recommendationsRaw is the last-fetched GET /devices/stats
+        // response, cached so changing the "minimum observation days" field can re-filter
+        // instantly without a round-trip; recommendations is the built/filtered
+        // [{device, current, recommended}] list actually rendered - see loadRecommendations.
+        recommendationsRaw: null,
         recommendations: [],
         hoursUnit: {},
         hoursUnitGlobal: 'h',
@@ -660,6 +668,8 @@
         document.getElementById('tab-btn-devices').textContent = Homey.__('tabs.devices');
         document.getElementById('tab-btn-recommendations').textContent = Homey.__('tabs.recommendations');
         document.getElementById('rec-hint').textContent = Homey.__('recommendations.hint');
+        document.getElementById('lbl-rec-min-days').textContent = Homey.__('recommendations.minDaysLabel');
+        document.getElementById('hint-rec-min-days').textContent = Homey.__('recommendations.minDaysHint');
         document.getElementById('rec-loading').textContent = Homey.__('recommendations.loading');
         document.getElementById('rec-empty').textContent = Homey.__('recommendations.empty');
         document.getElementById('btn-apply-all-recommendations').textContent = Homey.__('recommendations.applyAllButton');
@@ -2352,6 +2362,14 @@
         });
       });
 
+      // Re-filters from the already-fetched data - no need to hit the server again just
+      // because the observation-days threshold changed.
+      document.getElementById('rec-min-days').addEventListener('input', function () {
+        if (!state.recommendationsRaw) return;
+        state.recommendations = buildRecommendationsList(state.recommendationsRaw);
+        renderRecommendations();
+      });
+
       // ---------------------------------------------------------------
       // Verlauf-Tab: chronological log of edge-triggered events (same
       // detections that already fire the Flow triggers / timeline notice).
@@ -2410,6 +2428,7 @@
         document.getElementById('recommendations-list').innerHTML = '';
         apiCall('GET', '/devices/stats').then(function (statsMap) {
           document.getElementById('rec-loading').style.display = 'none';
+          state.recommendationsRaw = statsMap;
           state.recommendations = buildRecommendationsList(statsMap);
           renderRecommendations();
         }).catch(function (err) {
@@ -2420,13 +2439,24 @@
 
       // Only a device with an ACTIONABLE gap (recommendation differs from what's actually
       // configured right now) belongs here - a device already at its recommended value has
-      // nothing to apply and would just be noise. Biggest mismatch first, so the most
+      // nothing to apply and would just be noise. Also requires at least "minimum
+      // observation days" (a plain number field, not a fixed dropdown - user-editable, 7
+      // days by default) to have passed since the device's first-ever recorded update -
+      // otherwise a device that happened to produce 5 updates in its first ten minutes would
+      // get a recommendation nobody should trust yet. Biggest mismatch first, so the most
       // impactful ones don't require scrolling to find.
       function buildRecommendationsList(statsMap) {
+        var minDaysInput = document.getElementById('rec-min-days');
+        var minDays = Number(minDaysInput.value);
+        if (!Number.isFinite(minDays) || minDays < 0) minDays = 0;
+        var minAgeMs = minDays * 24 * 3600000;
+        var now = Date.now();
+
         var rows = [];
         Object.keys(statsMap).forEach(function (id) {
           var stats = statsMap[id];
           if (stats.recommendedHours == null) return;
+          if (stats.firstSeenTs != null && (now - stats.firstSeenTs) < minAgeMs) return;
           var device = state.devices.find(function (d) { return d.id === id; });
           if (!device) return; // stale entry for a since-deleted device - server prunes these on its own next scan
           var rule = getDeviceRule(id);
