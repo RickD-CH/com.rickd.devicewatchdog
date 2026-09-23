@@ -1,4 +1,8 @@
 {
+  "1.9.38": {
+    "en": "Reporting stats (Details > Not reporting): now also shows the longest silent period observed so far, not just the average interval - the number the threshold suggestion is actually based on. Thanks to SingKT on the forum for the suggestion!",
+    "de": "Melde-Statistik (Details > Meldet sich nicht): zeigt jetzt zusätzlich zum Durchschnittsintervall auch die längste bisher beobachtete stille Phase - die Zahl, auf der die Schwellwert-Empfehlung tatsächlich basiert. Danke an SingKT im Forum für den Vorschlag!"
+  },
   "1.9.37": {
     "en": "Device Details (\"Not reporting\" section) now shows how often a device has actually been reporting recently, and suggests a threshold based on it, with a one-click \"Apply\" - no more guessing. Needs a few real updates to collect before it shows up for a given device.",
     "de": "Die Geräte-Details (Bereich \"Meldet sich nicht\") zeigen jetzt, wie oft ein Gerät sich in letzter Zeit tatsächlich gemeldet hat, und schlagen darauf basierend einen Schwellwert vor, per 1-Klick übernehmbar - kein Raten mehr nötig. Braucht für ein Gerät erst ein paar echte Meldungen, bevor es angezeigt wird."
