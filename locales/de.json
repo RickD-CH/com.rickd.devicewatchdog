@@ -23,6 +23,8 @@
     "loading": "Wird geladen…",
     "empty": "Aktuell keine Empfehlungen - entweder passen alle Schwellwerte schon, oder es liegen noch nicht genug Daten/Beobachtungszeit vor.",
     "rowSummary": "Aktuell: __current__h → Empfohlen: __recommended__h",
+    "rowInterval": "⌀ ~__value__ __unit__",
+    "rowMaxGap": "längste ~__value__ __unit__",
     "entriesToggle": "Letzte Meldungen anzeigen",
     "applyAllButton": "Alle übernehmen",
     "applyAllConfirm": "Den empfohlenen Schwellwert für alle __count__ aufgelisteten Geräte übernehmen?",

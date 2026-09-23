@@ -2489,7 +2489,6 @@
         document.getElementById('recommendations-list').innerHTML = rows.map(function (row) {
           var d = row.device;
           var interval = formatStatsInterval(row.avgIntervalMs);
-          var rate = formatStatsRate(row.avgIntervalMs);
           var maxGap = formatStatsInterval(row.maxIntervalMs);
           // Same lazy per-device fetch/cache the Details panel's own stats section uses
           // (state.statsData/loadDeviceUpdateStats) - the bulk endpoint deliberately omits
@@ -2507,11 +2506,13 @@
                 '<div class="device-name"><span class="device-class-icon">' + classIcon(d.class) + '</span>' + escapeHtml(d.name) +
                   (d.zone ? '<span class="device-zone">' + escapeHtml(d.zone) + '</span>' : '') + '</div>' +
                 '<div class="device-meta">' + Homey.__('recommendations.rowSummary', { current: row.current, recommended: row.recommended }) + '</div>' +
+                // Compact label style, not full sentences like the Details view - this list
+                // can run to 100+ rows, and the "updates per X" rate is redundant with the
+                // interval anyway (same number, just inverted) so it's dropped here entirely.
                 '<div class="device-meta">' +
-                  Homey.__('advanced.statsInterval', { value: interval.value, unit: Homey.__(interval.unitKey) }) +
-                  ' · ' + Homey.__('advanced.statsRate', { value: rate.value, unit: Homey.__(rate.unitKey) }) +
+                  Homey.__('recommendations.rowInterval', { value: interval.value, unit: Homey.__(interval.unitKey) }) +
+                  ' · ' + Homey.__('recommendations.rowMaxGap', { value: maxGap.value, unit: Homey.__(maxGap.unitKey) }) +
                 '</div>' +
-                '<div class="device-meta">' + Homey.__('advanced.statsMaxGap', { value: maxGap.value, unit: Homey.__(maxGap.unitKey) }) + '</div>' +
                 '<details class="rec-entries" data-id="' + d.id + '">' +
                   '<summary>' + Homey.__('recommendations.entriesToggle') + '</summary>' +
                   '<div class="rec-entries-body">' + entriesBody + '</div>' +

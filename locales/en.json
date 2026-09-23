@@ -23,6 +23,8 @@
     "loading": "Loading…",
     "empty": "No recommendations right now - either every threshold already matches, or there isn't enough data/observation time yet.",
     "rowSummary": "Current: __current__h → Recommended: __recommended__h",
+    "rowInterval": "avg ~__value__ __unit__",
+    "rowMaxGap": "longest ~__value__ __unit__",
     "entriesToggle": "Show recent reports",
     "applyAllButton": "Apply all",
     "applyAllConfirm": "Apply the recommended threshold to all __count__ listed devices?",
