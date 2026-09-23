@@ -487,10 +487,19 @@ class DeviceWatchdogApp extends Homey.App {
   _recordUpdateStat(device) {
     if (!scanner.canCheckStaleness(device)) return;
 
+    // Mirrors the same includeBatteryForReporting exclusion computeDeviceStatus applies
+    // (lib/scanner.js:233-240) - without this, a device the user explicitly opted out of
+    // counting battery updates toward "not reporting" would still have its stats/
+    // recommendation skewed by a battery that reports independently of the actual (frozen)
+    // sensor value, exactly the scenario that toggle exists to guard against.
+    const { rule } = scanner.findRuleIndexed({ id: device.id }, this._ruleIndex);
+    const includeBattery = rule ? rule.includeBatteryForReporting !== false : true;
+
     let freshest = null;
     let freshestCapId = null;
     for (const [capId, cap] of Object.entries(device.capabilitiesObj || {})) {
       if (!cap || !cap.lastUpdated) continue;
+      if (!includeBattery && BATTERY_CAPABILITIES.includes(String(capId).split('.')[0])) continue;
       const time = new Date(cap.lastUpdated).getTime();
       if (Number.isFinite(time) && (freshest === null || time > freshest)) {
         freshest = time;
