@@ -285,6 +285,9 @@
     .cap-block { width: 100%; max-width: 100%; }
     .cap-block summary { cursor: pointer; color: var(--color-muted); font-size: 12.5px; }
     .cap-block .cap-body { margin-top: 8px; }
+    .rec-entries { width: 100%; max-width: 100%; margin-top: 4px; }
+    .rec-entries summary { cursor: pointer; color: var(--color-muted); font-size: 12.5px; }
+    .rec-entries .rec-entries-body { margin-top: 6px; }
     .cap-legend { margin-bottom: 10px; }
     .cap-list { width: 100%; }
     .cap-row { padding: 6px 0 6px 8px; border-bottom: 1px solid var(--color-border); border-left: 3px solid transparent; }
@@ -1540,12 +1543,17 @@
             state.statsData[id] = result;
             delete state.statsLoading[id];
             delete state.statsError[id];
+            // Shared cache - also used by the Recommendations tab's per-row expand (see
+            // renderRecommendations), so both re-render; whichever tab isn't showing right
+            // now just does a cheap no-op innerHTML rebuild of a hidden panel.
             renderDevices();
+            renderRecommendations();
           })
           .catch(function (err) {
             delete state.statsLoading[id];
             state.statsError[id] = (err && err.message) || String(err);
             renderDevices();
+            renderRecommendations();
           });
       }
 
@@ -2462,7 +2470,13 @@
           var rule = getDeviceRule(id);
           var current = (rule && rule.notReportingHours != null) ? rule.notReportingHours : state.config.notReportingThresholdHours;
           if (stats.recommendedHours === current) return;
-          rows.push({ device: device, current: current, recommended: stats.recommendedHours });
+          rows.push({
+            device: device,
+            current: current,
+            recommended: stats.recommendedHours,
+            avgIntervalMs: stats.avgIntervalMs,
+            maxIntervalMs: stats.maxIntervalMs,
+          });
         });
         rows.sort(function (a, b) { return Math.abs(b.recommended - b.current) - Math.abs(a.recommended - a.current); });
         return rows;
@@ -2474,12 +2488,34 @@
         document.getElementById('btn-apply-all-recommendations').style.display = rows.length ? '' : 'none';
         document.getElementById('recommendations-list').innerHTML = rows.map(function (row) {
           var d = row.device;
+          var interval = formatStatsInterval(row.avgIntervalMs);
+          var rate = formatStatsRate(row.avgIntervalMs);
+          var maxGap = formatStatsInterval(row.maxIntervalMs);
+          // Same lazy per-device fetch/cache the Details panel's own stats section uses
+          // (state.statsData/loadDeviceUpdateStats) - the bulk endpoint deliberately omits
+          // `entries` to stay lean across ~300 devices, so the report list itself is only
+          // fetched for a row actually expanded, reusing whichever device the user may have
+          // already looked at in Details this session for free.
+          var entriesBody = state.statsError[d.id]
+            ? '<p class="hint sn-warn">' + escapeHtml(Homey.__('advanced.statsError', { error: state.statsError[d.id] })) + '</p>'
+            : state.statsData[d.id]
+              ? statsTimestampListHtml(state.statsData[d.id])
+              : '<p class="hint">' + Homey.__('advanced.statsLoading') + '</p>';
           return '' +
             '<div class="device-row" data-id="' + d.id + '">' +
               '<div class="device-main">' +
                 '<div class="device-name"><span class="device-class-icon">' + classIcon(d.class) + '</span>' + escapeHtml(d.name) +
                   (d.zone ? '<span class="device-zone">' + escapeHtml(d.zone) + '</span>' : '') + '</div>' +
                 '<div class="device-meta">' + Homey.__('recommendations.rowSummary', { current: row.current, recommended: row.recommended }) + '</div>' +
+                '<div class="device-meta">' +
+                  Homey.__('advanced.statsInterval', { value: interval.value, unit: Homey.__(interval.unitKey) }) +
+                  ' · ' + Homey.__('advanced.statsRate', { value: rate.value, unit: Homey.__(rate.unitKey) }) +
+                '</div>' +
+                '<div class="device-meta">' + Homey.__('advanced.statsMaxGap', { value: maxGap.value, unit: Homey.__(maxGap.unitKey) }) + '</div>' +
+                '<details class="rec-entries" data-id="' + d.id + '">' +
+                  '<summary>' + Homey.__('recommendations.entriesToggle') + '</summary>' +
+                  '<div class="rec-entries-body">' + entriesBody + '</div>' +
+                '</details>' +
               '</div>' +
               '<div class="device-actions">' +
                 '<button class="btn small link" data-action="apply-recommendation" data-id="' + d.id + '" data-hours="' + row.recommended + '">' +
@@ -2488,6 +2524,18 @@
               '</div>' +
             '</div>';
         }).join('');
+
+        // Same phantom-toggle guard as renderDeviceContainer's cap-block handling - only
+        // fetch on a real user expand, not the async 'toggle' a freshly-parsed <details>
+        // fires even when it starts closed... except here nothing starts open, so this is
+        // mostly future-proofing if that ever changes.
+        document.getElementById('recommendations-list').querySelectorAll('details.rec-entries').forEach(function (det) {
+          var ignorePhantomToggle = det.open;
+          det.addEventListener('toggle', function () {
+            if (ignorePhantomToggle) { ignorePhantomToggle = false; return; }
+            if (det.open) loadDeviceUpdateStats(det.dataset.id);
+          });
+        });
       }
 
       // Preview list for "Clean up stale rules" (see getStaleRules in app.js) - shows

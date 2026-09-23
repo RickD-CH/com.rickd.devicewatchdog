@@ -23,6 +23,7 @@
     "loading": "Loading…",
     "empty": "No recommendations right now - either every threshold already matches, or there isn't enough data/observation time yet.",
     "rowSummary": "Current: __current__h → Recommended: __recommended__h",
+    "entriesToggle": "Show recent reports",
     "applyAllButton": "Apply all",
     "applyAllConfirm": "Apply the recommended threshold to all __count__ listed devices?",
     "loadFailed": "Couldn't load recommendations: __error__"
