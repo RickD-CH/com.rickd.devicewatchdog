@@ -11,9 +11,19 @@
   },
   "tabs": {
     "devices": "Geräte",
+    "recommendations": "Empfehlungen",
     "log": "Verlauf",
     "settings": "Einstellungen",
     "support": "Support"
+  },
+  "recommendations": {
+    "hint": "Geräte, deren aktueller Schwellwert (\"Stunden bis 'offline'\") vom beobachteten Meldeverhalten abweicht.",
+    "loading": "Wird geladen…",
+    "empty": "Aktuell keine Empfehlungen - entweder passen alle Schwellwerte schon, oder es liegen noch nicht genug Daten vor.",
+    "rowSummary": "Aktuell: __current__h → Empfohlen: __recommended__h",
+    "applyAllButton": "Alle übernehmen",
+    "applyAllConfirm": "Den empfohlenen Schwellwert für alle __count__ aufgelisteten Geräte übernehmen?",
+    "loadFailed": "Empfehlungen konnten nicht geladen werden: __error__"
   },
   "devices": {
     "scanNow": "Scan jetzt ausführen",

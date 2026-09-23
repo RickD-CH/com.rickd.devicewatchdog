@@ -41,6 +41,10 @@ module.exports = {
     return homey.app.getDeviceUpdateStats(params.id);
   },
 
+  async getAllUpdateStats({ homey }) {
+    return homey.app.getAllUpdateStats();
+  },
+
   async getLog({ homey }) {
     return homey.app.getLog();
   },

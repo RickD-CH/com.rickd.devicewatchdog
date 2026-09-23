@@ -1098,6 +1098,23 @@ class DeviceWatchdogApp extends Homey.App {
     return scanner.computeUpdateStats(bucket.entries, bucket.maxGapMs);
   }
 
+  // Same computation as getDeviceUpdateStats, for every device at once - used by the
+  // Settings UI's "Empfehlungen" tab, which needs every device's recommendation to build
+  // its list. Skips `entries` (only useful for the one-device Details view, would just be
+  // dead weight repeated across ~300 devices in one response) and any device with nothing
+  // recorded yet at all.
+  async getAllUpdateStats() {
+    const result = {};
+    for (const [deviceId, bucket] of Object.entries(this._updateStats)) {
+      const {
+        avgIntervalMs, maxIntervalMs, recommendedHours,
+      } = scanner.computeUpdateStats(bucket.entries, bucket.maxGapMs);
+      if (recommendedHours == null) continue;
+      result[deviceId] = { avgIntervalMs, maxIntervalMs, recommendedHours };
+    }
+    return result;
+  }
+
   getStatus() {
     return {
       config: this.config,

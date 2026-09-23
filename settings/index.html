@@ -382,6 +382,7 @@
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="devices" id="tab-btn-devices">Geräte</button>
+    <button class="tab-btn" data-tab="recommendations" id="tab-btn-recommendations">Empfehlungen</button>
     <button class="tab-btn" data-tab="log" id="tab-btn-log">Verlauf</button>
     <button class="tab-btn" data-tab="settings" id="tab-btn-settings">Einstellungen</button>
     <button class="tab-btn" data-tab="support" id="tab-btn-support">Support</button>
@@ -413,6 +414,15 @@
       <summary id="unmonitored-summary">0 Geräte nicht überwacht</summary>
       <div id="device-list-unmonitored"></div>
     </details>
+  </div>
+
+  <!-- ============ TAB: EMPFEHLUNGEN ============ -->
+  <div class="tab-panel" id="tab-recommendations">
+    <p class="hint" id="rec-hint">Geräte, deren aktueller Schwellwert ("Stunden bis 'offline'") vom beobachteten Meldeverhalten abweicht.</p>
+    <p class="hint" id="rec-loading" style="display:none;">Wird geladen…</p>
+    <p class="hint" id="rec-empty" style="display:none;">Aktuell keine Empfehlungen - entweder passen alle Schwellwerte schon, oder es liegen noch nicht genug Daten vor.</p>
+    <button class="btn small" id="btn-apply-all-recommendations" style="display:none;">Alle übernehmen</button>
+    <div id="recommendations-list"></div>
   </div>
 
   <!-- ============ TAB: EINSTELLUNGEN ============ -->
@@ -607,6 +617,9 @@
         // Shared across every device's recent-reports list (not per-device) - a simple UI
         // preference, not data, so one setting for whichever panel is open is enough.
         statsSort: { field: 'ts', dir: 'desc' },
+        // "Empfehlungen" tab - [{device, current, recommended}], built client-side from
+        // GET /devices/stats + state.devices/state.rules - see loadRecommendations.
+        recommendations: [],
         hoursUnit: {},
         hoursUnitGlobal: 'h',
         secondsUnit: {},
@@ -645,6 +658,11 @@
         // is still reachable via a hover tooltip.
         document.getElementById('app-subtitle').title = Homey.__('app.subtitle');
         document.getElementById('tab-btn-devices').textContent = Homey.__('tabs.devices');
+        document.getElementById('tab-btn-recommendations').textContent = Homey.__('tabs.recommendations');
+        document.getElementById('rec-hint').textContent = Homey.__('recommendations.hint');
+        document.getElementById('rec-loading').textContent = Homey.__('recommendations.loading');
+        document.getElementById('rec-empty').textContent = Homey.__('recommendations.empty');
+        document.getElementById('btn-apply-all-recommendations').textContent = Homey.__('recommendations.applyAllButton');
         document.getElementById('tab-btn-log').textContent = Homey.__('tabs.log');
         document.getElementById('tab-btn-settings').textContent = Homey.__('tabs.settings');
         document.getElementById('tab-btn-support').textContent = Homey.__('tabs.support');
@@ -833,6 +851,11 @@
           // while another tab was showing, without waiting for the 60s poll.
           if (btn.dataset.tab === 'devices') {
             refreshIfScanChanged();
+          }
+          // Recommendations can change after a scan or after applying one elsewhere - always
+          // re-fetch on open rather than caching, same reasoning as the log branch above.
+          if (btn.dataset.tab === 'recommendations') {
+            loadRecommendations();
           }
         });
       });
@@ -2292,6 +2315,44 @@
       bindDeviceListEvents('device-list-unmonitored');
 
       // ---------------------------------------------------------------
+      // Empfehlungen-Tab
+      // ---------------------------------------------------------------
+      document.getElementById('recommendations-list').addEventListener('click', function (e) {
+        if (e.target.dataset.action !== 'apply-recommendation') return;
+        e.preventDefault();
+        e.stopPropagation();
+        var id = e.target.dataset.id;
+        var hours = Number(e.target.dataset.hours);
+        var device = state.devices.find(function (d) { return d.id === id; });
+        var rule = ensureDeviceRule(id, device ? device.name : '');
+        rule.notReportingHours = hours;
+        cleanupDeviceRule(id);
+        scheduleAutoSave(true);
+        // Optimistic - the row no longer belongs in this list once applied, no need to
+        // wait on a re-fetch to reflect that.
+        state.recommendations = (state.recommendations || []).filter(function (r) { return r.device.id !== id; });
+        renderRecommendations();
+      });
+
+      document.getElementById('btn-apply-all-recommendations').addEventListener('click', function () {
+        var rows = state.recommendations || [];
+        if (!rows.length) return;
+        Homey.confirm(Homey.__('recommendations.applyAllConfirm', { count: rows.length }), null, function (err, confirmed) {
+          if (err || !confirmed) return;
+          // Mirrors bulkSetZoneMonitored's shape: mutate every rule in the loop, one
+          // scheduleAutoSave(true) at the end - a single POST /config, not one per device.
+          rows.forEach(function (row) {
+            var rule = ensureDeviceRule(row.device.id, row.device.name);
+            rule.notReportingHours = row.recommended;
+            cleanupDeviceRule(row.device.id);
+          });
+          scheduleAutoSave(true);
+          state.recommendations = [];
+          renderRecommendations();
+        });
+      });
+
+      // ---------------------------------------------------------------
       // Verlauf-Tab: chronological log of edge-triggered events (same
       // detections that already fire the Flow triggers / timeline notice).
       // ---------------------------------------------------------------
@@ -2333,6 +2394,68 @@
             '<span class="log-icon">' + (LOG_ICONS[entry.type] || '•') + '</span>' +
             '<span class="log-text">' + escapeHtml(logEntryText(entry)) + (entry.zone ? '<span class="log-zone">' + escapeHtml(entry.zone) + '</span>' : '') + '</span>' +
             '<span class="log-time">' + new Date(entry.ts).toLocaleString() + '</span>' +
+            '</div>';
+        }).join('');
+      }
+
+      // "Empfehlungen" tab - fetches the bulk update-stats (GET /devices/stats, see
+      // getAllUpdateStats in app.js) and pairs it with state.devices/state.rules (already
+      // loaded) to build the list of devices whose current threshold doesn't match what's
+      // been observed. Re-fetched on every tab-open (see the tab-switch handler), same
+      // "don't show stale data" reasoning as the Log tab.
+      function loadRecommendations() {
+        document.getElementById('rec-loading').style.display = '';
+        document.getElementById('rec-empty').style.display = 'none';
+        document.getElementById('btn-apply-all-recommendations').style.display = 'none';
+        document.getElementById('recommendations-list').innerHTML = '';
+        apiCall('GET', '/devices/stats').then(function (statsMap) {
+          document.getElementById('rec-loading').style.display = 'none';
+          state.recommendations = buildRecommendationsList(statsMap);
+          renderRecommendations();
+        }).catch(function (err) {
+          document.getElementById('rec-loading').style.display = 'none';
+          Homey.alert(Homey.__('recommendations.loadFailed', { error: err && err.message ? err.message : err }));
+        });
+      }
+
+      // Only a device with an ACTIONABLE gap (recommendation differs from what's actually
+      // configured right now) belongs here - a device already at its recommended value has
+      // nothing to apply and would just be noise. Biggest mismatch first, so the most
+      // impactful ones don't require scrolling to find.
+      function buildRecommendationsList(statsMap) {
+        var rows = [];
+        Object.keys(statsMap).forEach(function (id) {
+          var stats = statsMap[id];
+          if (stats.recommendedHours == null) return;
+          var device = state.devices.find(function (d) { return d.id === id; });
+          if (!device) return; // stale entry for a since-deleted device - server prunes these on its own next scan
+          var rule = getDeviceRule(id);
+          var current = (rule && rule.notReportingHours != null) ? rule.notReportingHours : state.config.notReportingThresholdHours;
+          if (stats.recommendedHours === current) return;
+          rows.push({ device: device, current: current, recommended: stats.recommendedHours });
+        });
+        rows.sort(function (a, b) { return Math.abs(b.recommended - b.current) - Math.abs(a.recommended - a.current); });
+        return rows;
+      }
+
+      function renderRecommendations() {
+        var rows = state.recommendations || [];
+        document.getElementById('rec-empty').style.display = rows.length ? 'none' : '';
+        document.getElementById('btn-apply-all-recommendations').style.display = rows.length ? '' : 'none';
+        document.getElementById('recommendations-list').innerHTML = rows.map(function (row) {
+          var d = row.device;
+          return '' +
+            '<div class="device-row" data-id="' + d.id + '">' +
+              '<div class="device-main">' +
+                '<div class="device-name"><span class="device-class-icon">' + classIcon(d.class) + '</span>' + escapeHtml(d.name) +
+                  (d.zone ? '<span class="device-zone">' + escapeHtml(d.zone) + '</span>' : '') + '</div>' +
+                '<div class="device-meta">' + Homey.__('recommendations.rowSummary', { current: row.current, recommended: row.recommended }) + '</div>' +
+              '</div>' +
+              '<div class="device-actions">' +
+                '<button class="btn small link" data-action="apply-recommendation" data-id="' + d.id + '" data-hours="' + row.recommended + '">' +
+                  Homey.__('advanced.statsApplyButton', { recommended: row.recommended }) +
+                '</button>' +
+              '</div>' +
             '</div>';
         }).join('');
       }

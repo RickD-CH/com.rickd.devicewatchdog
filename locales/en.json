@@ -11,9 +11,19 @@
   },
   "tabs": {
     "devices": "Devices",
+    "recommendations": "Recommendations",
     "log": "Log",
     "settings": "Settings",
     "support": "Support"
+  },
+  "recommendations": {
+    "hint": "Devices whose current threshold (\"Hours until 'offline'\") doesn't match what's actually been observed.",
+    "loading": "Loading…",
+    "empty": "No recommendations right now - either every threshold already matches, or there isn't enough data yet.",
+    "rowSummary": "Current: __current__h → Recommended: __recommended__h",
+    "applyAllButton": "Apply all",
+    "applyAllConfirm": "Apply the recommended threshold to all __count__ listed devices?",
+    "loadFailed": "Couldn't load recommendations: __error__"
   },
   "devices": {
     "scanNow": "Run scan now",
