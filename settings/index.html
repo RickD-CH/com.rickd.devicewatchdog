@@ -285,7 +285,10 @@
     .cap-block { width: 100%; max-width: 100%; }
     .cap-block summary { cursor: pointer; color: var(--color-muted); font-size: 12.5px; }
     .cap-block .cap-body { margin-top: 8px; }
-    .rec-entries { width: 100%; max-width: 100%; margin-top: 4px; }
+    /* flex-basis:100% (not just width:100%) - forces this onto its own wrapped line within
+       .device-row's flex-wrap row, instead of just being width-constrained while still
+       sharing horizontal space with .device-actions for the row's full height. */
+    .rec-entries { flex-basis: 100%; max-width: 100%; margin-top: 4px; }
     .rec-entries summary { cursor: pointer; color: var(--color-muted); font-size: 12.5px; }
     .rec-entries .rec-entries-body { margin-top: 6px; }
     .cap-legend { margin-bottom: 10px; }
@@ -2518,16 +2521,22 @@
                   Homey.__('recommendations.rowInterval', { value: interval.value, unit: Homey.__(interval.unitKey) }) +
                   ' · ' + Homey.__('recommendations.rowMaxGap', { value: maxGap.value, unit: Homey.__(maxGap.unitKey) }) +
                 '</div>' +
-                '<details class="rec-entries" data-id="' + d.id + '"' + (state.recEntriesOpen[d.id] ? ' open' : '') + '>' +
-                  '<summary>' + Homey.__('recommendations.entriesToggle') + '</summary>' +
-                  '<div class="rec-entries-body">' + entriesBody + '</div>' +
-                '</details>' +
               '</div>' +
               '<div class="device-actions">' +
                 '<button class="btn small link" data-action="apply-recommendation" data-id="' + d.id + '" data-hours="' + row.recommended + '">' +
                   Homey.__('advanced.statsApplyButton', { recommended: row.recommended }) +
                 '</button>' +
               '</div>' +
+              // Outside .device-main on purpose (own flex item, forced onto its own full-
+              // width line below via CSS flex-basis:100%) - inside .device-main it shared
+              // horizontal space with the Apply button column for the row's entire height,
+              // squeezing the expanded list narrower than it needed to be and pushing the
+              // button to float centered alongside a tall expanded row instead of staying
+              // up with the name/numbers (forum/live feedback).
+              '<details class="rec-entries" data-id="' + d.id + '"' + (state.recEntriesOpen[d.id] ? ' open' : '') + '>' +
+                '<summary>' + Homey.__('recommendations.entriesToggle') + '</summary>' +
+                '<div class="rec-entries-body">' + entriesBody + '</div>' +
+              '</details>' +
             '</div>';
         }).join('');
 
