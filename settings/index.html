@@ -97,13 +97,10 @@
       background: var(--color-card-bg);
       z-index: 5;
       padding: 4px 4px 6px;
-      /* German labels ("Einstellungen", "Empfehlungen") run longer than a same-purpose
-         English tab bar (compared live against another app's, whose 5 tabs fit with no
-         scrolling at all - "not scrolling in the first place" read better than any version
-         of a scroll affordance) - tightened padding/font/gap below gets close to that for
-         the common case; overflow-x stays as a fallback for a narrower window or a future
-         6th tab, not the primary plan anymore. Scrollbar chrome hidden either way, so a
-         fallback scroll still doesn't look like one. */
+      /* Icon-only tabs (see the buttons' markup) sidestep the German-label-length problem
+         entirely - text/scroll attempts are kept in git history. overflow-x stays as a
+         fallback for a narrow window or a future 6th tab; scrollbar chrome hidden either
+         way, so a fallback scroll still doesn't look like one. */
       overflow-x: auto;
       scrollbar-width: none; /* Firefox */
       -ms-overflow-style: none; /* old Edge/IE */
@@ -114,15 +111,19 @@
     .tab-btn {
       border: none;
       background: none;
-      padding: 6px 8px;
-      border-radius: 5px;
+      padding: 7px 11px;
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 12.5px;
+      font-size: 18px;
+      line-height: 1;
       flex-shrink: 0;
       white-space: nowrap;
       color: var(--color-muted);
+      /* Emoji render at full colour regardless of `color` above - this only dims the .active
+         background/no-op text colour below, kept for when a future tab uses a text glyph
+         instead of an emoji. */
     }
-    .tab-btn.active { color: var(--color-text); font-weight: 600; background: var(--color-info-bg); }
+    .tab-btn.active { background: var(--color-info-bg); }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
     .card {
@@ -407,11 +408,17 @@
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" data-tab="devices" id="tab-btn-devices">Geräte</button>
-    <button class="tab-btn" data-tab="recommendations" id="tab-btn-recommendations">Empfehlungen</button>
-    <button class="tab-btn" data-tab="log" id="tab-btn-log">Verlauf</button>
-    <button class="tab-btn" data-tab="settings" id="tab-btn-settings">Einstellungen</button>
-    <button class="tab-btn" data-tab="support" id="tab-btn-support">Support</button>
+    <!-- Icon-only, not icon+text - the compact-text approach (see git history) still ran
+         long for German labels ("Einstellungen", "Empfehlungen"). title/aria-label carry
+         the real label for hover/screen readers; the icons themselves are set here, not via
+         applyStaticTranslations, since emoji don't need per-language translation. 💡 for
+         Empfehlungen reuses the exact icon the per-device recommendation box already shows
+         (.sn-rec-i) - same concept, same symbol. -->
+    <button class="tab-btn active" data-tab="devices" id="tab-btn-devices">🔌</button>
+    <button class="tab-btn" data-tab="recommendations" id="tab-btn-recommendations">💡</button>
+    <button class="tab-btn" data-tab="log" id="tab-btn-log">📔</button>
+    <button class="tab-btn" data-tab="settings" id="tab-btn-settings">⚙️</button>
+    <button class="tab-btn" data-tab="support" id="tab-btn-support">🛟</button>
   </div>
 
   <!-- ============ TAB: GERÄTE ============ -->
@@ -703,8 +710,20 @@
         // Mirrors the (possibly ellipsis-truncated, see p.sub) text so the full sentence
         // is still reachable via a hover tooltip.
         document.getElementById('app-subtitle').title = Homey.__('app.subtitle');
-        document.getElementById('tab-btn-devices').textContent = Homey.__('tabs.devices');
-        document.getElementById('tab-btn-recommendations').textContent = Homey.__('tabs.recommendations');
+        // Icon-only tab buttons keep their emoji as textContent (set directly in the HTML,
+        // no translation needed) - title/aria-label carry the real label instead, for a
+        // hover tooltip and screen readers.
+        function labelTab(id, key) {
+          var el = document.getElementById(id);
+          var label = Homey.__(key);
+          el.title = label;
+          el.setAttribute('aria-label', label);
+        }
+        labelTab('tab-btn-devices', 'tabs.devices');
+        labelTab('tab-btn-recommendations', 'tabs.recommendations');
+        labelTab('tab-btn-log', 'tabs.log');
+        labelTab('tab-btn-settings', 'tabs.settings');
+        labelTab('tab-btn-support', 'tabs.support');
         document.getElementById('rec-hint').textContent = Homey.__('recommendations.hint');
         document.getElementById('rec-dismiss-hint').textContent = Homey.__('recommendations.dismissHint');
         document.getElementById('lbl-rec-min-days').textContent = Homey.__('recommendations.minDaysLabel');
@@ -712,9 +731,6 @@
         document.getElementById('rec-loading').textContent = Homey.__('recommendations.loading');
         document.getElementById('rec-empty').textContent = Homey.__('recommendations.empty');
         document.getElementById('btn-apply-all-recommendations').textContent = Homey.__('recommendations.applyAllButton');
-        document.getElementById('tab-btn-log').textContent = Homey.__('tabs.log');
-        document.getElementById('tab-btn-settings').textContent = Homey.__('tabs.settings');
-        document.getElementById('tab-btn-support').textContent = Homey.__('tabs.support');
         document.getElementById('btn-clear-log').textContent = Homey.__('log.clearButton');
         document.getElementById('btn-clear-search').title = Homey.__('devices.clearSearch');
         document.getElementById('btn-run-scan').textContent = Homey.__('devices.scanNow');
