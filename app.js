@@ -21,6 +21,13 @@ const SETTINGS_KEY_UPDATE_STATS = 'updateStats';
 // already persisted (lastScan + eventLog together).
 const MAX_UPDATE_STATS_ENTRIES = 20;
 
+// How long an auto-test's own re-sent capability value is excluded from counting as a
+// genuine report in _recordUpdateStat (see _runAutoTests/_pendingAutoTestExclusion below).
+// Long enough to cover realtime propagation delay after the test call resolves, short
+// enough that a driver which never actually bumps lastUpdated for a same-value write
+// doesn't end up permanently blind to real future updates on that capability.
+const AUTO_TEST_EXCLUSION_TTL_MS = 5 * 60 * 1000;
+
 // Capabilities safe to re-set with their own current value as a reachability test:
 // this round-trips to the hardware (so a failure means the device is truly unreachable)
 // without producing a perceptible state change, unlike toggling on/off for real. Limited
@@ -176,6 +183,9 @@ class DeviceWatchdogApp extends Homey.App {
     this._unavailableBatchTimer = null;
     this._pendingUnavailableTimers = new Map();
     this._confirmedUnavailable = new Set();
+    // deviceId -> { capId, setAt } - armed by _runAutoTests right after a successful
+    // auto-heal test, consumed/expired in _recordUpdateStat. See AUTO_TEST_EXCLUSION_TTL_MS.
+    this._pendingAutoTestExclusion = new Map();
 
     this._registerFlowCards();
 
@@ -507,17 +517,45 @@ class DeviceWatchdogApp extends Homey.App {
     const { rule } = scanner.findRuleIndexed({ id: device.id }, this._ruleIndex);
     const includeBattery = rule ? rule.includeBatteryForReporting !== false : true;
 
+    // An auto-heal test (_runAutoTests) re-sends a capability's own current value, which
+    // typically bumps its lastUpdated the same as a real report would. Left uncorrected,
+    // that would mask the true reporting gap on exactly the devices whose threshold most
+    // needs raising - see AUTO_TEST_EXCLUSION_TTL_MS. Excluded here, not just deduped, so a
+    // device with only that capability correctly records "nothing this pass" when it's
+    // truly quiet, rather than falling back to the auto-test's own timestamp.
+    let excludedCapId = null;
+    const pendingExclusion = this._pendingAutoTestExclusion.get(device.id);
+    if (pendingExclusion) {
+      if (Date.now() - pendingExclusion.setAt > AUTO_TEST_EXCLUSION_TTL_MS) {
+        this._pendingAutoTestExclusion.delete(device.id);
+      } else {
+        excludedCapId = pendingExclusion.capId;
+      }
+    }
+
     let freshest = null;
     let freshestCapId = null;
     for (const [capId, cap] of Object.entries(device.capabilitiesObj || {})) {
       if (!cap || !cap.lastUpdated) continue;
       if (!includeBattery && BATTERY_CAPABILITIES.includes(String(capId).split('.')[0])) continue;
+      if (capId === excludedCapId) continue;
       const time = new Date(cap.lastUpdated).getTime();
       if (Number.isFinite(time) && (freshest === null || time > freshest)) {
         freshest = time;
         freshestCapId = capId;
       }
     }
+
+    // The excluded capability's own timestamp catching up to/past setAt means the auto-test's
+    // write has landed - consume the exclusion so future organic updates to it count again.
+    if (pendingExclusion && excludedCapId) {
+      const excludedCap = device.capabilitiesObj?.[excludedCapId];
+      const excludedTime = excludedCap?.lastUpdated ? new Date(excludedCap.lastUpdated).getTime() : NaN;
+      if (Number.isFinite(excludedTime) && excludedTime >= pendingExclusion.setAt) {
+        this._pendingAutoTestExclusion.delete(device.id);
+      }
+    }
+
     if (freshest === null) return;
 
     const bucket = this._updateStats[device.id] || { entries: [], maxGapMs: null, firstSeenTs: null };
@@ -1373,7 +1411,8 @@ class DeviceWatchdogApp extends Homey.App {
       const staleSince = entry.lastUpdated;
 
       try {
-        await this._performCapabilityTest(device);
+        const { capabilityId } = await this._performCapabilityTest(device);
+        this._pendingAutoTestExclusion.set(device.id, { capId: capabilityId, setAt: Date.now() });
 
         entry.status = 'OK';
         entry.lastUpdated = scanner.formatDate(new Date());
