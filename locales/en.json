@@ -26,6 +26,8 @@
     "rowInterval": "avg ~__value__ __unit__",
     "rowMaxGap": "longest ~__value__ __unit__",
     "entriesToggle": "Show recent reports",
+    "applyButton": "Apply",
+    "dismissButton": "Dismiss",
     "applyAllButton": "Apply all",
     "applyAllConfirm": "Apply the recommended threshold to all __count__ listed devices?",
     "loadFailed": "Couldn't load recommendations: __error__"

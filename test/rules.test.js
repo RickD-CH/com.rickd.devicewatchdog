@@ -31,6 +31,7 @@ describe('sanitizeRule', () => {
     autoTestOnStale: true,
     autoTestTriggerOnHeal: true,
     includeBatteryForReporting: true,
+    dismissedRecommendedHours: 6,
   };
 
   test('every known field survives the round-trip unchanged', () => {
@@ -86,6 +87,7 @@ describe('sanitizeRule', () => {
     assert.equal(sanitized.includeLastSeenForReporting, null);
     assert.equal(sanitized.pausedUntil, null);
     assert.equal(sanitized.batteryTypeOverride, null);
+    assert.equal(sanitized.dismissedRecommendedHours, null);
   });
 });
 

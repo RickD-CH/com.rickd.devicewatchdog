@@ -26,6 +26,8 @@
     "rowInterval": "⌀ ~__value__ __unit__",
     "rowMaxGap": "längste ~__value__ __unit__",
     "entriesToggle": "Letzte Meldungen anzeigen",
+    "applyButton": "Übernehmen",
+    "dismissButton": "Ignorieren",
     "applyAllButton": "Alle übernehmen",
     "applyAllConfirm": "Den empfohlenen Schwellwert für alle __count__ aufgelisteten Geräte übernehmen?",
     "loadFailed": "Empfehlungen konnten nicht geladen werden: __error__"
