@@ -149,6 +149,9 @@
       background: var(--color-card-bg);
     }
     .card h2 { font-size: 15px; margin: 0 0 12px; }
+    /* Restates which section this is, now that the tab triggers themselves are icon-only
+       (no text label up in the .tabs bar to confirm it once you're actually inside one). */
+    .tab-panel-title { font-size: 17px; margin: 0 0 14px; }
     .field-row { margin-bottom: 4px; }
     .field-row label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
     .field-row input[type="text"], .field-row input[type="number"], .field-row textarea {
@@ -440,6 +443,7 @@
 
   <!-- ============ TAB: GERÄTE ============ -->
   <div class="tab-panel active" id="tab-devices">
+    <h2 class="tab-panel-title" id="tab-title-devices">Geräte</h2>
     <div class="toolbar">
       <button class="btn primary" id="btn-run-scan">Scan jetzt ausführen</button>
       <span id="save-status"></span>
@@ -468,6 +472,7 @@
 
   <!-- ============ TAB: EMPFEHLUNGEN ============ -->
   <div class="tab-panel" id="tab-recommendations">
+    <h2 class="tab-panel-title" id="tab-title-recommendations">Empfehlungen</h2>
     <p class="hint" id="rec-hint">Geräte, deren aktueller Schwellwert ("Stunden bis 'offline'") vom beobachteten Meldeverhalten abweicht.</p>
     <p class="hint" id="rec-dismiss-hint">"Ignorieren" blendet einen konkreten Vorschlag aus, ohne ihn zu übernehmen - taucht erst wieder auf, wenn sich die Empfehlung später auf eine andere Zahl ändert. Rückgängig geht das aktuell nur über "Zurücksetzen" in den Geräte-Details - das löscht dann aber auch alle anderen individuellen Einstellungen für dieses Gerät.</p>
     <div class="field-row">
@@ -483,6 +488,7 @@
 
   <!-- ============ TAB: EINSTELLUNGEN ============ -->
   <div class="tab-panel" id="tab-settings">
+    <h2 class="tab-panel-title" id="tab-title-settings">Einstellungen</h2>
     <div class="toolbar">
       <span id="save-status-settings"></span>
     </div>
@@ -621,6 +627,7 @@
 
   <!-- ============ TAB: VERLAUF ============ -->
   <div class="tab-panel" id="tab-log">
+    <h2 class="tab-panel-title" id="tab-title-log">Verlauf</h2>
     <div class="toolbar">
       <span id="log-info" class="hint" style="margin:0;"></span>
       <span class="spacer"></span>
@@ -631,6 +638,7 @@
 
   <!-- ============ TAB: SUPPORT ============ -->
   <div class="tab-panel" id="tab-support">
+    <h2 class="tab-panel-title" id="tab-title-support">Support</h2>
     <div class="card">
       <h2 id="h2-forum">Fragen oder Probleme?</h2>
       <p class="hint" id="hint-forum">Antworten auf häufige Fragen und der direkte Kontakt zum Entwickler gibt's im Community-Forum.</p>
@@ -741,6 +749,13 @@
         labelTab('tab-btn-log', 'tabs.log');
         labelTab('tab-btn-settings', 'tabs.settings');
         labelTab('tab-btn-support', 'tabs.support');
+        // Same tabs.* strings as the icon buttons' title/aria-label above, just as visible
+        // text at the top of each panel's own content - see .tab-panel-title's comment.
+        document.getElementById('tab-title-devices').textContent = Homey.__('tabs.devices');
+        document.getElementById('tab-title-recommendations').textContent = Homey.__('tabs.recommendations');
+        document.getElementById('tab-title-log').textContent = Homey.__('tabs.log');
+        document.getElementById('tab-title-settings').textContent = Homey.__('tabs.settings');
+        document.getElementById('tab-title-support').textContent = Homey.__('tabs.support');
         document.getElementById('rec-hint').textContent = Homey.__('recommendations.hint');
         document.getElementById('rec-dismiss-hint').textContent = Homey.__('recommendations.dismissHint');
         document.getElementById('lbl-rec-min-days').textContent = Homey.__('recommendations.minDaysLabel');
