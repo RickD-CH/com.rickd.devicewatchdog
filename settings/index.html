@@ -877,6 +877,19 @@
       // ---------------------------------------------------------------
       // Tabs
       // ---------------------------------------------------------------
+      // Touch swipe already scrolls .tabs natively - a desktop mouse has no such gesture,
+      // and the scrollbar itself is hidden (see .tabs CSS), so without this a mouse-only
+      // user had no way at all to reach a tab scrolled out of view (live feedback: worked
+      // on mobile, not on desktop). Standard trick: redirect the vertical wheel delta a
+      // normal mouse/trackpad produces into horizontal scroll. Left alone (not
+      // preventDefault'd) when deltaY is 0 - that's already a horizontal gesture (shift+wheel,
+      // a trackpad's native horizontal swipe), which the browser handles correctly on its own.
+      document.querySelector('.tabs').addEventListener('wheel', function (e) {
+        if (e.deltaY === 0) return;
+        e.preventDefault();
+        this.scrollLeft += e.deltaY;
+      }, { passive: false });
+
       document.querySelectorAll('.tab-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
           document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
