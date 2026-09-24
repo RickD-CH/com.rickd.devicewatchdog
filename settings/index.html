@@ -2611,6 +2611,10 @@
           var device = state.devices.find(function (d) { return d.id === id; });
           if (!device) return; // stale entry for a since-deleted device - server prunes these on its own next scan
           var rule = getDeviceRule(id);
+          // A device that isn't currently monitored at all (toggle off / paused) or has
+          // "not reporting" specifically skipped (battery-only) has no running check for
+          // this threshold to even apply to - recommending one for it is meaningless.
+          if (rule && (rule.excludeAll || rule.onlyCheckBattery || isRulePaused(rule))) return;
           var current = (rule && rule.notReportingHours != null) ? rule.notReportingHours : state.config.notReportingThresholdHours;
           if (stats.recommendedHours === current) return;
           // Dismissed THIS specific value already - not a blanket mute, so if the
