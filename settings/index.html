@@ -439,6 +439,7 @@
   <!-- ============ TAB: EMPFEHLUNGEN ============ -->
   <div class="tab-panel" id="tab-recommendations">
     <p class="hint" id="rec-hint">Geräte, deren aktueller Schwellwert ("Stunden bis 'offline'") vom beobachteten Meldeverhalten abweicht.</p>
+    <p class="hint" id="rec-dismiss-hint">"Ignorieren" blendet einen konkreten Vorschlag aus, ohne ihn zu übernehmen - taucht erst wieder auf, wenn sich die Empfehlung später auf eine andere Zahl ändert. Rückgängig geht das aktuell nur über "Zurücksetzen" in den Geräte-Details - das löscht dann aber auch alle anderen individuellen Einstellungen für dieses Gerät.</p>
     <div class="field-row">
       <label for="rec-min-days" id="lbl-rec-min-days">Mindest-Beobachtungsdauer (Tage)</label>
       <input type="number" id="rec-min-days" min="0" step="1" value="7" />
@@ -699,6 +700,7 @@
         document.getElementById('tab-btn-devices').textContent = Homey.__('tabs.devices');
         document.getElementById('tab-btn-recommendations').textContent = Homey.__('tabs.recommendations');
         document.getElementById('rec-hint').textContent = Homey.__('recommendations.hint');
+        document.getElementById('rec-dismiss-hint').textContent = Homey.__('recommendations.dismissHint');
         document.getElementById('lbl-rec-min-days').textContent = Homey.__('recommendations.minDaysLabel');
         document.getElementById('hint-rec-min-days').textContent = Homey.__('recommendations.minDaysHint');
         document.getElementById('rec-loading').textContent = Homey.__('recommendations.loading');

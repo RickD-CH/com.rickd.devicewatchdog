@@ -18,6 +18,7 @@
   },
   "recommendations": {
     "hint": "Geräte, deren aktueller Schwellwert (\"Stunden bis 'offline'\") vom beobachteten Meldeverhalten abweicht.",
+    "dismissHint": "\"Ignorieren\" blendet einen konkreten Vorschlag aus, ohne ihn zu übernehmen - taucht erst wieder auf, wenn sich die Empfehlung später auf eine andere Zahl ändert. Rückgängig geht das aktuell nur über \"Zurücksetzen\" in den Geräte-Details - das löscht dann aber auch alle anderen individuellen Einstellungen für dieses Gerät.",
     "minDaysLabel": "Mindest-Beobachtungsdauer (Tage)",
     "minDaysHint": "Ein Gerät, das erst kürzer als das beobachtet wird, taucht noch nicht auf, auch wenn schon genug Meldungen vorliegen.",
     "loading": "Wird geladen…",

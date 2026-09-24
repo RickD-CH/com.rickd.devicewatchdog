@@ -18,6 +18,7 @@
   },
   "recommendations": {
     "hint": "Devices whose current threshold (\"Hours until 'offline'\") doesn't match what's actually been observed.",
+    "dismissHint": "\"Dismiss\" hides a specific suggestion without applying it - it comes back once the recommendation later changes to a different number. There's currently no dedicated way to undo this here - only a full \"Reset\" in that device's Details, which also clears every other individual setting for it.",
     "minDaysLabel": "Minimum observation period (days)",
     "minDaysHint": "A device observed for less than this won't show up yet, even if it already has enough samples.",
     "loading": "Loading…",
