@@ -413,8 +413,10 @@
          the real label for hover/screen readers; the icons themselves are set here, not via
          applyStaticTranslations, since emoji don't need per-language translation. 💡 for
          Empfehlungen reuses the exact icon the per-device recommendation box already shows
-         (.sn-rec-i) - same concept, same symbol. -->
-    <button class="tab-btn active" data-tab="devices" id="tab-btn-devices">🔌</button>
+         (.sn-rec-i) - same concept, same symbol. 🔍 for Geräte (not e.g. 🔌, which read as
+         "a device" rather than "monitoring") also matches the app's own mascot/icon, which
+         holds a magnifying glass. -->
+    <button class="tab-btn active" data-tab="devices" id="tab-btn-devices">🔍</button>
     <button class="tab-btn" data-tab="recommendations" id="tab-btn-recommendations">💡</button>
     <button class="tab-btn" data-tab="log" id="tab-btn-log">📔</button>
     <button class="tab-btn" data-tab="settings" id="tab-btn-settings">⚙️</button>
