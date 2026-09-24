@@ -482,7 +482,7 @@
     </div>
     <div class="field-row">
       <label for="cfg-safety-factor" id="lbl-safety-factor">Sicherheitsfaktor für Empfehlungen</label>
-      <input type="number" id="cfg-safety-factor" min="1" max="5" step="0.01" />
+      <input type="text" inputmode="decimal" id="cfg-safety-factor" />
       <p class="hint" id="hint-safety-factor">Wie viel Puffer die Empfehlung über die längste tatsächlich beobachtete Lücke hinaus einrechnet (Standard 1.5x). Kleiner stellen (z.B. 1.3) für engere Vorschläge - nicht unter 1.0x möglich, da sonst ein Schwellwert vorgeschlagen würde, der kürzer ist als eine bereits beobachtete Lücke.</p>
     </div>
     <p class="hint" id="rec-loading" style="display:none;">Wird geladen…</p>
@@ -1002,7 +1002,7 @@
         document.getElementById('cfg-alarm-low-battery').checked = c.alarmIncludesLowBattery !== false;
         document.getElementById('cfg-high-contrast').checked = !!c.highContrastText;
         document.getElementById('cfg-color-theme').value = c.colorTheme || 'auto';
-        document.getElementById('cfg-safety-factor').value = c.recommendationSafetyFactor;
+        document.getElementById('cfg-safety-factor').value = String(c.recommendationSafetyFactor);
         document.getElementById('row-interval-minutes').style.display = c.scanIntervalEnabled ? '' : 'none';
         applyHighContrast(!!c.highContrastText);
         applyColorTheme(c.colorTheme || 'auto');
@@ -1042,7 +1042,12 @@
           alarmIncludesLowBattery: document.getElementById('cfg-alarm-low-battery').checked,
           highContrastText: document.getElementById('cfg-high-contrast').checked,
           colorTheme: document.getElementById('cfg-color-theme').value,
-          recommendationSafetyFactor: Number(document.getElementById('cfg-safety-factor').value) || 1.5,
+          // type="text" (not type="number") specifically so "." always works regardless of
+          // OS/browser locale - a plain type="number" input parses what you type using the
+          // locale's own decimal separator, so "1.5" is silently rejected as invalid on a
+          // system expecting "1,5" (confirmed live). Still accepts a typed "," defensively,
+          // since some users will type it out of habit anyway.
+          recommendationSafetyFactor: Number(String(document.getElementById('cfg-safety-factor').value).replace(',', '.')) || 1.5,
         };
       }
 
