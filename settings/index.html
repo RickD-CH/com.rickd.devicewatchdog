@@ -153,7 +153,7 @@
        (no text label up in the .tabs bar to confirm it once you're actually inside one). */
     .tab-panel-title { font-size: 17px; margin: 0 0 14px; }
     .field-row { margin-bottom: 4px; }
-    .field-row label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+    .field-row label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px; color: var(--color-text); }
     .field-row input[type="text"], .field-row input[type="number"], .field-row textarea {
       width: 100%;
       padding: 7px 9px;
@@ -314,6 +314,7 @@
        set on ancestors, so there's no horizontal scroll to reveal the rest either). */
     .device-advanced .f.chk.chk-wrap { white-space: normal; align-items: flex-start; }
     .device-advanced input[type=number] { width: 90px; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; }
+    .device-advanced input[type=text] { padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-input-bg); color: var(--color-text); }
     .cap-block { width: 100%; max-width: 100%; }
     .cap-block summary { cursor: pointer; color: var(--color-muted); font-size: 12.5px; }
     .cap-block .cap-body { margin-top: 8px; }
@@ -448,7 +449,7 @@
       <button class="btn primary" id="btn-run-scan">Scan jetzt ausführen</button>
       <span id="save-status"></span>
       <div class="search-wrap">
-        <input type="text" class="search-input" id="device-search" placeholder="Gerät suchen…" />
+        <input type="text" class="search-input hy-nostyle" id="device-search" placeholder="Gerät suchen…" />
         <button class="search-clear" id="btn-clear-search" title="Suche löschen" style="display:none;">✕</button>
       </div>
       <select class="select-input" id="device-sort">
@@ -482,7 +483,7 @@
     </div>
     <div class="field-row">
       <label for="cfg-safety-factor" id="lbl-safety-factor">Sicherheitsfaktor für Empfehlungen</label>
-      <input type="text" inputmode="decimal" id="cfg-safety-factor" />
+      <input type="text" inputmode="decimal" id="cfg-safety-factor" class="hy-nostyle" />
       <p class="hint" id="hint-safety-factor">Wie viel Puffer die Empfehlung über die längste tatsächlich beobachtete Lücke hinaus einrechnet (Standard 1.5x). Kleiner stellen (z.B. 1.3) für engere Vorschläge - nicht unter 1.0x möglich, da sonst ein Schwellwert vorgeschlagen würde, der kürzer ist als eine bereits beobachtete Lücke.</p>
     </div>
     <p class="hint" id="rec-loading" style="display:none;">Wird geladen…</p>
@@ -1512,7 +1513,7 @@
           '<label class="f chk"><input type="checkbox" data-field="excludeBattery" data-id="' + id + '"' + (r.excludeBattery ? ' checked' : '') + ' /> ' + Homey.__('advanced.excludeBattery') + '</label>' +
           '<label class="f chk chk-wrap" title="' + escapeHtml(Homey.__('advanced.includeBatteryForReportingHint')) + '"><input type="checkbox" data-field="includeBatteryForReporting" data-id="' + id + '"' + (r.includeBatteryForReporting !== false ? ' checked' : '') + ' /> ' + Homey.__('advanced.includeBatteryForReporting') + '</label>' +
           '<div class="f" title="' + escapeHtml(Homey.__('advanced.batteryTypeOverrideHint')) + '"><label>' + Homey.__('advanced.batteryTypeOverride') + '</label>' +
-            '<input type="text" maxlength="40" data-field="batteryTypeOverride" data-id="' + id + '" value="' + escapeHtml(r.batteryTypeOverride || '') + '" placeholder="' + escapeHtml(formatBatteryTypes(view.device.batteryTypes) || Homey.__('advanced.batteryTypeOverridePlaceholder')) + '" />' +
+            '<input type="text" class="hy-nostyle" maxlength="40" data-field="batteryTypeOverride" data-id="' + id + '" value="' + escapeHtml(r.batteryTypeOverride || '') + '" placeholder="' + escapeHtml(formatBatteryTypes(view.device.batteryTypes) || Homey.__('advanced.batteryTypeOverridePlaceholder')) + '" />' +
           '</div>'
         : '';
 
