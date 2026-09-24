@@ -89,19 +89,21 @@
     .tabs {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 2px;
       border-bottom: 1px solid var(--color-border);
       margin-bottom: 16px;
       position: sticky;
       top: 0;
       background: var(--color-card-bg);
       z-index: 5;
-      padding-top: 4px;
-      /* The widget-popup frame turned out narrower than assumed - even 4 tabs + a "more"
-         trigger didn't fit without scrolling anyway (live feedback/screenshot), so the
-         "more" menu idea was reverted in favour of just scrolling all 5 tabs, with the
-         scrollbar chrome itself hidden below so it reads as a swipeable strip, not a
-         visible scrollbar-with-arrows control competing for the same cramped space. */
+      padding: 4px 4px 6px;
+      /* German labels ("Einstellungen", "Empfehlungen") run longer than a same-purpose
+         English tab bar (compared live against another app's, whose 5 tabs fit with no
+         scrolling at all - "not scrolling in the first place" read better than any version
+         of a scroll affordance) - tightened padding/font/gap below gets close to that for
+         the common case; overflow-x stays as a fallback for a narrower window or a future
+         6th tab, not the primary plan anymore. Scrollbar chrome hidden either way, so a
+         fallback scroll still doesn't look like one. */
       overflow-x: auto;
       scrollbar-width: none; /* Firefox */
       -ms-overflow-style: none; /* old Edge/IE */
@@ -112,15 +114,15 @@
     .tab-btn {
       border: none;
       background: none;
-      padding: 8px 14px;
+      padding: 6px 8px;
+      border-radius: 5px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 12.5px;
       flex-shrink: 0;
       white-space: nowrap;
       color: var(--color-muted);
-      border-bottom: 2px solid transparent;
     }
-    .tab-btn.active { color: #1a73e8; border-bottom-color: #1a73e8; font-weight: 600; }
+    .tab-btn.active { color: var(--color-text); font-weight: 600; background: var(--color-info-bg); }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
     .card {
