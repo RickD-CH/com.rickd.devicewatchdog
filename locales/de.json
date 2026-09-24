@@ -21,6 +21,8 @@
     "dismissHint": "\"Ignorieren\" blendet einen konkreten Vorschlag aus, ohne ihn zu übernehmen - taucht erst wieder auf, wenn sich die Empfehlung später auf eine andere Zahl ändert. Rückgängig geht das aktuell nur über \"Zurücksetzen\" in den Geräte-Details - das löscht dann aber auch alle anderen individuellen Einstellungen für dieses Gerät.",
     "minDaysLabel": "Mindest-Beobachtungsdauer (Tage)",
     "minDaysHint": "Ein Gerät, das erst kürzer als das beobachtet wird, taucht noch nicht auf, auch wenn schon genug Meldungen vorliegen.",
+    "safetyFactorLabel": "Sicherheitsfaktor für Empfehlungen",
+    "safetyFactorHint": "Wie viel Puffer die Empfehlung über die längste tatsächlich beobachtete Lücke hinaus einrechnet (Standard 1.5x). Kleiner stellen (z.B. 1.3) für engere Vorschläge - nicht unter 1.0x möglich, da sonst ein Schwellwert vorgeschlagen würde, der kürzer ist als eine bereits beobachtete Lücke.",
     "loading": "Wird geladen…",
     "empty": "Aktuell keine Empfehlungen - entweder passen alle Schwellwerte schon, oder es liegen noch nicht genug Daten/Beobachtungszeit vor.",
     "rowSummary": "Aktuell: __current__h → Empfohlen: __recommended__h",

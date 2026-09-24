@@ -641,6 +641,36 @@ describe('computeUpdateStats', () => {
     assert.equal(result.recommendedHours, 5);
   });
 
+  test('a custom safetyFactor overrides the 1.5x default', () => {
+    const start = 1_700_000_000_000;
+    const entries = [
+      entry(start),
+      entry(start + 10 * 60 * 1000),
+      entry(start + 20 * 60 * 1000),
+      entry(start + 3 * HOUR + 20 * 60 * 1000),
+      entry(start + 3 * HOUR + 30 * 60 * 1000),
+    ];
+    // ceil(3h * 1.2) = 4h, not the default 5h.
+    assert.equal(scanner.computeUpdateStats(entries, null, 1.2).recommendedHours, 4);
+    // ceil(3h * 2) = 6h.
+    assert.equal(scanner.computeUpdateStats(entries, null, 2).recommendedHours, 6);
+  });
+
+  test('an invalid/missing safetyFactor falls back to the 1.5x default, not a thrown error', () => {
+    const start = 1_700_000_000_000;
+    const entries = [
+      entry(start),
+      entry(start + 10 * 60 * 1000),
+      entry(start + 20 * 60 * 1000),
+      entry(start + 3 * HOUR + 20 * 60 * 1000),
+      entry(start + 3 * HOUR + 30 * 60 * 1000),
+    ];
+    assert.equal(scanner.computeUpdateStats(entries, null, undefined).recommendedHours, 5);
+    assert.equal(scanner.computeUpdateStats(entries, null, 0).recommendedHours, 5);
+    assert.equal(scanner.computeUpdateStats(entries, null, -1).recommendedHours, 5);
+    assert.equal(scanner.computeUpdateStats(entries, null, NaN).recommendedHours, 5);
+  });
+
   test('recommendedHours is never below the 1h floor for a very chatty device', () => {
     const start = 1_700_000_000_000;
     const entries = [0, 1, 2, 3, 4, 5].map((i) => entry(start + i * 60 * 1000)); // every minute

@@ -1,4 +1,8 @@
 {
+  "1.9.41": {
+    "en": "• Recommendations tab: the 1.5x safety margin behind the suggested threshold is now adjustable - lower it for tighter suggestions",
+    "de": "• Empfehlungen-Lasche: der 1.5x-Sicherheitsfaktor hinter dem Schwellwert-Vorschlag ist jetzt einstellbar - kleiner stellen für engere Vorschläge"
+  },
   "1.9.40": {
     "en": "• New tabs with icons\n• Thresholds in Recommendations are now editable\n• Per-device \"Dismiss\" for a suggestion\n• Fixed: auto-test-before-flagging was skewing the recommendation stats",
     "de": "• Neue Laschen mit Icons\n• Schwellwerte bei den Empfehlungen jetzt editierbar\n• \"Ignorieren\" pro Gerät für einen Vorschlag\n• Fehlerbehebung: automatischer Test vor Meldung verfälschte die Empfehlungs-Statistik"

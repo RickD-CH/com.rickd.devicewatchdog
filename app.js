@@ -81,6 +81,18 @@ function nonNegativeNumberOrDefault(value, fallback) {
   return Number.isFinite(n) && n >= 0 ? n : fallback;
 }
 
+// Clamps the Recommendations tab's configurable safety-margin multiplier (see
+// lib/scanner.js#computeUpdateStats). Below 1.0 would suggest a threshold shorter than a
+// gap already observed - guaranteed to immediately re-flag the device, the opposite of
+// what this setting is for. Capped at 5.0 as a sanity ceiling - past that the suggestion
+// stops being "worst gap + headroom" and is almost certainly a typo. Rounded to 2 decimals
+// to match the Settings UI's step="0.01" input and avoid float precision creep across saves.
+function safetyFactorOrDefault(value, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.round(Math.min(5, Math.max(1, n)) * 100) / 100;
+}
+
 // One-time migration: the per-device override used to be "days until offline"
 // (notReportingDays), now it's hours (notReportingHours) to match the base threshold.
 function migrateRuleToHours(rule) {
@@ -856,6 +868,9 @@ class DeviceWatchdogApp extends Homey.App {
         startupGraceMinutes: nonNegativeNumberOrDefault(
           config.startupGraceMinutes, DEFAULT_CONFIG.startupGraceMinutes,
         ),
+        recommendationSafetyFactor: safetyFactorOrDefault(
+          config.recommendationSafetyFactor, DEFAULT_CONFIG.recommendationSafetyFactor,
+        ),
       };
       this.homey.settings.set(SETTINGS_KEY_CONFIG, this.config);
     }
@@ -1146,7 +1161,10 @@ class DeviceWatchdogApp extends Homey.App {
   // above: only ever needed for the one Details panel actually open.
   async getDeviceUpdateStats(deviceId) {
     const bucket = this._updateStats[deviceId] || { entries: [], maxGapMs: null, firstSeenTs: null };
-    return { ...scanner.computeUpdateStats(bucket.entries, bucket.maxGapMs), firstSeenTs: bucket.firstSeenTs };
+    return {
+      ...scanner.computeUpdateStats(bucket.entries, bucket.maxGapMs, this.config.recommendationSafetyFactor),
+      firstSeenTs: bucket.firstSeenTs,
+    };
   }
 
   // Same computation as getDeviceUpdateStats, for every device at once - used by the
@@ -1161,7 +1179,7 @@ class DeviceWatchdogApp extends Homey.App {
     for (const [deviceId, bucket] of Object.entries(this._updateStats)) {
       const {
         avgIntervalMs, maxIntervalMs, recommendedHours,
-      } = scanner.computeUpdateStats(bucket.entries, bucket.maxGapMs);
+      } = scanner.computeUpdateStats(bucket.entries, bucket.maxGapMs, this.config.recommendationSafetyFactor);
       if (recommendedHours == null) continue;
       result[deviceId] = {
         avgIntervalMs, maxIntervalMs, recommendedHours, firstSeenTs: bucket.firstSeenTs,
