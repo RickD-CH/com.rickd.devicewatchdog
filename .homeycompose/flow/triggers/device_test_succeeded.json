@@ -2,36 +2,45 @@
   "id": "device_test_succeeded",
   "title": {
     "en": "A device test succeeds",
-    "de": "Ein Geräte-Test ist erfolgreich"
+    "de": "Ein Geräte-Test ist erfolgreich",
+    "sv": "Ett enhetstest lyckas",
+    "nl": "Een apparaattest slaagt",
+    "no": "En enhetstest lykkes"
   },
   "titleFormatted": {
     "en": "[[target_device]]'s reachability test succeeds",
-    "de": "Erreichbarkeitstest von [[target_device]] ist erfolgreich"
+    "de": "Erreichbarkeitstest von [[target_device]] ist erfolgreich",
+    "sv": "Nåbarhetstestet för [[target_device]] lyckas",
+    "nl": "De bereikbaarheidstest van [[target_device]] slaagt",
+    "no": "Nåbarhetstesten for [[target_device]] lykkes"
   },
   "hint": {
     "en": "Fires whenever a reachability test for the selected device succeeds - whether started manually (\"Test\" button in Settings) or via the \"Test device reachability\" action card.",
-    "de": "Wird ausgelöst, wenn ein Erreichbarkeitstest für das gewählte Gerät erfolgreich ist - egal ob manuell (\"Testen\"-Button in den Einstellungen) oder über die Aktionskarte \"Geräte-Erreichbarkeit testen\" gestartet."
+    "de": "Wird ausgelöst, wenn ein Erreichbarkeitstest für das gewählte Gerät erfolgreich ist - egal ob manuell (\"Testen\"-Button in den Einstellungen) oder über die Aktionskarte \"Geräte-Erreichbarkeit testen\" gestartet.",
+    "sv": "Utlöses varje gång ett nåbarhetstest för den valda enheten lyckas - oavsett om det startats manuellt (knappen \"Testa\" i inställningarna) eller via åtgärdskortet \"Testa enhetens nåbarhet\".",
+    "nl": "Wordt geactiveerd telkens wanneer een bereikbaarheidstest voor het gekozen apparaat slaagt - of dit nu handmatig is gestart (knop \"Test\" in de instellingen) of via de actiekaart \"Bereikbaarheid van apparaat testen\".",
+    "no": "Utløses hver gang en nåbarhetstest for den valgte enheten lykkes - enten den er startet manuelt (\"Test\"-knappen i innstillingene) eller via handlingskortet \"Test enhetens nåbarhet\"."
   },
   "args": [
     {
       "name": "target_device",
       "type": "autocomplete",
-      "title": { "en": "Device", "de": "Gerät" },
-      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen", "sv": "Välj en enhet", "nl": "Kies een apparaat", "no": "Velg en enhet" }
     }
   ],
   "tokens": [
     {
       "name": "device",
       "type": "string",
-      "title": { "en": "Device", "de": "Gerät" },
-      "example": { "en": "Front door lock", "de": "Haustürschloss" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "example": { "en": "Front door lock", "de": "Haustürschloss", "sv": "Ytterdörrslås", "nl": "Voordeurslot", "no": "Inngangsdørlås" }
     },
     {
       "name": "zone",
       "type": "string",
-      "title": { "en": "Zone", "de": "Zone" },
-      "example": { "en": "Hallway", "de": "Flur" }
+      "title": { "en": "Zone", "de": "Zone", "sv": "Zon", "nl": "Zone", "no": "Sone" },
+      "example": { "en": "Hallway", "de": "Flur", "sv": "Hall", "nl": "Hal", "no": "Gang" }
     }
   ]
 }

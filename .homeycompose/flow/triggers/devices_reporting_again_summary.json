@@ -2,28 +2,37 @@
   "id": "devices_reporting_again_summary",
   "title": {
     "en": "Devices are reporting again",
-    "de": "Geräte melden sich wieder"
+    "de": "Geräte melden sich wieder",
+    "sv": "Enheter rapporterar igen",
+    "nl": "Apparaten rapporteren weer",
+    "no": "Enheter rapporterer igjen"
   },
   "titleFormatted": {
     "en": "Devices are reporting again",
-    "de": "Geräte melden sich wieder"
+    "de": "Geräte melden sich wieder",
+    "sv": "Enheter rapporterar igen",
+    "nl": "Apparaten rapporteren weer",
+    "no": "Enheter rapporterer igjen"
   },
   "hint": {
     "en": "Fires once per scan, bundling every device that newly resumed reporting in that scan into a single trigger - the recovery counterpart to \"Devices are newly found not reporting\".",
-    "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die sich in diesem Scan wieder gemeldet haben, in einem einzigen Trigger - das Erholungs-Gegenstück zu \"Es werden neu Geräte gefunden, die sich nicht mehr melden\"."
+    "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die sich in diesem Scan wieder gemeldet haben, in einem einzigen Trigger - das Erholungs-Gegenstück zu \"Es werden neu Geräte gefunden, die sich nicht mehr melden\".",
+    "sv": "Utlöses en gång per skanning och samlar alla enheter som nyss börjat rapportera igen i den skanningen i en enda trigger - motsvarigheten vid återhämtning till \"Enheter har nyss visat sig inte rapportera\".",
+    "nl": "Wordt één keer per scan geactiveerd en bundelt alle apparaten die in die scan net weer zijn gaan rapporteren in één trigger - het herstel-equivalent van \"Er zijn zojuist apparaten gevonden die niet rapporteren\".",
+    "no": "Utløses én gang per skanning og samler alle enheter som nettopp har begynt å rapportere igjen i den skanningen i én enkelt trigger - motstykket ved gjenoppretting til \"Det er nettopp funnet enheter som ikke rapporterer\"."
   },
   "tokens": [
     {
       "name": "count",
       "type": "number",
-      "title": { "en": "Count", "de": "Anzahl" },
+      "title": { "en": "Count", "de": "Anzahl", "sv": "Antal", "nl": "Aantal", "no": "Antall" },
       "example": 2
     },
     {
       "name": "devices",
       "type": "string",
-      "title": { "en": "Devices", "de": "Geräte" },
-      "example": { "en": "Garage sensor, Garden sensor", "de": "Garage Sensor, Garten Sensor" }
+      "title": { "en": "Devices", "de": "Geräte", "sv": "Enheter", "nl": "Apparaten", "no": "Enheter" },
+      "example": { "en": "Garage sensor, Garden sensor", "de": "Garage Sensor, Garten Sensor", "sv": "Garagesensor, Trädgårdssensor", "nl": "Garagesensor, Tuinsensor", "no": "Garasjesensor, Hagesensor" }
     }
   ]
 }

@@ -2,32 +2,41 @@
   "id": "pause_device",
   "title": {
     "en": "Pause device until date",
-    "de": "Gerät bis Datum pausieren"
+    "de": "Gerät bis Datum pausieren",
+    "sv": "Pausa enhet till datum",
+    "nl": "Apparaat pauzeren tot datum",
+    "no": "Sett enhet på pause til dato"
   },
   "titleFormatted": {
     "en": "Pause [[device]] until [[date]] [[rescanNow]]",
-    "de": "[[device]] bis [[date]] pausieren [[rescanNow]]"
+    "de": "[[device]] bis [[date]] pausieren [[rescanNow]]",
+    "sv": "Pausa [[device]] till [[date]] [[rescanNow]]",
+    "nl": "Pauzeer [[device]] tot [[date]] [[rescanNow]]",
+    "no": "Sett [[device]] på pause til [[date]] [[rescanNow]]"
   },
   "hint": {
     "en": "Skips the device entirely (like the \"monitored\" toggle turned off) until the given date, then it resumes automatically on the next scan. Same effect as setting \"Paused until\" under the device's Details. For a computed/dynamic date via a token or Homey Logic variable instead of picking a fixed date, use \"Pause device until date (variable)\" instead.\n\n\"Rescan immediately\" below forces a full device scan right after pausing, so this device's counts, the virtual device's alarm, and the dashboard widget reflect the pause right away - instead of only catching up on the next scheduled/manual scan. Useful if the device currently has an active problem you want cleared from the counts immediately. Off by default (no extra scan unless you turn it on).",
-    "de": "Überspringt das Gerät komplett (wie beim ausgeschalteten \"Überwacht\"-Schalter) bis zum angegebenen Datum, danach wird es beim nächsten Scan automatisch wieder aktiv. Gleicher Effekt wie \"Pausiert bis\" in den Geräte-Details. Für ein berechnetes/dynamisches Datum via Token oder Homey-Logic-Variable statt eines festen Datums stattdessen \"Gerät bis Datum pausieren (Variable)\" verwenden.\n\n\"Sofort neu scannen\" weiter unten erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler dieses Geräts, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln - statt erst beim nächsten geplanten/manuellen Scan nachzuziehen. Nützlich, wenn das Gerät gerade ein aktives Problem hat, das sofort aus den Zählern verschwinden soll. Standardmäßig aus (kein zusätzlicher Scan, außer du aktivierst es)."
+    "de": "Überspringt das Gerät komplett (wie beim ausgeschalteten \"Überwacht\"-Schalter) bis zum angegebenen Datum, danach wird es beim nächsten Scan automatisch wieder aktiv. Gleicher Effekt wie \"Pausiert bis\" in den Geräte-Details. Für ein berechnetes/dynamisches Datum via Token oder Homey-Logic-Variable statt eines festen Datums stattdessen \"Gerät bis Datum pausieren (Variable)\" verwenden.\n\n\"Sofort neu scannen\" weiter unten erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler dieses Geräts, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln - statt erst beim nächsten geplanten/manuellen Scan nachzuziehen. Nützlich, wenn das Gerät gerade ein aktives Problem hat, das sofort aus den Zählern verschwinden soll. Standardmäßig aus (kein zusätzlicher Scan, außer du aktivierst es).",
+    "sv": "Hoppar över enheten helt (som när reglaget \"övervakas\" är avstängt) till angivet datum, därefter återupptas den automatiskt vid nästa skanning. Samma effekt som att ange \"Pausad till\" under enhetens Detaljer. För ett beräknat/dynamiskt datum via en token eller en Homey Logic-variabel i stället för ett fast datum, använd \"Pausa enhet till datum (variabel)\" i stället.\n\n\"Skanna om direkt\" nedan tvingar fram en fullständig enhetsskanning direkt efter pausen, så att enhetens räknare, den virtuella enhetens larm och dashboard-widgeten speglar pausen direkt - i stället för att först hinna ikapp vid nästa schemalagda/manuella skanning. Användbart om enheten just nu har ett aktivt problem som du vill ta bort från räknarna omedelbart. Av som standard (ingen extra skanning om du inte slår på det).",
+    "nl": "Slaat het apparaat volledig over (alsof de schakelaar \"bewaakt\" uitstaat) tot de opgegeven datum; daarna wordt het bij de volgende scan automatisch weer opgepakt. Zelfde effect als \"Gepauzeerd tot\" instellen onder de Details van het apparaat. Voor een berekende/dynamische datum via een token of Homey Logic-variabele in plaats van een vaste datum, gebruik je in plaats daarvan \"Apparaat pauzeren tot datum (variabele)\".\n\n\"Direct opnieuw scannen\" hieronder forceert direct na het pauzeren een volledige apparaatscan, zodat de tellers van dit apparaat, het alarm van het virtuele apparaat en de dashboardwidget de pauze meteen weergeven - in plaats van pas bij de volgende geplande/handmatige scan bij te werken. Handig als het apparaat op dat moment een actief probleem heeft dat je direct uit de tellers wilt halen. Standaard uit (geen extra scan, tenzij je het inschakelt).",
+    "no": "Hopper helt over enheten (som når bryteren \"overvåket\" er slått av) til oppgitt dato, og deretter gjenopptas den automatisk ved neste skanning. Samme effekt som å sette \"Pauset til\" under enhetens Detaljer. For en beregnet/dynamisk dato via et token eller en Homey Logic-variabel i stedet for en fast dato, bruk \"Sett enhet på pause til dato (variabel)\" i stedet.\n\n\"Skann på nytt umiddelbart\" nedenfor tvinger frem en full enhetsskanning rett etter pausen, slik at enhetens tellere, den virtuelle enhetens alarm og dashboard-widgeten gjenspeiler pausen med en gang - i stedet for å først oppdatere seg ved neste planlagte/manuelle skanning. Nyttig hvis enheten har et aktivt problem du vil fjerne fra tellerne umiddelbart. Av som standard (ingen ekstra skanning med mindre du slår det på)."
   },
   "args": [
     {
       "name": "device",
       "type": "autocomplete",
-      "title": { "en": "Device", "de": "Gerät" },
-      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen", "sv": "Välj en enhet", "nl": "Kies een apparaat", "no": "Velg en enhet" }
     },
     {
       "name": "date",
       "type": "date",
-      "title": { "en": "Paused until", "de": "Pausiert bis" }
+      "title": { "en": "Paused until", "de": "Pausiert bis", "sv": "Pausad till", "nl": "Gepauzeerd tot", "no": "Pauset til" }
     },
     {
       "name": "rescanNow",
       "type": "checkbox",
-      "title": { "en": "Rescan immediately", "de": "Sofort neu scannen" }
+      "title": { "en": "Rescan immediately", "de": "Sofort neu scannen", "sv": "Skanna om direkt", "nl": "Direct opnieuw scannen", "no": "Skann på nytt umiddelbart" }
     }
   ]
 }

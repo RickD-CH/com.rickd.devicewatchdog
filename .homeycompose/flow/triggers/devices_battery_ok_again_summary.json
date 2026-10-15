@@ -2,28 +2,37 @@
   "id": "devices_battery_ok_again_summary",
   "title": {
     "en": "Devices' battery is OK again",
-    "de": "Akkustand von Geräten ist wieder OK"
+    "de": "Akkustand von Geräten ist wieder OK",
+    "sv": "Enheters batteri är OK igen",
+    "nl": "Batterij van apparaten is weer OK",
+    "no": "Enheters batteri er OK igjen"
   },
   "titleFormatted": {
     "en": "Devices' battery is OK again",
-    "de": "Akkustand von Geräten ist wieder OK"
+    "de": "Akkustand von Geräten ist wieder OK",
+    "sv": "Enheters batteri är OK igen",
+    "nl": "Batterij van apparaten is weer OK",
+    "no": "Enheters batteri er OK igjen"
   },
   "hint": {
     "en": "Fires once per scan, bundling every device whose battery rose back above its threshold in that scan into a single trigger - the recovery counterpart to \"Devices with low battery are newly found\".",
-    "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, deren Akkustand in diesem Scan wieder über die Schwelle gestiegen ist, in einem einzigen Trigger - das Erholungs-Gegenstück zu \"Es werden neu Geräte mit niedrigem Akku gefunden\"."
+    "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, deren Akkustand in diesem Scan wieder über die Schwelle gestiegen ist, in einem einzigen Trigger - das Erholungs-Gegenstück zu \"Es werden neu Geräte mit niedrigem Akku gefunden\".",
+    "sv": "Utlöses en gång per skanning och samlar alla enheter vars batteri steg över sitt tröskelvärde igen i den skanningen i en enda trigger - motsvarigheten vid återhämtning till \"Enheter med lågt batteri har nyss hittats\".",
+    "nl": "Wordt één keer per scan geactiveerd en bundelt alle apparaten waarvan de batterij in die scan weer boven de drempelwaarde kwam in één trigger - het herstel-equivalent van \"Er zijn zojuist apparaten met een lage batterij gevonden\".",
+    "no": "Utløses én gang per skanning og samler alle enheter der batteriet steg over terskelverdien igjen i den skanningen i én enkelt trigger - motstykket ved gjenoppretting til \"Det er nettopp funnet enheter med lavt batteri\"."
   },
   "tokens": [
     {
       "name": "count",
       "type": "number",
-      "title": { "en": "Count", "de": "Anzahl" },
+      "title": { "en": "Count", "de": "Anzahl", "sv": "Antal", "nl": "Aantal", "no": "Antall" },
       "example": 2
     },
     {
       "name": "devices",
       "type": "string",
-      "title": { "en": "Devices", "de": "Geräte" },
-      "example": { "en": "Garage sensor, Garden sensor", "de": "Garage Sensor, Garten Sensor" }
+      "title": { "en": "Devices", "de": "Geräte", "sv": "Enheter", "nl": "Apparaten", "no": "Enheter" },
+      "example": { "en": "Garage sensor, Garden sensor", "de": "Garage Sensor, Garten Sensor", "sv": "Garagesensor, Trädgårdssensor", "nl": "Garagesensor, Tuinsensor", "no": "Garasjesensor, Hagesensor" }
     }
   ]
 }

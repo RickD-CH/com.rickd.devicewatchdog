@@ -2,15 +2,24 @@
   "id": "any_device_is_not_reporting",
   "title": {
     "en": "!{{Any device is|No device is}} not reporting",
-    "de": "!{{Ein beliebiges Gerät meldet sich nicht|Kein Gerät meldet sich nicht}}"
+    "de": "!{{Ein beliebiges Gerät meldet sich nicht|Kein Gerät meldet sich nicht}}",
+    "sv": "!{{Någon enhet rapporterar inte|Ingen enhet rapporterar inte}}",
+    "nl": "!{{Een apparaat rapporteert niet|Geen apparaat rapporteert niet}}",
+    "no": "!{{Noen enheter rapporterer ikke|Ingen enheter rapporterer ikke}}"
   },
   "titleFormatted": {
     "en": "!{{Any device is|No device is}} not reporting",
-    "de": "!{{Ein beliebiges Gerät meldet sich nicht|Kein Gerät meldet sich nicht}}"
+    "de": "!{{Ein beliebiges Gerät meldet sich nicht|Kein Gerät meldet sich nicht}}",
+    "sv": "!{{Någon enhet rapporterar inte|Ingen enhet rapporterar inte}}",
+    "nl": "!{{Een apparaat rapporteert niet|Geen apparaat rapporteert niet}}",
+    "no": "!{{Noen enheter rapporterer ikke|Ingen enheter rapporterer ikke}}"
   },
   "hint": {
     "en": "Checks the result of the last scan for any device currently flagged as \"not reporting\", without picking one specific device.",
-    "de": "Prüft das Ergebnis des letzten Scans auf ein beliebiges Gerät, das aktuell als \"meldet sich nicht\" markiert ist, ohne ein bestimmtes Gerät auszuwählen."
+    "de": "Prüft das Ergebnis des letzten Scans auf ein beliebiges Gerät, das aktuell als \"meldet sich nicht\" markiert ist, ohne ein bestimmtes Gerät auszuwählen.",
+    "sv": "Kontrollerar resultatet av senaste skanningen efter någon enhet som just nu är markerad som \"rapporterar inte\", utan att välja en specifik enhet.",
+    "nl": "Controleert in het resultaat van de laatste scan of een apparaat momenteel is gemarkeerd als \"rapporteert niet\", zonder een specifiek apparaat te kiezen.",
+    "no": "Sjekker resultatet av siste skanning for enheter som for øyeblikket er markert som \"rapporterer ikke\", uten å velge en bestemt enhet."
   },
   "args": []
 }

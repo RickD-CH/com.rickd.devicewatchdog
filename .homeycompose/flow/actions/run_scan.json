@@ -2,14 +2,23 @@
   "id": "run_scan",
   "title": {
     "en": "Run device scan now",
-    "de": "Geräte-Scan jetzt ausführen"
+    "de": "Geräte-Scan jetzt ausführen",
+    "sv": "Kör enhetsskanning nu",
+    "nl": "Apparaatscan nu uitvoeren",
+    "no": "Kjør enhetsskanning nå"
   },
   "titleFormatted": {
     "en": "Run device scan now",
-    "de": "Geräte-Scan jetzt ausführen"
+    "de": "Geräte-Scan jetzt ausführen",
+    "sv": "Kör enhetsskanning nu",
+    "nl": "Apparaatscan nu uitvoeren",
+    "no": "Kjør enhetsskanning nå"
   },
   "hint": {
     "en": "Runs a full device check immediately, independent of the automatic interval setting. Also works when the automatic scan is disabled in the app settings.",
-    "de": "Führt sofort einen vollständigen Geräte-Check aus, unabhängig vom automatischen Intervall. Funktioniert auch, wenn der automatische Scan in den App-Einstellungen deaktiviert ist."
+    "de": "Führt sofort einen vollständigen Geräte-Check aus, unabhängig vom automatischen Intervall. Funktioniert auch, wenn der automatische Scan in den App-Einstellungen deaktiviert ist.",
+    "sv": "Kör en fullständig enhetskontroll direkt, oberoende av inställningen för automatiskt intervall. Fungerar även när den automatiska skanningen är avstängd i appens inställningar.",
+    "nl": "Voert direct een volledige apparaatcontrole uit, los van de instelling voor het automatische interval. Werkt ook als de automatische scan in de app-instellingen is uitgeschakeld.",
+    "no": "Kjører en full enhetskontroll umiddelbart, uavhengig av innstillingen for automatisk intervall. Fungerer også når den automatiske skanningen er slått av i appinnstillingene."
   }
 }

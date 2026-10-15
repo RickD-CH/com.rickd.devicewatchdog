@@ -2,36 +2,45 @@
   "id": "device_unavailable",
   "title": {
     "en": "A device becomes unavailable",
-    "de": "Ein Gerät wird nicht erreichbar"
+    "de": "Ein Gerät wird nicht erreichbar",
+    "sv": "En enhet blir otillgänglig",
+    "nl": "Een apparaat wordt niet beschikbaar",
+    "no": "En enhet blir utilgjengelig"
   },
   "titleFormatted": {
     "en": "[[target_device]] becomes unavailable",
-    "de": "[[target_device]] wird nicht erreichbar"
+    "de": "[[target_device]] wird nicht erreichbar",
+    "sv": "[[target_device]] blir otillgänglig",
+    "nl": "[[target_device]] wordt niet beschikbaar",
+    "no": "[[target_device]] blir utilgjengelig"
   },
   "hint": {
     "en": "Fires in realtime for the selected device, directly via Homey's device availability event - independent of the interval scan. Respects the device's \"monitored\" toggle (off = never fires for it); the narrower \"Ignore unavailable\" toggle doesn't affect this trigger. For any device instead of one specific one, use \"Devices newly become unavailable\".",
-    "de": "Wird in Echtzeit für das gewählte Gerät über Homeys Geräte-Verfügbarkeits-Event ausgelöst - unabhängig vom Intervall-Scan. Berücksichtigt den \"Überwacht\"-Schalter des Geräts (aus = feuert nie dafür); der feinere Schalter \"Nicht erreichbar ignorieren\" hat darauf keinen Einfluss. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte nicht erreichbar\" verwenden."
+    "de": "Wird in Echtzeit für das gewählte Gerät über Homeys Geräte-Verfügbarkeits-Event ausgelöst - unabhängig vom Intervall-Scan. Berücksichtigt den \"Überwacht\"-Schalter des Geräts (aus = feuert nie dafür); der feinere Schalter \"Nicht erreichbar ignorieren\" hat darauf keinen Einfluss. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte nicht erreichbar\" verwenden.",
+    "sv": "Utlöses i realtid för den valda enheten, direkt via Homeys tillgänglighetshändelse för enheter - oberoende av intervallskanningen. Respekterar enhetens reglage \"övervakas\" (av = utlöses aldrig för den); det snävare reglaget \"Ignorera otillgänglig\" påverkar inte den här triggern. För valfri enhet i stället för en specifik, använd \"Enheter har nyss blivit otillgängliga\".",
+    "nl": "Wordt in realtime geactiveerd voor het gekozen apparaat, rechtstreeks via Homeys beschikbaarheidsevent voor apparaten - los van de intervalscan. Houdt rekening met de schakelaar \"bewaakt\" van het apparaat (uit = wordt nooit geactiveerd); de beperktere schakelaar \"Negeer niet beschikbaar\" heeft geen invloed op deze trigger. Voor een willekeurig apparaat in plaats van een specifiek apparaat gebruik je \"Apparaten zijn zojuist niet beschikbaar geworden\".",
+    "no": "Utløses i sanntid for den valgte enheten, direkte via Homeys tilgjengelighetshendelse for enheter - uavhengig av intervallskanningen. Respekterer enhetens bryter \"overvåket\" (av = utløses aldri for den); den snevrere bryteren \"Ignorer utilgjengelig\" påvirker ikke denne triggeren. For en vilkårlig enhet i stedet for én bestemt, bruk \"Enheter har nettopp blitt utilgjengelige\"."
   },
   "args": [
     {
       "name": "target_device",
       "type": "autocomplete",
-      "title": { "en": "Device", "de": "Gerät" },
-      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen", "sv": "Välj en enhet", "nl": "Kies een apparaat", "no": "Velg en enhet" }
     }
   ],
   "tokens": [
     {
       "name": "device",
       "type": "string",
-      "title": { "en": "Device", "de": "Gerät" },
-      "example": { "en": "Front door lock", "de": "Haustürschloss" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "example": { "en": "Front door lock", "de": "Haustürschloss", "sv": "Ytterdörrslås", "nl": "Voordeurslot", "no": "Inngangsdørlås" }
     },
     {
       "name": "zone",
       "type": "string",
-      "title": { "en": "Zone", "de": "Zone" },
-      "example": { "en": "Hallway", "de": "Flur" }
+      "title": { "en": "Zone", "de": "Zone", "sv": "Zon", "nl": "Zone", "no": "Sone" },
+      "example": { "en": "Hallway", "de": "Flur", "sv": "Hall", "nl": "Hal", "no": "Gang" }
     }
   ]
 }

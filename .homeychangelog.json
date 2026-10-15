@@ -1,4 +1,11 @@
 {
+  "1.9.48": {
+    "en": "• New languages: Device Watchdog is now available in Swedish, Dutch and Norwegian - settings page, Flow cards, widget, virtual device and the App Store description. Feedback on the wording is welcome",
+    "de": "• Neue Sprachen: Device Watchdog gibt es jetzt auch auf Schwedisch, Niederländisch und Norwegisch - Einstellungen, Flow-Karten, Widget, virtuelles Gerät und die App-Store-Beschreibung. Feedback zu den Formulierungen ist willkommen",
+    "sv": "• Nya språk: Device Watchdog finns nu även på svenska, nederländska och norska - inställningssidan, Flow-kort, widget, virtuell enhet och App Store-beskrivningen. Feedback på formuleringarna är välkommen",
+    "nl": "• Nieuwe talen: Device Watchdog is nu ook beschikbaar in het Zweeds, Nederlands en Noors - instellingenpagina, Flow-kaarten, widget, virtueel apparaat en de App Store-beschrijving. Feedback op de formuleringen is welkom",
+    "no": "• Nye språk: Device Watchdog er nå også tilgjengelig på svensk, nederlandsk og norsk - innstillingssiden, Flow-kort, widget, virtuell enhet og App Store-beskrivelsen. Tilbakemeldinger på formuleringene er velkomne"
+  },
   "1.9.47": {
     "en": "• Fixed: \"Wait after app start\" (startup grace period) wasn't actually delaying the first scan when the regular scan interval was shorter than the grace period - the interval's own first tick could fire before the grace delay was up, causing a burst of false \"not reporting\" flags right after a Homey restart, exactly what this setting exists to prevent",
     "de": "• Fehlerbehebung: \"Wartezeit nach App-Start\" hat den ersten Scan nicht wirklich verzögert, wenn das reguläre Scan-Intervall kürzer war als die Wartezeit - der erste Intervall-Durchlauf konnte vor Ablauf der Wartezeit feuern, was direkt nach einem Homey-Neustart zu falschen \"meldet sich nicht\"-Meldungen führte - genau das, was diese Einstellung verhindern soll"

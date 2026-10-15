@@ -2,15 +2,24 @@
   "id": "any_device_is_unavailable",
   "title": {
     "en": "!{{Any device is|No device is}} unavailable",
-    "de": "!{{Ein beliebiges Gerät ist nicht erreichbar|Kein Gerät ist nicht erreichbar}}"
+    "de": "!{{Ein beliebiges Gerät ist nicht erreichbar|Kein Gerät ist nicht erreichbar}}",
+    "sv": "!{{Någon enhet är otillgänglig|Ingen enhet är otillgänglig}}",
+    "nl": "!{{Een apparaat is niet beschikbaar|Geen apparaat is niet beschikbaar}}",
+    "no": "!{{Noen enheter er utilgjengelige|Ingen enheter er utilgjengelige}}"
   },
   "titleFormatted": {
     "en": "!{{Any device is|No device is}} unavailable",
-    "de": "!{{Ein beliebiges Gerät ist nicht erreichbar|Kein Gerät ist nicht erreichbar}}"
+    "de": "!{{Ein beliebiges Gerät ist nicht erreichbar|Kein Gerät ist nicht erreichbar}}",
+    "sv": "!{{Någon enhet är otillgänglig|Ingen enhet är otillgänglig}}",
+    "nl": "!{{Een apparaat is niet beschikbaar|Geen apparaat is niet beschikbaar}}",
+    "no": "!{{Noen enheter er utilgjengelige|Ingen enheter er utilgjengelige}}"
   },
   "hint": {
     "en": "Checks the live count of currently unavailable devices across your whole setup, without picking one specific device. Same filtering as the summary trigger and the virtual device's counter (respects \"monitored\" and \"Ignore unavailable\").",
-    "de": "Prüft die aktuelle Anzahl nicht erreichbarer Geräte über das ganze Setup, ohne ein bestimmtes Gerät auszuwählen. Gleiche Filterung wie die Sammel-Trigger-Karte und der Zähler im virtuellen Gerät (berücksichtigt \"Überwacht\" und \"Nicht erreichbar ignorieren\")."
+    "de": "Prüft die aktuelle Anzahl nicht erreichbarer Geräte über das ganze Setup, ohne ein bestimmtes Gerät auszuwählen. Gleiche Filterung wie die Sammel-Trigger-Karte und der Zähler im virtuellen Gerät (berücksichtigt \"Überwacht\" und \"Nicht erreichbar ignorieren\").",
+    "sv": "Kontrollerar det aktuella antalet otillgängliga enheter i hela din installation, utan att välja en specifik enhet. Samma filtrering som sammanfattningstriggern och den virtuella enhetens räknare (respekterar \"övervakas\" och \"Ignorera otillgänglig\").",
+    "nl": "Controleert het actuele aantal niet-beschikbare apparaten in je hele setup, zonder een specifiek apparaat te kiezen. Dezelfde filtering als de samenvattingstrigger en de teller van het virtuele apparaat (houdt rekening met \"bewaakt\" en \"Negeer niet beschikbaar\").",
+    "no": "Sjekker det faktiske antallet utilgjengelige enheter i hele oppsettet ditt, uten å velge en bestemt enhet. Samme filtrering som sammendragstriggeren og den virtuelle enhetens teller (tar hensyn til \"overvåket\" og \"Ignorer utilgjengelig\")."
   },
   "args": []
 }

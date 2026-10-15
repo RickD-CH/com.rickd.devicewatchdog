@@ -2,22 +2,31 @@
   "id": "device_is_unavailable",
   "title": {
     "en": "!{{Device is|Device isn't}} unavailable",
-    "de": "!{{Gerät ist nicht erreichbar|Gerät ist erreichbar}}"
+    "de": "!{{Gerät ist nicht erreichbar|Gerät ist erreichbar}}",
+    "sv": "!{{Enheten är otillgänglig|Enheten är tillgänglig}}",
+    "nl": "!{{Apparaat is niet beschikbaar|Apparaat is beschikbaar}}",
+    "no": "!{{Enheten er utilgjengelig|Enheten er tilgjengelig}}"
   },
   "titleFormatted": {
     "en": "[[device]] !{{is|isn't}} unavailable",
-    "de": "[[device]] !{{ist nicht erreichbar|ist erreichbar}}"
+    "de": "[[device]] !{{ist nicht erreichbar|ist erreichbar}}",
+    "sv": "[[device]] !{{är otillgänglig|är tillgänglig}}",
+    "nl": "[[device]] !{{is niet beschikbaar|is beschikbaar}}",
+    "no": "[[device]] !{{er utilgjengelig|er tilgjengelig}}"
   },
   "hint": {
     "en": "Checks a specific device's live availability, as reported directly by Homey - independent of the interval scan. Always false if the device's \"monitored\" toggle is off.",
-    "de": "Prüft die Live-Erreichbarkeit eines bestimmten Geräts, wie direkt von Homey gemeldet - unabhängig vom Intervall-Scan. Immer falsch, wenn der \"Überwacht\"-Schalter des Geräts aus ist."
+    "de": "Prüft die Live-Erreichbarkeit eines bestimmten Geräts, wie direkt von Homey gemeldet - unabhängig vom Intervall-Scan. Immer falsch, wenn der \"Überwacht\"-Schalter des Geräts aus ist.",
+    "sv": "Kontrollerar en specifik enhets aktuella tillgänglighet, som den rapporteras direkt av Homey - oberoende av intervallskanningen. Alltid falskt om enhetens reglage \"övervakas\" är avstängt.",
+    "nl": "Controleert de live beschikbaarheid van een specifiek apparaat, zoals rechtstreeks door Homey gemeld - los van de intervalscan. Altijd onwaar als de schakelaar \"bewaakt\" van het apparaat uitstaat.",
+    "no": "Sjekker en bestemt enhets faktiske tilgjengelighet, slik den rapporteres direkte av Homey - uavhengig av intervallskanningen. Alltid usann hvis enhetens bryter \"overvåket\" er av."
   },
   "args": [
     {
       "name": "device",
       "type": "autocomplete",
-      "title": { "en": "Device", "de": "Gerät" },
-      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen", "sv": "Välj en enhet", "nl": "Kies een apparaat", "no": "Velg en enhet" }
     }
   ]
 }

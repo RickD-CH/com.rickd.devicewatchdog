@@ -1,7 +1,10 @@
 {
   "name": {
     "en": "Watchdog Status",
-    "de": "Watchdog Status"
+    "de": "Watchdog Status",
+    "sv": "Watchdog Status",
+    "nl": "Watchdog Status",
+    "no": "Watchdog Status"
   },
   "height": 90,
   "api": {

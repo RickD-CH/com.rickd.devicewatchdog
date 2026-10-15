@@ -2,22 +2,31 @@
   "id": "device_is_paused",
   "title": {
     "en": "!{{Device is|Device isn't}} paused",
-    "de": "!{{Gerät ist pausiert|Gerät ist nicht pausiert}}"
+    "de": "!{{Gerät ist pausiert|Gerät ist nicht pausiert}}",
+    "sv": "!{{Enheten är pausad|Enheten är inte pausad}}",
+    "nl": "!{{Apparaat is gepauzeerd|Apparaat is niet gepauzeerd}}",
+    "no": "!{{Enheten er satt på pause|Enheten er ikke satt på pause}}"
   },
   "titleFormatted": {
     "en": "[[device]] !{{is|isn't}} paused",
-    "de": "[[device]] !{{ist pausiert|ist nicht pausiert}}"
+    "de": "[[device]] !{{ist pausiert|ist nicht pausiert}}",
+    "sv": "[[device]] !{{är pausad|är inte pausad}}",
+    "nl": "[[device]] !{{is gepauzeerd|is niet gepauzeerd}}",
+    "no": "[[device]] !{{er satt på pause|er ikke satt på pause}}"
   },
   "hint": {
     "en": "Checks whether a specific device currently has an active seasonal pause (set under its Details, or via the \"Pause device until date\" action).",
-    "de": "Prüft, ob ein bestimmtes Gerät aktuell eine laufende Pause hat (gesetzt über dessen Details, oder über die Aktion \"Gerät bis Datum pausieren\")."
+    "de": "Prüft, ob ein bestimmtes Gerät aktuell eine laufende Pause hat (gesetzt über dessen Details, oder über die Aktion \"Gerät bis Datum pausieren\").",
+    "sv": "Kontrollerar om en specifik enhet just nu har en aktiv säsongspaus (inställd under dess Detaljer, eller via åtgärden \"Pausa enhet till datum\").",
+    "nl": "Controleert of een specifiek apparaat momenteel een actieve seizoenspauze heeft (ingesteld onder de Details van het apparaat, of via de actie \"Apparaat pauzeren tot datum\").",
+    "no": "Sjekker om en bestemt enhet for øyeblikket har en aktiv sesongpause (satt under enhetens Detaljer, eller via handlingen \"Sett enhet på pause til dato\")."
   },
   "args": [
     {
       "name": "device",
       "type": "autocomplete",
-      "title": { "en": "Device", "de": "Gerät" },
-      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen", "sv": "Välj en enhet", "nl": "Kies een apparaat", "no": "Velg en enhet" }
     }
   ]
 }

@@ -2,15 +2,24 @@
   "id": "any_device_has_low_battery",
   "title": {
     "en": "!{{Any device has|No device has}} low battery",
-    "de": "!{{Ein beliebiges Gerät hat niedrigen Akkustand|Kein Gerät hat niedrigen Akkustand}}"
+    "de": "!{{Ein beliebiges Gerät hat niedrigen Akkustand|Kein Gerät hat niedrigen Akkustand}}",
+    "sv": "!{{Någon enhet har|Ingen enhet har}} lågt batteri",
+    "nl": "!{{Een apparaat heeft|Geen apparaat heeft}} een lage batterij",
+    "no": "!{{Noen enheter har|Ingen enheter har}} lavt batteri"
   },
   "titleFormatted": {
     "en": "!{{Any device has|No device has}} low battery",
-    "de": "!{{Ein beliebiges Gerät hat niedrigen Akkustand|Kein Gerät hat niedrigen Akkustand}}"
+    "de": "!{{Ein beliebiges Gerät hat niedrigen Akkustand|Kein Gerät hat niedrigen Akkustand}}",
+    "sv": "!{{Någon enhet har|Ingen enhet har}} lågt batteri",
+    "nl": "!{{Een apparaat heeft|Geen apparaat heeft}} een lage batterij",
+    "no": "!{{Noen enheter har|Ingen enheter har}} lavt batteri"
   },
   "hint": {
     "en": "Checks the result of the last scan for any device currently flagged with low battery, without picking one specific device.",
-    "de": "Prüft das Ergebnis des letzten Scans auf ein beliebiges Gerät, das aktuell mit niedrigem Akkustand markiert ist, ohne ein bestimmtes Gerät auszuwählen."
+    "de": "Prüft das Ergebnis des letzten Scans auf ein beliebiges Gerät, das aktuell mit niedrigem Akkustand markiert ist, ohne ein bestimmtes Gerät auszuwählen.",
+    "sv": "Kontrollerar resultatet av senaste skanningen efter någon enhet som just nu är markerad med lågt batteri, utan att välja en specifik enhet.",
+    "nl": "Controleert in het resultaat van de laatste scan of een apparaat momenteel is gemarkeerd met een lage batterij, zonder een specifiek apparaat te kiezen.",
+    "no": "Sjekker resultatet av siste skanning for enheter som for øyeblikket er markert med lavt batteri, uten å velge en bestemt enhet."
   },
   "args": []
 }

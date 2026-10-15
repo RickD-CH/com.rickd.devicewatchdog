@@ -1,14 +1,17 @@
 {
   "type": "number",
-  "title": { "en": "Devices not reporting", "de": "Geräte melden sich nicht" },
+  "title": { "en": "Devices not reporting", "de": "Geräte melden sich nicht", "sv": "Enheter som inte rapporterar", "nl": "Apparaten die niet rapporteren", "no": "Enheter som ikke rapporterer" },
   "desc": {
     "en": "How many monitored devices were flagged as not reporting in the last scan.",
-    "de": "Wie viele überwachte Geräte im letzten Scan als 'meldet sich nicht' markiert wurden."
+    "de": "Wie viele überwachte Geräte im letzten Scan als 'meldet sich nicht' markiert wurden.",
+    "sv": "Hur många övervakade enheter som markerades som \"rapporterar inte\" vid senaste skanningen.",
+    "nl": "Hoeveel bewaakte apparaten bij de laatste scan als \"rapporteert niet\" zijn gemarkeerd.",
+    "no": "Hvor mange overvåkede enheter som ble markert som \"rapporterer ikke\" ved siste skanning."
   },
   "getable": true,
   "setable": false,
   "uiComponent": "sensor",
-  "units": { "en": "", "de": "" },
+  "units": { "en": "", "de": "", "sv": "", "nl": "", "no": "" },
   "decimals": 0,
   "min": 0,
   "icon": "/assets/capabilities/devices_not_reporting_count.svg"

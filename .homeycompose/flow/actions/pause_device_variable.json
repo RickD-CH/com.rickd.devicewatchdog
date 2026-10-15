@@ -2,33 +2,42 @@
   "id": "pause_device_variable",
   "title": {
     "en": "Pause device until date (variable)",
-    "de": "Gerät bis Datum pausieren (Variable)"
+    "de": "Gerät bis Datum pausieren (Variable)",
+    "sv": "Pausa enhet till datum (variabel)",
+    "nl": "Apparaat pauzeren tot datum (variabele)",
+    "no": "Sett enhet på pause til dato (variabel)"
   },
   "titleFormatted": {
     "en": "Pause [[device]] until [[date]] [[rescanNow]]",
-    "de": "[[device]] bis [[date]] pausieren [[rescanNow]]"
+    "de": "[[device]] bis [[date]] pausieren [[rescanNow]]",
+    "sv": "Pausa [[device]] till [[date]] [[rescanNow]]",
+    "nl": "Pauzeer [[device]] tot [[date]] [[rescanNow]]",
+    "no": "Sett [[device]] på pause til [[date]] [[rescanNow]]"
   },
   "hint": {
     "en": "Same as \"Pause device until date\", but the date is a text field so you can drop in a token or a Homey Logic variable instead of picking a fixed date - useful for a computed or dynamic date. Type a date directly as YYYY-MM-DD, or insert a token/variable that resolves to one. An unrecognizable value is treated as no pause, not an error.\n\n\"Rescan immediately\" below forces a full device scan right after pausing, so this device's counts, the virtual device's alarm, and the dashboard widget reflect the pause right away - instead of only catching up on the next scheduled/manual scan. Off by default (no extra scan unless you turn it on).",
-    "de": "Wie \"Gerät bis Datum pausieren\", aber das Datum ist ein Textfeld, in das sich ein Token oder eine Homey-Logic-Variable einfügen lässt statt ein festes Datum auszuwählen - nützlich für ein berechnetes oder dynamisches Datum. Direkt als YYYY-MM-DD eintippen, oder ein Token/eine Variable einfügen, die sich dazu auflöst. Ein nicht erkennbarer Wert wird als \"keine Pause\" behandelt, nicht als Fehler.\n\n\"Sofort neu scannen\" weiter unten erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler dieses Geräts, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln - statt erst beim nächsten geplanten/manuellen Scan nachzuziehen. Standardmäßig aus (kein zusätzlicher Scan, außer du aktivierst es)."
+    "de": "Wie \"Gerät bis Datum pausieren\", aber das Datum ist ein Textfeld, in das sich ein Token oder eine Homey-Logic-Variable einfügen lässt statt ein festes Datum auszuwählen - nützlich für ein berechnetes oder dynamisches Datum. Direkt als YYYY-MM-DD eintippen, oder ein Token/eine Variable einfügen, die sich dazu auflöst. Ein nicht erkennbarer Wert wird als \"keine Pause\" behandelt, nicht als Fehler.\n\n\"Sofort neu scannen\" weiter unten erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler dieses Geräts, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln - statt erst beim nächsten geplanten/manuellen Scan nachzuziehen. Standardmäßig aus (kein zusätzlicher Scan, außer du aktivierst es).",
+    "sv": "Samma som \"Pausa enhet till datum\", men datumet är ett textfält så att du kan lägga in en token eller en Homey Logic-variabel i stället för att välja ett fast datum - användbart för ett beräknat eller dynamiskt datum. Skriv in ett datum direkt som YYYY-MM-DD, eller infoga en token/variabel som ger ett sådant. Ett värde som inte går att tolka behandlas som ingen paus, inte som ett fel.\n\n\"Skanna om direkt\" nedan tvingar fram en fullständig enhetsskanning direkt efter pausen, så att enhetens räknare, den virtuella enhetens larm och dashboard-widgeten speglar pausen direkt - i stället för att först hinna ikapp vid nästa schemalagda/manuella skanning. Av som standard (ingen extra skanning om du inte slår på det).",
+    "nl": "Hetzelfde als \"Apparaat pauzeren tot datum\", maar de datum is een tekstveld, zodat je een token of een Homey Logic-variabele kunt gebruiken in plaats van een vaste datum te kiezen - handig voor een berekende of dynamische datum. Typ een datum rechtstreeks als YYYY-MM-DD, of voeg een token/variabele in die er een oplevert. Een onherkenbare waarde wordt behandeld als geen pauze, niet als fout.\n\n\"Direct opnieuw scannen\" hieronder forceert direct na het pauzeren een volledige apparaatscan, zodat de tellers van dit apparaat, het alarm van het virtuele apparaat en de dashboardwidget de pauze meteen weergeven - in plaats van pas bij de volgende geplande/handmatige scan bij te werken. Standaard uit (geen extra scan, tenzij je het inschakelt).",
+    "no": "Samme som \"Sett enhet på pause til dato\", men datoen er et tekstfelt slik at du kan bruke et token eller en Homey Logic-variabel i stedet for å velge en fast dato - nyttig for en beregnet eller dynamisk dato. Skriv inn en dato direkte som YYYY-MM-DD, eller sett inn et token/en variabel som gir en slik dato. En verdi som ikke gjenkjennes behandles som ingen pause, ikke som en feil.\n\n\"Skann på nytt umiddelbart\" nedenfor tvinger frem en full enhetsskanning rett etter pausen, slik at enhetens tellere, den virtuelle enhetens alarm og dashboard-widgeten gjenspeiler pausen med en gang - i stedet for å først oppdatere seg ved neste planlagte/manuelle skanning. Av som standard (ingen ekstra skanning med mindre du slår det på)."
   },
   "args": [
     {
       "name": "device",
       "type": "autocomplete",
-      "title": { "en": "Device", "de": "Gerät" },
-      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen", "sv": "Välj en enhet", "nl": "Kies een apparaat", "no": "Velg en enhet" }
     },
     {
       "name": "date",
       "type": "text",
-      "title": { "en": "Paused until (YYYY-MM-DD)", "de": "Pausiert bis (JJJJ-MM-TT)" },
-      "placeholder": { "en": "YYYY-MM-DD, e.g. 2027-03-01, or a token", "de": "JJJJ-MM-TT, z.B. 2027-03-01, oder ein Token" }
+      "title": { "en": "Paused until (YYYY-MM-DD)", "de": "Pausiert bis (JJJJ-MM-TT)", "sv": "Pausad till (YYYY-MM-DD)", "nl": "Gepauzeerd tot (YYYY-MM-DD)", "no": "Pauset til (YYYY-MM-DD)" },
+      "placeholder": { "en": "YYYY-MM-DD, e.g. 2027-03-01, or a token", "de": "JJJJ-MM-TT, z.B. 2027-03-01, oder ein Token", "sv": "YYYY-MM-DD, t.ex. 2027-03-01, eller en token", "nl": "YYYY-MM-DD, bijv. 2027-03-01, of een token", "no": "YYYY-MM-DD, f.eks. 2027-03-01, eller et token" }
     },
     {
       "name": "rescanNow",
       "type": "checkbox",
-      "title": { "en": "Rescan immediately", "de": "Sofort neu scannen" }
+      "title": { "en": "Rescan immediately", "de": "Sofort neu scannen", "sv": "Skanna om direkt", "nl": "Direct opnieuw scannen", "no": "Skann på nytt umiddelbart" }
     }
   ]
 }

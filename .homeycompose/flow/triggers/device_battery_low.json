@@ -2,42 +2,51 @@
   "id": "device_battery_low",
   "title": {
     "en": "A device's battery gets low",
-    "de": "Ein Gerät hat eine niedrige Batterie"
+    "de": "Ein Gerät hat eine niedrige Batterie",
+    "sv": "En enhets batteri blir lågt",
+    "nl": "De batterij van een apparaat raakt laag",
+    "no": "Batteriet til en enhet blir lavt"
   },
   "titleFormatted": {
     "en": "[[target_device]]'s battery gets low",
-    "de": "[[target_device]] hat eine niedrige Batterie"
+    "de": "[[target_device]] hat eine niedrige Batterie",
+    "sv": "Batteriet i [[target_device]] blir lågt",
+    "nl": "De batterij van [[target_device]] raakt laag",
+    "no": "Batteriet til [[target_device]] blir lavt"
   },
   "hint": {
     "en": "Fires when a scan (interval or manual) newly detects that the selected device's battery dropped to/below its threshold, or reports a battery alarm. For any device instead of one specific one, use \"Devices with low battery are newly found\".",
-    "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass die Batterie des gewählten Geräts die Schwelle unterschreitet oder einen Batterie-Alarm meldet. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte mit niedrigem Akku gefunden\" verwenden."
+    "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass die Batterie des gewählten Geräts die Schwelle unterschreitet oder einen Batterie-Alarm meldet. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte mit niedrigem Akku gefunden\" verwenden.",
+    "sv": "Utlöses när en skanning (intervall eller manuell) nyss upptäcker att den valda enhetens batteri sjunkit till eller under sitt tröskelvärde, eller rapporterar ett batterilarm. För valfri enhet i stället för en specifik, använd \"Enheter med lågt batteri har nyss hittats\".",
+    "nl": "Wordt geactiveerd wanneer een scan (interval of handmatig) net detecteert dat de batterij van het gekozen apparaat tot of onder de drempelwaarde is gedaald, of een batterijalarm meldt. Voor een willekeurig apparaat in plaats van een specifiek apparaat gebruik je \"Er zijn zojuist apparaten met een lage batterij gevonden\".",
+    "no": "Utløses når en skanning (intervall eller manuell) nettopp oppdager at batteriet til den valgte enheten har sunket til eller under terskelverdien, eller melder et batterialarm. For en vilkårlig enhet i stedet for én bestemt, bruk \"Det er nettopp funnet enheter med lavt batteri\"."
   },
   "args": [
     {
       "name": "target_device",
       "type": "autocomplete",
-      "title": { "en": "Device", "de": "Gerät" },
-      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen", "sv": "Välj en enhet", "nl": "Kies een apparaat", "no": "Velg en enhet" }
     }
   ],
   "tokens": [
     {
       "name": "device",
       "type": "string",
-      "title": { "en": "Device", "de": "Gerät" },
-      "example": { "en": "Garage sensor", "de": "Garage Sensor" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "example": { "en": "Garage sensor", "de": "Garage Sensor", "sv": "Garagesensor", "nl": "Garagesensor", "no": "Garasjesensor" }
     },
     {
       "name": "zone",
       "type": "string",
-      "title": { "en": "Zone", "de": "Zone" },
-      "example": { "en": "Garage", "de": "Garage" }
+      "title": { "en": "Zone", "de": "Zone", "sv": "Zon", "nl": "Zone", "no": "Sone" },
+      "example": { "en": "Garage", "de": "Garage", "sv": "Garage", "nl": "Garage", "no": "Garasje" }
     },
     {
       "name": "battery",
       "type": "string",
-      "title": { "en": "Battery status", "de": "Batteriestatus" },
-      "example": { "en": "15%", "de": "15%" }
+      "title": { "en": "Battery status", "de": "Batteriestatus", "sv": "Batteristatus", "nl": "Batterijstatus", "no": "Batteristatus" },
+      "example": { "en": "15%", "de": "15%", "sv": "15%", "nl": "15%", "no": "15%" }
     }
   ]
 }

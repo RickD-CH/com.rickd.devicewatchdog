@@ -2,22 +2,31 @@
   "id": "device_is_not_reporting",
   "title": {
     "en": "!{{Device isn't|Device is}} reporting",
-    "de": "!{{Gerät meldet sich nicht|Gerät meldet sich}}"
+    "de": "!{{Gerät meldet sich nicht|Gerät meldet sich}}",
+    "sv": "!{{Enheten rapporterar inte|Enheten rapporterar}}",
+    "nl": "!{{Apparaat rapporteert niet|Apparaat rapporteert}}",
+    "no": "!{{Enheten rapporterer ikke|Enheten rapporterer}}"
   },
   "titleFormatted": {
     "en": "[[device]] !{{isn't|is}} reporting",
-    "de": "[[device]] !{{meldet sich nicht|meldet sich}}"
+    "de": "[[device]] !{{meldet sich nicht|meldet sich}}",
+    "sv": "[[device]] !{{rapporterar inte|rapporterar}}",
+    "nl": "[[device]] !{{rapporteert niet|rapporteert}}",
+    "no": "[[device]] !{{rapporterer ikke|rapporterer}}"
   },
   "hint": {
     "en": "Checks whether a specific device was flagged as not reporting in the last scan.",
-    "de": "Prüft, ob ein bestimmtes Gerät im letzten Scan als 'meldet sich nicht' markiert wurde."
+    "de": "Prüft, ob ein bestimmtes Gerät im letzten Scan als 'meldet sich nicht' markiert wurde.",
+    "sv": "Kontrollerar om en specifik enhet markerades som \"rapporterar inte\" vid senaste skanningen.",
+    "nl": "Controleert of een specifiek apparaat bij de laatste scan als \"rapporteert niet\" is gemarkeerd.",
+    "no": "Sjekker om en bestemt enhet ble markert som \"rapporterer ikke\" ved siste skanning."
   },
   "args": [
     {
       "name": "device",
       "type": "autocomplete",
-      "title": { "en": "Device", "de": "Gerät" },
-      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen", "sv": "Välj en enhet", "nl": "Kies een apparaat", "no": "Velg en enhet" }
     }
   ]
 }

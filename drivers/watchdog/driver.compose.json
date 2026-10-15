@@ -1,6 +1,6 @@
 {
   "id": "watchdog",
-  "name": { "en": "Watchdog status", "de": "Watchdog-Status" },
+  "name": { "en": "Watchdog status", "de": "Watchdog-Status", "sv": "Watchdog-status", "nl": "Watchdog-status", "no": "Watchdog-status" },
   "class": "sensor",
   "capabilities": [
     "alarm_generic",

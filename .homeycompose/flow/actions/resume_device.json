@@ -2,22 +2,31 @@
   "id": "resume_device",
   "title": {
     "en": "Resume device (clear pause)",
-    "de": "Gerät fortsetzen (Pause aufheben)"
+    "de": "Gerät fortsetzen (Pause aufheben)",
+    "sv": "Återuppta enhet (ta bort paus)",
+    "nl": "Apparaat hervatten (pauze opheffen)",
+    "no": "Gjenoppta enhet (fjern pause)"
   },
   "titleFormatted": {
     "en": "Resume [[device]] (clear pause)",
-    "de": "[[device]] fortsetzen (Pause aufheben)"
+    "de": "[[device]] fortsetzen (Pause aufheben)",
+    "sv": "Återuppta [[device]] (ta bort paus)",
+    "nl": "Hervat [[device]] (pauze opheffen)",
+    "no": "Gjenoppta [[device]] (fjern pause)"
   },
   "hint": {
     "en": "Clears an active seasonal pause early, so the device is monitored again right away instead of waiting for the pause date. Does nothing if the device isn't currently paused.",
-    "de": "Hebt eine laufende Pause vorzeitig auf, sodass das Gerät sofort wieder überwacht wird, statt bis zum Pause-Datum zu warten. Ohne Effekt, falls das Gerät gerade nicht pausiert ist."
+    "de": "Hebt eine laufende Pause vorzeitig auf, sodass das Gerät sofort wieder überwacht wird, statt bis zum Pause-Datum zu warten. Ohne Effekt, falls das Gerät gerade nicht pausiert ist.",
+    "sv": "Avslutar en aktiv säsongspaus i förtid, så att enheten övervakas igen direkt i stället för att vänta till pausdatumet. Gör ingenting om enheten inte är pausad just nu.",
+    "nl": "Heft een actieve seizoenspauze vroegtijdig op, zodat het apparaat meteen weer wordt bewaakt in plaats van te wachten tot de pauzedatum. Doet niets als het apparaat op dat moment niet gepauzeerd is.",
+    "no": "Avslutter en aktiv sesongpause før tiden, slik at enheten overvåkes igjen med en gang i stedet for å vente til pausedatoen. Gjør ingenting hvis enheten ikke er satt på pause akkurat nå."
   },
   "args": [
     {
       "name": "device",
       "type": "autocomplete",
-      "title": { "en": "Device", "de": "Gerät" },
-      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen", "sv": "Välj en enhet", "nl": "Kies een apparaat", "no": "Velg en enhet" }
     }
   ]
 }

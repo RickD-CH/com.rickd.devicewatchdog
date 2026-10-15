@@ -2,42 +2,51 @@
   "id": "device_not_reporting",
   "title": {
     "en": "A device stops reporting",
-    "de": "Ein Gerät meldet sich nicht mehr"
+    "de": "Ein Gerät meldet sich nicht mehr",
+    "sv": "En enhet slutar rapportera",
+    "nl": "Een apparaat stopt met rapporteren",
+    "no": "En enhet slutter å rapportere"
   },
   "titleFormatted": {
     "en": "[[target_device]] stops reporting",
-    "de": "[[target_device]] meldet sich nicht mehr"
+    "de": "[[target_device]] meldet sich nicht mehr",
+    "sv": "[[target_device]] slutar rapportera",
+    "nl": "[[target_device]] stopt met rapporteren",
+    "no": "[[target_device]] slutter å rapportere"
   },
   "hint": {
     "en": "Fires when a scan (interval or manual) newly detects that the selected device hasn't reported within its configured threshold. For any device instead of one specific one, use \"Devices are newly found not reporting\".",
-    "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass sich das gewählte Gerät nicht mehr innerhalb der konfigurierten Schwelle gemeldet hat. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte gefunden, die sich nicht mehr melden\" verwenden."
+    "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass sich das gewählte Gerät nicht mehr innerhalb der konfigurierten Schwelle gemeldet hat. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte gefunden, die sich nicht mehr melden\" verwenden.",
+    "sv": "Utlöses när en skanning (intervall eller manuell) nyss upptäcker att den valda enheten inte har rapporterat inom sitt inställda tröskelvärde. För valfri enhet i stället för en specifik, använd \"Enheter har nyss visat sig inte rapportera\".",
+    "nl": "Wordt geactiveerd wanneer een scan (interval of handmatig) net detecteert dat het gekozen apparaat niet heeft gerapporteerd binnen de ingestelde drempelwaarde. Voor een willekeurig apparaat in plaats van een specifiek apparaat gebruik je \"Er zijn zojuist apparaten gevonden die niet rapporteren\".",
+    "no": "Utløses når en skanning (intervall eller manuell) nettopp oppdager at den valgte enheten ikke har rapportert innenfor den innstilte terskelverdien. For en vilkårlig enhet i stedet for én bestemt, bruk \"Det er nettopp funnet enheter som ikke rapporterer\"."
   },
   "args": [
     {
       "name": "target_device",
       "type": "autocomplete",
-      "title": { "en": "Device", "de": "Gerät" },
-      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen", "sv": "Välj en enhet", "nl": "Kies een apparaat", "no": "Velg en enhet" }
     }
   ],
   "tokens": [
     {
       "name": "device",
       "type": "string",
-      "title": { "en": "Device", "de": "Gerät" },
-      "example": { "en": "Garden sensor", "de": "Gartensensor" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "example": { "en": "Garden sensor", "de": "Gartensensor", "sv": "Trädgårdssensor", "nl": "Tuinsensor", "no": "Hagesensor" }
     },
     {
       "name": "zone",
       "type": "string",
-      "title": { "en": "Zone", "de": "Zone" },
-      "example": { "en": "Garden", "de": "Garten" }
+      "title": { "en": "Zone", "de": "Zone", "sv": "Zon", "nl": "Zone", "no": "Sone" },
+      "example": { "en": "Garden", "de": "Garten", "sv": "Trädgård", "nl": "Tuin", "no": "Hage" }
     },
     {
       "name": "last_updated",
       "type": "string",
-      "title": { "en": "Last update", "de": "Letztes Update" },
-      "example": { "en": "2026-07-01T10:00:00.000Z", "de": "2026-07-01T10:00:00.000Z" }
+      "title": { "en": "Last update", "de": "Letztes Update", "sv": "Senaste uppdatering", "nl": "Laatste update", "no": "Siste oppdatering" },
+      "example": { "en": "2026-07-01T10:00:00.000Z", "de": "2026-07-01T10:00:00.000Z", "sv": "2026-07-01T10:00:00.000Z", "nl": "2026-07-01T10:00:00.000Z", "no": "2026-07-01T10:00:00.000Z" }
     }
   ]
 }

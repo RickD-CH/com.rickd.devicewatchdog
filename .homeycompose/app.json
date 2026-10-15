@@ -1,6 +1,6 @@
 {
   "id": "com.rickd.devicewatchdog",
-  "version": "1.9.47",
+  "version": "1.9.48",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -9,11 +9,17 @@
   ],
   "name": {
     "en": "Device Watchdog",
-    "de": "Device Watchdog"
+    "de": "Device Watchdog",
+    "sv": "Device Watchdog",
+    "nl": "Device Watchdog",
+    "no": "Device Watchdog"
   },
   "description": {
     "en": "Battery, connectivity, and data-freshness monitoring for all your Homey devices.",
-    "de": "Batterie-, Erreichbarkeits- und Aktualitäts-Überwachung für alle deine Homey-Geräte."
+    "de": "Batterie-, Erreichbarkeits- und Aktualitäts-Überwachung für alle deine Homey-Geräte.",
+    "sv": "Övervakning av batteri, anslutning och dataaktualitet för alla dina Homey-enheter.",
+    "nl": "Bewaking van batterij, verbinding en actualiteit van gegevens voor al je Homey-apparaten.",
+    "no": "Overvåking av batteri, tilkobling og dataaktualitet for alle Homey-enhetene dine."
   },
   "tags": {
     "en": [
@@ -39,6 +45,42 @@
       "Z-Wave",
       "Batteriewarnung",
       "Dashboard Widget"
+    ],
+    "sv": [
+      "batteriövervakning",
+      "lågt batteri",
+      "enhet offline",
+      "otillgänglig enhet",
+      "watchdog",
+      "enhetshälsa",
+      "zigbee",
+      "z-wave",
+      "sensorbatteri",
+      "dashboard-widget"
+    ],
+    "nl": [
+      "batterijbewaking",
+      "lage batterij",
+      "apparaat offline",
+      "niet beschikbaar apparaat",
+      "watchdog",
+      "apparaatstatus",
+      "zigbee",
+      "z-wave",
+      "sensorbatterij",
+      "dashboardwidget"
+    ],
+    "no": [
+      "batteriovervåking",
+      "lavt batteri",
+      "enhet offline",
+      "utilgjengelig enhet",
+      "watchdog",
+      "enhetshelse",
+      "zigbee",
+      "z-wave",
+      "sensorbatteri",
+      "dashboard-widget"
     ]
   },
   "category": "tools",

@@ -2,28 +2,37 @@
   "id": "devices_unavailable_summary",
   "title": {
     "en": "Devices newly become unavailable",
-    "de": "Es werden neu Geräte nicht erreichbar"
+    "de": "Es werden neu Geräte nicht erreichbar",
+    "sv": "Enheter har nyss blivit otillgängliga",
+    "nl": "Apparaten zijn zojuist niet beschikbaar geworden",
+    "no": "Enheter har nettopp blitt utilgjengelige"
   },
   "titleFormatted": {
     "en": "Devices newly become unavailable",
-    "de": "Es werden neu Geräte nicht erreichbar"
+    "de": "Es werden neu Geräte nicht erreichbar",
+    "sv": "Enheter har nyss blivit otillgängliga",
+    "nl": "Apparaten zijn zojuist niet beschikbaar geworden",
+    "no": "Enheter har nettopp blitt utilgjengelige"
   },
   "hint": {
     "en": "Fires in realtime, bundling every device that becomes unavailable within a few seconds of each other into a single trigger (e.g. after a mesh network hiccup) - instead of firing \"A device becomes unavailable\" once per device.",
-    "de": "Wird in Echtzeit ausgelöst und bündelt alle Geräte, die innerhalb weniger Sekunden nacheinander nicht erreichbar werden (z.B. nach einem Mesh-Netzwerk-Aussetzer), in einem einzigen Trigger - statt \"Ein Gerät wird nicht erreichbar\" einzeln pro Gerät auszulösen."
+    "de": "Wird in Echtzeit ausgelöst und bündelt alle Geräte, die innerhalb weniger Sekunden nacheinander nicht erreichbar werden (z.B. nach einem Mesh-Netzwerk-Aussetzer), in einem einzigen Trigger - statt \"Ein Gerät wird nicht erreichbar\" einzeln pro Gerät auszulösen.",
+    "sv": "Utlöses i realtid och samlar alla enheter som blir otillgängliga inom några sekunder från varandra i en enda trigger (t.ex. efter ett avbrott i mesh-nätverket) - i stället för att utlösa \"En enhet blir otillgänglig\" en gång per enhet.",
+    "nl": "Wordt in realtime geactiveerd en bundelt alle apparaten die binnen enkele seconden na elkaar niet beschikbaar worden in één trigger (bijv. na een haperend mesh-netwerk) - in plaats van \"Een apparaat wordt niet beschikbaar\" één keer per apparaat te activeren.",
+    "no": "Utløses i sanntid og samler alle enheter som blir utilgjengelige innen noen få sekunder fra hverandre i én enkelt trigger (f.eks. etter et avbrudd i mesh-nettverket) - i stedet for å utløse \"En enhet blir utilgjengelig\" én gang per enhet."
   },
   "tokens": [
     {
       "name": "count",
       "type": "number",
-      "title": { "en": "Count", "de": "Anzahl" },
+      "title": { "en": "Count", "de": "Anzahl", "sv": "Antal", "nl": "Aantal", "no": "Antall" },
       "example": 2
     },
     {
       "name": "devices",
       "type": "string",
-      "title": { "en": "Devices", "de": "Geräte" },
-      "example": { "en": "Front door lock, Garden sensor", "de": "Haustürschloss, Garten Sensor" }
+      "title": { "en": "Devices", "de": "Geräte", "sv": "Enheter", "nl": "Apparaten", "no": "Enheter" },
+      "example": { "en": "Front door lock, Garden sensor", "de": "Haustürschloss, Garten Sensor", "sv": "Ytterdörrslås, Trädgårdssensor", "nl": "Voordeurslot, Tuinsensor", "no": "Inngangsdørlås, Hagesensor" }
     }
   ]
 }

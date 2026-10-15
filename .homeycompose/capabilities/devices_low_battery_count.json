@@ -1,14 +1,17 @@
 {
   "type": "number",
-  "title": { "en": "Devices with low battery", "de": "Geräte mit niedrigem Akku" },
+  "title": { "en": "Devices with low battery", "de": "Geräte mit niedrigem Akku", "sv": "Enheter med lågt batteri", "nl": "Apparaten met lage batterij", "no": "Enheter med lavt batteri" },
   "desc": {
     "en": "How many monitored devices had a low or alarming battery in the last scan.",
-    "de": "Wie viele überwachte Geräte im letzten Scan einen niedrigen oder alarmierenden Akkustand hatten."
+    "de": "Wie viele überwachte Geräte im letzten Scan einen niedrigen oder alarmierenden Akkustand hatten.",
+    "sv": "Hur många övervakade enheter som hade lågt eller larmande batteri vid senaste skanningen.",
+    "nl": "Hoeveel bewaakte apparaten bij de laatste scan een lage of alarmerende batterij hadden.",
+    "no": "Hvor mange overvåkede enheter som hadde lavt eller alarmerende batteri ved siste skanning."
   },
   "getable": true,
   "setable": false,
   "uiComponent": "sensor",
-  "units": { "en": "", "de": "" },
+  "units": { "en": "", "de": "", "sv": "", "nl": "", "no": "" },
   "decimals": 0,
   "min": 0,
   "icon": "/assets/capabilities/devices_low_battery_count.svg"

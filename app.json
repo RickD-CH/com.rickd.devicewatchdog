@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.rickd.devicewatchdog",
-  "version": "1.9.47",
+  "version": "1.9.48",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -10,11 +10,17 @@
   ],
   "name": {
     "en": "Device Watchdog",
-    "de": "Device Watchdog"
+    "de": "Device Watchdog",
+    "sv": "Device Watchdog",
+    "nl": "Device Watchdog",
+    "no": "Device Watchdog"
   },
   "description": {
     "en": "Battery, connectivity, and data-freshness monitoring for all your Homey devices.",
-    "de": "Batterie-, Erreichbarkeits- und Aktualitäts-Überwachung für alle deine Homey-Geräte."
+    "de": "Batterie-, Erreichbarkeits- und Aktualitäts-Überwachung für alle deine Homey-Geräte.",
+    "sv": "Övervakning av batteri, anslutning och dataaktualitet för alla dina Homey-enheter.",
+    "nl": "Bewaking van batterij, verbinding en actualiteit van gegevens voor al je Homey-apparaten.",
+    "no": "Overvåking av batteri, tilkobling og dataaktualitet for alle Homey-enhetene dine."
   },
   "tags": {
     "en": [
@@ -40,6 +46,42 @@
       "Z-Wave",
       "Batteriewarnung",
       "Dashboard Widget"
+    ],
+    "sv": [
+      "batteriövervakning",
+      "lågt batteri",
+      "enhet offline",
+      "otillgänglig enhet",
+      "watchdog",
+      "enhetshälsa",
+      "zigbee",
+      "z-wave",
+      "sensorbatteri",
+      "dashboard-widget"
+    ],
+    "nl": [
+      "batterijbewaking",
+      "lage batterij",
+      "apparaat offline",
+      "niet beschikbaar apparaat",
+      "watchdog",
+      "apparaatstatus",
+      "zigbee",
+      "z-wave",
+      "sensorbatterij",
+      "dashboardwidget"
+    ],
+    "no": [
+      "batteriovervåking",
+      "lavt batteri",
+      "enhet offline",
+      "utilgjengelig enhet",
+      "watchdog",
+      "enhetshelse",
+      "zigbee",
+      "z-wave",
+      "sensorbatteri",
+      "dashboard-widget"
     ]
   },
   "category": "tools",
@@ -140,15 +182,24 @@
         "id": "device_battery_low",
         "title": {
           "en": "A device's battery gets low",
-          "de": "Ein Gerät hat eine niedrige Batterie"
+          "de": "Ein Gerät hat eine niedrige Batterie",
+          "sv": "En enhets batteri blir lågt",
+          "nl": "De batterij van een apparaat raakt laag",
+          "no": "Batteriet til en enhet blir lavt"
         },
         "titleFormatted": {
           "en": "[[target_device]]'s battery gets low",
-          "de": "[[target_device]] hat eine niedrige Batterie"
+          "de": "[[target_device]] hat eine niedrige Batterie",
+          "sv": "Batteriet i [[target_device]] blir lågt",
+          "nl": "De batterij van [[target_device]] raakt laag",
+          "no": "Batteriet til [[target_device]] blir lavt"
         },
         "hint": {
           "en": "Fires when a scan (interval or manual) newly detects that the selected device's battery dropped to/below its threshold, or reports a battery alarm. For any device instead of one specific one, use \"Devices with low battery are newly found\".",
-          "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass die Batterie des gewählten Geräts die Schwelle unterschreitet oder einen Batterie-Alarm meldet. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte mit niedrigem Akku gefunden\" verwenden."
+          "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass die Batterie des gewählten Geräts die Schwelle unterschreitet oder einen Batterie-Alarm meldet. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte mit niedrigem Akku gefunden\" verwenden.",
+          "sv": "Utlöses när en skanning (intervall eller manuell) nyss upptäcker att den valda enhetens batteri sjunkit till eller under sitt tröskelvärde, eller rapporterar ett batterilarm. För valfri enhet i stället för en specifik, använd \"Enheter med lågt batteri har nyss hittats\".",
+          "nl": "Wordt geactiveerd wanneer een scan (interval of handmatig) net detecteert dat de batterij van het gekozen apparaat tot of onder de drempelwaarde is gedaald, of een batterijalarm meldt. Voor een willekeurig apparaat in plaats van een specifiek apparaat gebruik je \"Er zijn zojuist apparaten met een lage batterij gevonden\".",
+          "no": "Utløses når en skanning (intervall eller manuell) nettopp oppdager at batteriet til den valgte enheten har sunket til eller under terskelverdien, eller melder et batterialarm. For en vilkårlig enhet i stedet for én bestemt, bruk \"Det er nettopp funnet enheter med lavt batteri\"."
         },
         "args": [
           {
@@ -156,11 +207,17 @@
             "type": "autocomplete",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "placeholder": {
               "en": "Choose a device",
-              "de": "Gerät wählen"
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
             }
           }
         ],
@@ -170,11 +227,17 @@
             "type": "string",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "example": {
               "en": "Garage sensor",
-              "de": "Garage Sensor"
+              "de": "Garage Sensor",
+              "sv": "Garagesensor",
+              "nl": "Garagesensor",
+              "no": "Garasjesensor"
             }
           },
           {
@@ -182,11 +245,17 @@
             "type": "string",
             "title": {
               "en": "Zone",
-              "de": "Zone"
+              "de": "Zone",
+              "sv": "Zon",
+              "nl": "Zone",
+              "no": "Sone"
             },
             "example": {
               "en": "Garage",
-              "de": "Garage"
+              "de": "Garage",
+              "sv": "Garage",
+              "nl": "Garage",
+              "no": "Garasje"
             }
           },
           {
@@ -194,11 +263,17 @@
             "type": "string",
             "title": {
               "en": "Battery status",
-              "de": "Batteriestatus"
+              "de": "Batteriestatus",
+              "sv": "Batteristatus",
+              "nl": "Batterijstatus",
+              "no": "Batteristatus"
             },
             "example": {
               "en": "15%",
-              "de": "15%"
+              "de": "15%",
+              "sv": "15%",
+              "nl": "15%",
+              "no": "15%"
             }
           }
         ]
@@ -207,15 +282,24 @@
         "id": "device_not_reporting",
         "title": {
           "en": "A device stops reporting",
-          "de": "Ein Gerät meldet sich nicht mehr"
+          "de": "Ein Gerät meldet sich nicht mehr",
+          "sv": "En enhet slutar rapportera",
+          "nl": "Een apparaat stopt met rapporteren",
+          "no": "En enhet slutter å rapportere"
         },
         "titleFormatted": {
           "en": "[[target_device]] stops reporting",
-          "de": "[[target_device]] meldet sich nicht mehr"
+          "de": "[[target_device]] meldet sich nicht mehr",
+          "sv": "[[target_device]] slutar rapportera",
+          "nl": "[[target_device]] stopt met rapporteren",
+          "no": "[[target_device]] slutter å rapportere"
         },
         "hint": {
           "en": "Fires when a scan (interval or manual) newly detects that the selected device hasn't reported within its configured threshold. For any device instead of one specific one, use \"Devices are newly found not reporting\".",
-          "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass sich das gewählte Gerät nicht mehr innerhalb der konfigurierten Schwelle gemeldet hat. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte gefunden, die sich nicht mehr melden\" verwenden."
+          "de": "Wird ausgelöst, wenn ein Scan (Intervall oder manuell) neu erkennt, dass sich das gewählte Gerät nicht mehr innerhalb der konfigurierten Schwelle gemeldet hat. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte gefunden, die sich nicht mehr melden\" verwenden.",
+          "sv": "Utlöses när en skanning (intervall eller manuell) nyss upptäcker att den valda enheten inte har rapporterat inom sitt inställda tröskelvärde. För valfri enhet i stället för en specifik, använd \"Enheter har nyss visat sig inte rapportera\".",
+          "nl": "Wordt geactiveerd wanneer een scan (interval of handmatig) net detecteert dat het gekozen apparaat niet heeft gerapporteerd binnen de ingestelde drempelwaarde. Voor een willekeurig apparaat in plaats van een specifiek apparaat gebruik je \"Er zijn zojuist apparaten gevonden die niet rapporteren\".",
+          "no": "Utløses når en skanning (intervall eller manuell) nettopp oppdager at den valgte enheten ikke har rapportert innenfor den innstilte terskelverdien. For en vilkårlig enhet i stedet for én bestemt, bruk \"Det er nettopp funnet enheter som ikke rapporterer\"."
         },
         "args": [
           {
@@ -223,11 +307,17 @@
             "type": "autocomplete",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "placeholder": {
               "en": "Choose a device",
-              "de": "Gerät wählen"
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
             }
           }
         ],
@@ -237,11 +327,17 @@
             "type": "string",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "example": {
               "en": "Garden sensor",
-              "de": "Gartensensor"
+              "de": "Gartensensor",
+              "sv": "Trädgårdssensor",
+              "nl": "Tuinsensor",
+              "no": "Hagesensor"
             }
           },
           {
@@ -249,11 +345,17 @@
             "type": "string",
             "title": {
               "en": "Zone",
-              "de": "Zone"
+              "de": "Zone",
+              "sv": "Zon",
+              "nl": "Zone",
+              "no": "Sone"
             },
             "example": {
               "en": "Garden",
-              "de": "Garten"
+              "de": "Garten",
+              "sv": "Trädgård",
+              "nl": "Tuin",
+              "no": "Hage"
             }
           },
           {
@@ -261,11 +363,17 @@
             "type": "string",
             "title": {
               "en": "Last update",
-              "de": "Letztes Update"
+              "de": "Letztes Update",
+              "sv": "Senaste uppdatering",
+              "nl": "Laatste update",
+              "no": "Siste oppdatering"
             },
             "example": {
               "en": "2026-07-01T10:00:00.000Z",
-              "de": "2026-07-01T10:00:00.000Z"
+              "de": "2026-07-01T10:00:00.000Z",
+              "sv": "2026-07-01T10:00:00.000Z",
+              "nl": "2026-07-01T10:00:00.000Z",
+              "no": "2026-07-01T10:00:00.000Z"
             }
           }
         ]
@@ -274,15 +382,24 @@
         "id": "device_test_failed",
         "title": {
           "en": "A device test fails",
-          "de": "Ein Geräte-Test ist fehlgeschlagen"
+          "de": "Ein Geräte-Test ist fehlgeschlagen",
+          "sv": "Ett enhetstest misslyckas",
+          "nl": "Een apparaattest mislukt",
+          "no": "En enhetstest mislykkes"
         },
         "titleFormatted": {
           "en": "[[target_device]]'s reachability test fails",
-          "de": "Erreichbarkeitstest von [[target_device]] ist fehlgeschlagen"
+          "de": "Erreichbarkeitstest von [[target_device]] ist fehlgeschlagen",
+          "sv": "Nåbarhetstestet för [[target_device]] misslyckas",
+          "nl": "De bereikbaarheidstest van [[target_device]] mislukt",
+          "no": "Nåbarhetstesten for [[target_device]] mislykkes"
         },
         "hint": {
           "en": "Fires whenever a reachability test for the selected device fails - whether started manually (\"Test\" button in Settings) or via the \"Test device reachability\" action card.",
-          "de": "Wird ausgelöst, wenn ein Erreichbarkeitstest für das gewählte Gerät fehlschlägt - egal ob manuell (\"Testen\"-Button in den Einstellungen) oder über die Aktionskarte \"Geräte-Erreichbarkeit testen\" gestartet."
+          "de": "Wird ausgelöst, wenn ein Erreichbarkeitstest für das gewählte Gerät fehlschlägt - egal ob manuell (\"Testen\"-Button in den Einstellungen) oder über die Aktionskarte \"Geräte-Erreichbarkeit testen\" gestartet.",
+          "sv": "Utlöses varje gång ett nåbarhetstest för den valda enheten misslyckas - oavsett om det startats manuellt (knappen \"Testa\" i inställningarna) eller via åtgärdskortet \"Testa enhetens nåbarhet\".",
+          "nl": "Wordt geactiveerd telkens wanneer een bereikbaarheidstest voor het gekozen apparaat mislukt - of dit nu handmatig is gestart (knop \"Test\" in de instellingen) of via de actiekaart \"Bereikbaarheid van apparaat testen\".",
+          "no": "Utløses hver gang en nåbarhetstest for den valgte enheten mislykkes - enten den er startet manuelt (\"Test\"-knappen i innstillingene) eller via handlingskortet \"Test enhetens nåbarhet\"."
         },
         "args": [
           {
@@ -290,11 +407,17 @@
             "type": "autocomplete",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "placeholder": {
               "en": "Choose a device",
-              "de": "Gerät wählen"
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
             }
           }
         ],
@@ -304,11 +427,17 @@
             "type": "string",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "example": {
               "en": "Front door lock",
-              "de": "Haustürschloss"
+              "de": "Haustürschloss",
+              "sv": "Ytterdörrslås",
+              "nl": "Voordeurslot",
+              "no": "Inngangsdørlås"
             }
           },
           {
@@ -316,11 +445,17 @@
             "type": "string",
             "title": {
               "en": "Zone",
-              "de": "Zone"
+              "de": "Zone",
+              "sv": "Zon",
+              "nl": "Zone",
+              "no": "Sone"
             },
             "example": {
               "en": "Hallway",
-              "de": "Flur"
+              "de": "Flur",
+              "sv": "Hall",
+              "nl": "Hal",
+              "no": "Gang"
             }
           },
           {
@@ -328,11 +463,17 @@
             "type": "string",
             "title": {
               "en": "Error",
-              "de": "Fehler"
+              "de": "Fehler",
+              "sv": "Fel",
+              "nl": "Fout",
+              "no": "Feil"
             },
             "example": {
               "en": "No testable capability available",
-              "de": "Keine testbare Capability vorhanden"
+              "de": "Keine testbare Capability vorhanden",
+              "sv": "Ingen testbar capability tillgänglig",
+              "nl": "Geen testbare capability beschikbaar",
+              "no": "Ingen testbar capability tilgjengelig"
             }
           }
         ]
@@ -341,15 +482,24 @@
         "id": "device_test_succeeded",
         "title": {
           "en": "A device test succeeds",
-          "de": "Ein Geräte-Test ist erfolgreich"
+          "de": "Ein Geräte-Test ist erfolgreich",
+          "sv": "Ett enhetstest lyckas",
+          "nl": "Een apparaattest slaagt",
+          "no": "En enhetstest lykkes"
         },
         "titleFormatted": {
           "en": "[[target_device]]'s reachability test succeeds",
-          "de": "Erreichbarkeitstest von [[target_device]] ist erfolgreich"
+          "de": "Erreichbarkeitstest von [[target_device]] ist erfolgreich",
+          "sv": "Nåbarhetstestet för [[target_device]] lyckas",
+          "nl": "De bereikbaarheidstest van [[target_device]] slaagt",
+          "no": "Nåbarhetstesten for [[target_device]] lykkes"
         },
         "hint": {
           "en": "Fires whenever a reachability test for the selected device succeeds - whether started manually (\"Test\" button in Settings) or via the \"Test device reachability\" action card.",
-          "de": "Wird ausgelöst, wenn ein Erreichbarkeitstest für das gewählte Gerät erfolgreich ist - egal ob manuell (\"Testen\"-Button in den Einstellungen) oder über die Aktionskarte \"Geräte-Erreichbarkeit testen\" gestartet."
+          "de": "Wird ausgelöst, wenn ein Erreichbarkeitstest für das gewählte Gerät erfolgreich ist - egal ob manuell (\"Testen\"-Button in den Einstellungen) oder über die Aktionskarte \"Geräte-Erreichbarkeit testen\" gestartet.",
+          "sv": "Utlöses varje gång ett nåbarhetstest för den valda enheten lyckas - oavsett om det startats manuellt (knappen \"Testa\" i inställningarna) eller via åtgärdskortet \"Testa enhetens nåbarhet\".",
+          "nl": "Wordt geactiveerd telkens wanneer een bereikbaarheidstest voor het gekozen apparaat slaagt - of dit nu handmatig is gestart (knop \"Test\" in de instellingen) of via de actiekaart \"Bereikbaarheid van apparaat testen\".",
+          "no": "Utløses hver gang en nåbarhetstest for den valgte enheten lykkes - enten den er startet manuelt (\"Test\"-knappen i innstillingene) eller via handlingskortet \"Test enhetens nåbarhet\"."
         },
         "args": [
           {
@@ -357,11 +507,17 @@
             "type": "autocomplete",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "placeholder": {
               "en": "Choose a device",
-              "de": "Gerät wählen"
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
             }
           }
         ],
@@ -371,11 +527,17 @@
             "type": "string",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "example": {
               "en": "Front door lock",
-              "de": "Haustürschloss"
+              "de": "Haustürschloss",
+              "sv": "Ytterdörrslås",
+              "nl": "Voordeurslot",
+              "no": "Inngangsdørlås"
             }
           },
           {
@@ -383,11 +545,17 @@
             "type": "string",
             "title": {
               "en": "Zone",
-              "de": "Zone"
+              "de": "Zone",
+              "sv": "Zon",
+              "nl": "Zone",
+              "no": "Sone"
             },
             "example": {
               "en": "Hallway",
-              "de": "Flur"
+              "de": "Flur",
+              "sv": "Hall",
+              "nl": "Hal",
+              "no": "Gang"
             }
           }
         ]
@@ -396,15 +564,24 @@
         "id": "device_unavailable",
         "title": {
           "en": "A device becomes unavailable",
-          "de": "Ein Gerät wird nicht erreichbar"
+          "de": "Ein Gerät wird nicht erreichbar",
+          "sv": "En enhet blir otillgänglig",
+          "nl": "Een apparaat wordt niet beschikbaar",
+          "no": "En enhet blir utilgjengelig"
         },
         "titleFormatted": {
           "en": "[[target_device]] becomes unavailable",
-          "de": "[[target_device]] wird nicht erreichbar"
+          "de": "[[target_device]] wird nicht erreichbar",
+          "sv": "[[target_device]] blir otillgänglig",
+          "nl": "[[target_device]] wordt niet beschikbaar",
+          "no": "[[target_device]] blir utilgjengelig"
         },
         "hint": {
           "en": "Fires in realtime for the selected device, directly via Homey's device availability event - independent of the interval scan. Respects the device's \"monitored\" toggle (off = never fires for it); the narrower \"Ignore unavailable\" toggle doesn't affect this trigger. For any device instead of one specific one, use \"Devices newly become unavailable\".",
-          "de": "Wird in Echtzeit für das gewählte Gerät über Homeys Geräte-Verfügbarkeits-Event ausgelöst - unabhängig vom Intervall-Scan. Berücksichtigt den \"Überwacht\"-Schalter des Geräts (aus = feuert nie dafür); der feinere Schalter \"Nicht erreichbar ignorieren\" hat darauf keinen Einfluss. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte nicht erreichbar\" verwenden."
+          "de": "Wird in Echtzeit für das gewählte Gerät über Homeys Geräte-Verfügbarkeits-Event ausgelöst - unabhängig vom Intervall-Scan. Berücksichtigt den \"Überwacht\"-Schalter des Geräts (aus = feuert nie dafür); der feinere Schalter \"Nicht erreichbar ignorieren\" hat darauf keinen Einfluss. Für beliebige statt eines bestimmten Geräts \"Es werden neu Geräte nicht erreichbar\" verwenden.",
+          "sv": "Utlöses i realtid för den valda enheten, direkt via Homeys tillgänglighetshändelse för enheter - oberoende av intervallskanningen. Respekterar enhetens reglage \"övervakas\" (av = utlöses aldrig för den); det snävare reglaget \"Ignorera otillgänglig\" påverkar inte den här triggern. För valfri enhet i stället för en specifik, använd \"Enheter har nyss blivit otillgängliga\".",
+          "nl": "Wordt in realtime geactiveerd voor het gekozen apparaat, rechtstreeks via Homeys beschikbaarheidsevent voor apparaten - los van de intervalscan. Houdt rekening met de schakelaar \"bewaakt\" van het apparaat (uit = wordt nooit geactiveerd); de beperktere schakelaar \"Negeer niet beschikbaar\" heeft geen invloed op deze trigger. Voor een willekeurig apparaat in plaats van een specifiek apparaat gebruik je \"Apparaten zijn zojuist niet beschikbaar geworden\".",
+          "no": "Utløses i sanntid for den valgte enheten, direkte via Homeys tilgjengelighetshendelse for enheter - uavhengig av intervallskanningen. Respekterer enhetens bryter \"overvåket\" (av = utløses aldri for den); den snevrere bryteren \"Ignorer utilgjengelig\" påvirker ikke denne triggeren. For en vilkårlig enhet i stedet for én bestemt, bruk \"Enheter har nettopp blitt utilgjengelige\"."
         },
         "args": [
           {
@@ -412,11 +589,17 @@
             "type": "autocomplete",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "placeholder": {
               "en": "Choose a device",
-              "de": "Gerät wählen"
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
             }
           }
         ],
@@ -426,11 +609,17 @@
             "type": "string",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "example": {
               "en": "Front door lock",
-              "de": "Haustürschloss"
+              "de": "Haustürschloss",
+              "sv": "Ytterdörrslås",
+              "nl": "Voordeurslot",
+              "no": "Inngangsdørlås"
             }
           },
           {
@@ -438,11 +627,17 @@
             "type": "string",
             "title": {
               "en": "Zone",
-              "de": "Zone"
+              "de": "Zone",
+              "sv": "Zon",
+              "nl": "Zone",
+              "no": "Sone"
             },
             "example": {
               "en": "Hallway",
-              "de": "Flur"
+              "de": "Flur",
+              "sv": "Hall",
+              "nl": "Hal",
+              "no": "Gang"
             }
           }
         ]
@@ -451,15 +646,24 @@
         "id": "devices_available_again_summary",
         "title": {
           "en": "Devices become available again",
-          "de": "Geräte werden wieder erreichbar"
+          "de": "Geräte werden wieder erreichbar",
+          "sv": "Enheter blir tillgängliga igen",
+          "nl": "Apparaten worden weer beschikbaar",
+          "no": "Enheter blir tilgjengelige igjen"
         },
         "titleFormatted": {
           "en": "Devices become available again",
-          "de": "Geräte werden wieder erreichbar"
+          "de": "Geräte werden wieder erreichbar",
+          "sv": "Enheter blir tillgängliga igen",
+          "nl": "Apparaten worden weer beschikbaar",
+          "no": "Enheter blir tilgjengelige igjen"
         },
         "hint": {
           "en": "Fires in realtime, bundling every device that becomes available again within a few seconds of each other into a single trigger - the recovery counterpart to \"Devices newly become unavailable\".",
-          "de": "Wird in Echtzeit ausgelöst und bündelt alle Geräte, die innerhalb weniger Sekunden nacheinander wieder erreichbar werden, in einem einzigen Trigger - das Erholungs-Gegenstück zu \"Es werden neu Geräte nicht erreichbar\"."
+          "de": "Wird in Echtzeit ausgelöst und bündelt alle Geräte, die innerhalb weniger Sekunden nacheinander wieder erreichbar werden, in einem einzigen Trigger - das Erholungs-Gegenstück zu \"Es werden neu Geräte nicht erreichbar\".",
+          "sv": "Utlöses i realtid och samlar alla enheter som blir tillgängliga igen inom några sekunder från varandra i en enda trigger - motsvarigheten vid återhämtning till \"Enheter har nyss blivit otillgängliga\".",
+          "nl": "Wordt in realtime geactiveerd en bundelt alle apparaten die binnen enkele seconden na elkaar weer beschikbaar worden in één trigger - het herstel-equivalent van \"Apparaten zijn zojuist niet beschikbaar geworden\".",
+          "no": "Utløses i sanntid og samler alle enheter som blir tilgjengelige igjen innen noen få sekunder fra hverandre i én enkelt trigger - motstykket ved gjenoppretting til \"Enheter har nettopp blitt utilgjengelige\"."
         },
         "tokens": [
           {
@@ -467,7 +671,10 @@
             "type": "number",
             "title": {
               "en": "Count",
-              "de": "Anzahl"
+              "de": "Anzahl",
+              "sv": "Antal",
+              "nl": "Aantal",
+              "no": "Antall"
             },
             "example": 2
           },
@@ -476,11 +683,17 @@
             "type": "string",
             "title": {
               "en": "Devices",
-              "de": "Geräte"
+              "de": "Geräte",
+              "sv": "Enheter",
+              "nl": "Apparaten",
+              "no": "Enheter"
             },
             "example": {
               "en": "Front door lock, Garden sensor",
-              "de": "Haustürschloss, Garten Sensor"
+              "de": "Haustürschloss, Garten Sensor",
+              "sv": "Ytterdörrslås, Trädgårdssensor",
+              "nl": "Voordeurslot, Tuinsensor",
+              "no": "Inngangsdørlås, Hagesensor"
             }
           }
         ]
@@ -489,15 +702,24 @@
         "id": "devices_battery_ok_again_summary",
         "title": {
           "en": "Devices' battery is OK again",
-          "de": "Akkustand von Geräten ist wieder OK"
+          "de": "Akkustand von Geräten ist wieder OK",
+          "sv": "Enheters batteri är OK igen",
+          "nl": "Batterij van apparaten is weer OK",
+          "no": "Enheters batteri er OK igjen"
         },
         "titleFormatted": {
           "en": "Devices' battery is OK again",
-          "de": "Akkustand von Geräten ist wieder OK"
+          "de": "Akkustand von Geräten ist wieder OK",
+          "sv": "Enheters batteri är OK igen",
+          "nl": "Batterij van apparaten is weer OK",
+          "no": "Enheters batteri er OK igjen"
         },
         "hint": {
           "en": "Fires once per scan, bundling every device whose battery rose back above its threshold in that scan into a single trigger - the recovery counterpart to \"Devices with low battery are newly found\".",
-          "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, deren Akkustand in diesem Scan wieder über die Schwelle gestiegen ist, in einem einzigen Trigger - das Erholungs-Gegenstück zu \"Es werden neu Geräte mit niedrigem Akku gefunden\"."
+          "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, deren Akkustand in diesem Scan wieder über die Schwelle gestiegen ist, in einem einzigen Trigger - das Erholungs-Gegenstück zu \"Es werden neu Geräte mit niedrigem Akku gefunden\".",
+          "sv": "Utlöses en gång per skanning och samlar alla enheter vars batteri steg över sitt tröskelvärde igen i den skanningen i en enda trigger - motsvarigheten vid återhämtning till \"Enheter med lågt batteri har nyss hittats\".",
+          "nl": "Wordt één keer per scan geactiveerd en bundelt alle apparaten waarvan de batterij in die scan weer boven de drempelwaarde kwam in één trigger - het herstel-equivalent van \"Er zijn zojuist apparaten met een lage batterij gevonden\".",
+          "no": "Utløses én gang per skanning og samler alle enheter der batteriet steg over terskelverdien igjen i den skanningen i én enkelt trigger - motstykket ved gjenoppretting til \"Det er nettopp funnet enheter med lavt batteri\"."
         },
         "tokens": [
           {
@@ -505,7 +727,10 @@
             "type": "number",
             "title": {
               "en": "Count",
-              "de": "Anzahl"
+              "de": "Anzahl",
+              "sv": "Antal",
+              "nl": "Aantal",
+              "no": "Antall"
             },
             "example": 2
           },
@@ -514,11 +739,17 @@
             "type": "string",
             "title": {
               "en": "Devices",
-              "de": "Geräte"
+              "de": "Geräte",
+              "sv": "Enheter",
+              "nl": "Apparaten",
+              "no": "Enheter"
             },
             "example": {
               "en": "Garage sensor, Garden sensor",
-              "de": "Garage Sensor, Garten Sensor"
+              "de": "Garage Sensor, Garten Sensor",
+              "sv": "Garagesensor, Trädgårdssensor",
+              "nl": "Garagesensor, Tuinsensor",
+              "no": "Garasjesensor, Hagesensor"
             }
           }
         ]
@@ -527,15 +758,24 @@
         "id": "devices_low_battery_summary",
         "title": {
           "en": "Devices with low battery are newly found",
-          "de": "Es werden neu Geräte mit niedrigem Akku gefunden"
+          "de": "Es werden neu Geräte mit niedrigem Akku gefunden",
+          "sv": "Enheter med lågt batteri har nyss hittats",
+          "nl": "Er zijn zojuist apparaten met een lage batterij gevonden",
+          "no": "Det er nettopp funnet enheter med lavt batteri"
         },
         "titleFormatted": {
           "en": "Devices with low battery are newly found",
-          "de": "Es werden neu Geräte mit niedrigem Akku gefunden"
+          "de": "Es werden neu Geräte mit niedrigem Akku gefunden",
+          "sv": "Enheter med lågt batteri har nyss hittats",
+          "nl": "Er zijn zojuist apparaten met een lage batterij gevonden",
+          "no": "Det er nettopp funnet enheter med lavt batteri"
         },
         "hint": {
           "en": "Fires once per scan, bundling every device that newly dropped to/below its battery threshold in that scan into a single trigger - instead of firing \"A device's battery gets low\" once per device.",
-          "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die in diesem Scan neu die Akku-Schwelle unterschritten haben, in einem einzigen Trigger - statt \"Ein Gerät hat eine niedrige Batterie\" einzeln pro Gerät auszulösen."
+          "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die in diesem Scan neu die Akku-Schwelle unterschritten haben, in einem einzigen Trigger - statt \"Ein Gerät hat eine niedrige Batterie\" einzeln pro Gerät auszulösen.",
+          "sv": "Utlöses en gång per skanning och samlar alla enheter som nyss sjunkit till eller under sitt batteritröskelvärde i den skanningen i en enda trigger - i stället för att utlösa \"En enhets batteri blir lågt\" en gång per enhet.",
+          "nl": "Wordt één keer per scan geactiveerd en bundelt alle apparaten die in die scan net tot of onder hun batterijdrempel zijn gedaald in één trigger - in plaats van \"De batterij van een apparaat raakt laag\" één keer per apparaat te activeren.",
+          "no": "Utløses én gang per skanning og samler alle enheter som nettopp har sunket til eller under batteriterskelen sin i den skanningen i én enkelt trigger - i stedet for å utløse \"Batteriet til en enhet blir lavt\" én gang per enhet."
         },
         "tokens": [
           {
@@ -543,7 +783,10 @@
             "type": "number",
             "title": {
               "en": "Count",
-              "de": "Anzahl"
+              "de": "Anzahl",
+              "sv": "Antal",
+              "nl": "Aantal",
+              "no": "Antall"
             },
             "example": 2
           },
@@ -552,11 +795,17 @@
             "type": "string",
             "title": {
               "en": "Devices",
-              "de": "Geräte"
+              "de": "Geräte",
+              "sv": "Enheter",
+              "nl": "Apparaten",
+              "no": "Enheter"
             },
             "example": {
               "en": "Garage sensor, Garden sensor",
-              "de": "Garage Sensor, Garten Sensor"
+              "de": "Garage Sensor, Garten Sensor",
+              "sv": "Garagesensor, Trädgårdssensor",
+              "nl": "Garagesensor, Tuinsensor",
+              "no": "Garasjesensor, Hagesensor"
             }
           }
         ]
@@ -565,15 +814,24 @@
         "id": "devices_not_reporting_summary",
         "title": {
           "en": "Devices are newly found not reporting",
-          "de": "Es werden neu Geräte gefunden, die sich nicht mehr melden"
+          "de": "Es werden neu Geräte gefunden, die sich nicht mehr melden",
+          "sv": "Enheter har nyss visat sig inte rapportera",
+          "nl": "Er zijn zojuist apparaten gevonden die niet rapporteren",
+          "no": "Det er nettopp funnet enheter som ikke rapporterer"
         },
         "titleFormatted": {
           "en": "Devices are newly found not reporting",
-          "de": "Es werden neu Geräte gefunden, die sich nicht mehr melden"
+          "de": "Es werden neu Geräte gefunden, die sich nicht mehr melden",
+          "sv": "Enheter har nyss visat sig inte rapportera",
+          "nl": "Er zijn zojuist apparaten gevonden die niet rapporteren",
+          "no": "Det er nettopp funnet enheter som ikke rapporterer"
         },
         "hint": {
           "en": "Fires once per scan, bundling every device that newly stopped reporting in that scan into a single trigger - instead of firing \"A device stops reporting\" once per device.",
-          "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die in diesem Scan neu als 'meldet sich nicht' erkannt wurden, in einem einzigen Trigger - statt \"Ein Gerät meldet sich nicht mehr\" einzeln pro Gerät auszulösen."
+          "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die in diesem Scan neu als 'meldet sich nicht' erkannt wurden, in einem einzigen Trigger - statt \"Ein Gerät meldet sich nicht mehr\" einzeln pro Gerät auszulösen.",
+          "sv": "Utlöses en gång per skanning och samlar alla enheter som nyss slutat rapportera i den skanningen i en enda trigger - i stället för att utlösa \"En enhet slutar rapportera\" en gång per enhet.",
+          "nl": "Wordt één keer per scan geactiveerd en bundelt alle apparaten die in die scan net zijn gestopt met rapporteren in één trigger - in plaats van \"Een apparaat stopt met rapporteren\" één keer per apparaat te activeren.",
+          "no": "Utløses én gang per skanning og samler alle enheter som nettopp har sluttet å rapportere i den skanningen i én enkelt trigger - i stedet for å utløse \"En enhet slutter å rapportere\" én gang per enhet."
         },
         "tokens": [
           {
@@ -581,7 +839,10 @@
             "type": "number",
             "title": {
               "en": "Count",
-              "de": "Anzahl"
+              "de": "Anzahl",
+              "sv": "Antal",
+              "nl": "Aantal",
+              "no": "Antall"
             },
             "example": 2
           },
@@ -590,11 +851,17 @@
             "type": "string",
             "title": {
               "en": "Devices",
-              "de": "Geräte"
+              "de": "Geräte",
+              "sv": "Enheter",
+              "nl": "Apparaten",
+              "no": "Enheter"
             },
             "example": {
               "en": "Garage sensor, Garden sensor",
-              "de": "Garage Sensor, Garten Sensor"
+              "de": "Garage Sensor, Garten Sensor",
+              "sv": "Garagesensor, Trädgårdssensor",
+              "nl": "Garagesensor, Tuinsensor",
+              "no": "Garasjesensor, Hagesensor"
             }
           }
         ]
@@ -603,15 +870,24 @@
         "id": "devices_reporting_again_summary",
         "title": {
           "en": "Devices are reporting again",
-          "de": "Geräte melden sich wieder"
+          "de": "Geräte melden sich wieder",
+          "sv": "Enheter rapporterar igen",
+          "nl": "Apparaten rapporteren weer",
+          "no": "Enheter rapporterer igjen"
         },
         "titleFormatted": {
           "en": "Devices are reporting again",
-          "de": "Geräte melden sich wieder"
+          "de": "Geräte melden sich wieder",
+          "sv": "Enheter rapporterar igen",
+          "nl": "Apparaten rapporteren weer",
+          "no": "Enheter rapporterer igjen"
         },
         "hint": {
           "en": "Fires once per scan, bundling every device that newly resumed reporting in that scan into a single trigger - the recovery counterpart to \"Devices are newly found not reporting\".",
-          "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die sich in diesem Scan wieder gemeldet haben, in einem einzigen Trigger - das Erholungs-Gegenstück zu \"Es werden neu Geräte gefunden, die sich nicht mehr melden\"."
+          "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die sich in diesem Scan wieder gemeldet haben, in einem einzigen Trigger - das Erholungs-Gegenstück zu \"Es werden neu Geräte gefunden, die sich nicht mehr melden\".",
+          "sv": "Utlöses en gång per skanning och samlar alla enheter som nyss börjat rapportera igen i den skanningen i en enda trigger - motsvarigheten vid återhämtning till \"Enheter har nyss visat sig inte rapportera\".",
+          "nl": "Wordt één keer per scan geactiveerd en bundelt alle apparaten die in die scan net weer zijn gaan rapporteren in één trigger - het herstel-equivalent van \"Er zijn zojuist apparaten gevonden die niet rapporteren\".",
+          "no": "Utløses én gang per skanning og samler alle enheter som nettopp har begynt å rapportere igjen i den skanningen i én enkelt trigger - motstykket ved gjenoppretting til \"Det er nettopp funnet enheter som ikke rapporterer\"."
         },
         "tokens": [
           {
@@ -619,7 +895,10 @@
             "type": "number",
             "title": {
               "en": "Count",
-              "de": "Anzahl"
+              "de": "Anzahl",
+              "sv": "Antal",
+              "nl": "Aantal",
+              "no": "Antall"
             },
             "example": 2
           },
@@ -628,11 +907,17 @@
             "type": "string",
             "title": {
               "en": "Devices",
-              "de": "Geräte"
+              "de": "Geräte",
+              "sv": "Enheter",
+              "nl": "Apparaten",
+              "no": "Enheter"
             },
             "example": {
               "en": "Garage sensor, Garden sensor",
-              "de": "Garage Sensor, Garten Sensor"
+              "de": "Garage Sensor, Garten Sensor",
+              "sv": "Garagesensor, Trädgårdssensor",
+              "nl": "Garagesensor, Tuinsensor",
+              "no": "Garasjesensor, Hagesensor"
             }
           }
         ]
@@ -641,15 +926,24 @@
         "id": "devices_unavailable_summary",
         "title": {
           "en": "Devices newly become unavailable",
-          "de": "Es werden neu Geräte nicht erreichbar"
+          "de": "Es werden neu Geräte nicht erreichbar",
+          "sv": "Enheter har nyss blivit otillgängliga",
+          "nl": "Apparaten zijn zojuist niet beschikbaar geworden",
+          "no": "Enheter har nettopp blitt utilgjengelige"
         },
         "titleFormatted": {
           "en": "Devices newly become unavailable",
-          "de": "Es werden neu Geräte nicht erreichbar"
+          "de": "Es werden neu Geräte nicht erreichbar",
+          "sv": "Enheter har nyss blivit otillgängliga",
+          "nl": "Apparaten zijn zojuist niet beschikbaar geworden",
+          "no": "Enheter har nettopp blitt utilgjengelige"
         },
         "hint": {
           "en": "Fires in realtime, bundling every device that becomes unavailable within a few seconds of each other into a single trigger (e.g. after a mesh network hiccup) - instead of firing \"A device becomes unavailable\" once per device.",
-          "de": "Wird in Echtzeit ausgelöst und bündelt alle Geräte, die innerhalb weniger Sekunden nacheinander nicht erreichbar werden (z.B. nach einem Mesh-Netzwerk-Aussetzer), in einem einzigen Trigger - statt \"Ein Gerät wird nicht erreichbar\" einzeln pro Gerät auszulösen."
+          "de": "Wird in Echtzeit ausgelöst und bündelt alle Geräte, die innerhalb weniger Sekunden nacheinander nicht erreichbar werden (z.B. nach einem Mesh-Netzwerk-Aussetzer), in einem einzigen Trigger - statt \"Ein Gerät wird nicht erreichbar\" einzeln pro Gerät auszulösen.",
+          "sv": "Utlöses i realtid och samlar alla enheter som blir otillgängliga inom några sekunder från varandra i en enda trigger (t.ex. efter ett avbrott i mesh-nätverket) - i stället för att utlösa \"En enhet blir otillgänglig\" en gång per enhet.",
+          "nl": "Wordt in realtime geactiveerd en bundelt alle apparaten die binnen enkele seconden na elkaar niet beschikbaar worden in één trigger (bijv. na een haperend mesh-netwerk) - in plaats van \"Een apparaat wordt niet beschikbaar\" één keer per apparaat te activeren.",
+          "no": "Utløses i sanntid og samler alle enheter som blir utilgjengelige innen noen få sekunder fra hverandre i én enkelt trigger (f.eks. etter et avbrudd i mesh-nettverket) - i stedet for å utløse \"En enhet blir utilgjengelig\" én gang per enhet."
         },
         "tokens": [
           {
@@ -657,7 +951,10 @@
             "type": "number",
             "title": {
               "en": "Count",
-              "de": "Anzahl"
+              "de": "Anzahl",
+              "sv": "Antal",
+              "nl": "Aantal",
+              "no": "Antall"
             },
             "example": 2
           },
@@ -666,11 +963,17 @@
             "type": "string",
             "title": {
               "en": "Devices",
-              "de": "Geräte"
+              "de": "Geräte",
+              "sv": "Enheter",
+              "nl": "Apparaten",
+              "no": "Enheter"
             },
             "example": {
               "en": "Front door lock, Garden sensor",
-              "de": "Haustürschloss, Garten Sensor"
+              "de": "Haustürschloss, Garten Sensor",
+              "sv": "Ytterdörrslås, Trädgårdssensor",
+              "nl": "Voordeurslot, Tuinsensor",
+              "no": "Inngangsdørlås, Hagesensor"
             }
           }
         ]
@@ -681,15 +984,24 @@
         "id": "any_device_has_low_battery",
         "title": {
           "en": "!{{Any device has|No device has}} low battery",
-          "de": "!{{Ein beliebiges Gerät hat niedrigen Akkustand|Kein Gerät hat niedrigen Akkustand}}"
+          "de": "!{{Ein beliebiges Gerät hat niedrigen Akkustand|Kein Gerät hat niedrigen Akkustand}}",
+          "sv": "!{{Någon enhet har|Ingen enhet har}} lågt batteri",
+          "nl": "!{{Een apparaat heeft|Geen apparaat heeft}} een lage batterij",
+          "no": "!{{Noen enheter har|Ingen enheter har}} lavt batteri"
         },
         "titleFormatted": {
           "en": "!{{Any device has|No device has}} low battery",
-          "de": "!{{Ein beliebiges Gerät hat niedrigen Akkustand|Kein Gerät hat niedrigen Akkustand}}"
+          "de": "!{{Ein beliebiges Gerät hat niedrigen Akkustand|Kein Gerät hat niedrigen Akkustand}}",
+          "sv": "!{{Någon enhet har|Ingen enhet har}} lågt batteri",
+          "nl": "!{{Een apparaat heeft|Geen apparaat heeft}} een lage batterij",
+          "no": "!{{Noen enheter har|Ingen enheter har}} lavt batteri"
         },
         "hint": {
           "en": "Checks the result of the last scan for any device currently flagged with low battery, without picking one specific device.",
-          "de": "Prüft das Ergebnis des letzten Scans auf ein beliebiges Gerät, das aktuell mit niedrigem Akkustand markiert ist, ohne ein bestimmtes Gerät auszuwählen."
+          "de": "Prüft das Ergebnis des letzten Scans auf ein beliebiges Gerät, das aktuell mit niedrigem Akkustand markiert ist, ohne ein bestimmtes Gerät auszuwählen.",
+          "sv": "Kontrollerar resultatet av senaste skanningen efter någon enhet som just nu är markerad med lågt batteri, utan att välja en specifik enhet.",
+          "nl": "Controleert in het resultaat van de laatste scan of een apparaat momenteel is gemarkeerd met een lage batterij, zonder een specifiek apparaat te kiezen.",
+          "no": "Sjekker resultatet av siste skanning for enheter som for øyeblikket er markert med lavt batteri, uten å velge en bestemt enhet."
         },
         "args": []
       },
@@ -697,15 +1009,24 @@
         "id": "any_device_is_not_reporting",
         "title": {
           "en": "!{{Any device is|No device is}} not reporting",
-          "de": "!{{Ein beliebiges Gerät meldet sich nicht|Kein Gerät meldet sich nicht}}"
+          "de": "!{{Ein beliebiges Gerät meldet sich nicht|Kein Gerät meldet sich nicht}}",
+          "sv": "!{{Någon enhet rapporterar inte|Ingen enhet rapporterar inte}}",
+          "nl": "!{{Een apparaat rapporteert niet|Geen apparaat rapporteert niet}}",
+          "no": "!{{Noen enheter rapporterer ikke|Ingen enheter rapporterer ikke}}"
         },
         "titleFormatted": {
           "en": "!{{Any device is|No device is}} not reporting",
-          "de": "!{{Ein beliebiges Gerät meldet sich nicht|Kein Gerät meldet sich nicht}}"
+          "de": "!{{Ein beliebiges Gerät meldet sich nicht|Kein Gerät meldet sich nicht}}",
+          "sv": "!{{Någon enhet rapporterar inte|Ingen enhet rapporterar inte}}",
+          "nl": "!{{Een apparaat rapporteert niet|Geen apparaat rapporteert niet}}",
+          "no": "!{{Noen enheter rapporterer ikke|Ingen enheter rapporterer ikke}}"
         },
         "hint": {
           "en": "Checks the result of the last scan for any device currently flagged as \"not reporting\", without picking one specific device.",
-          "de": "Prüft das Ergebnis des letzten Scans auf ein beliebiges Gerät, das aktuell als \"meldet sich nicht\" markiert ist, ohne ein bestimmtes Gerät auszuwählen."
+          "de": "Prüft das Ergebnis des letzten Scans auf ein beliebiges Gerät, das aktuell als \"meldet sich nicht\" markiert ist, ohne ein bestimmtes Gerät auszuwählen.",
+          "sv": "Kontrollerar resultatet av senaste skanningen efter någon enhet som just nu är markerad som \"rapporterar inte\", utan att välja en specifik enhet.",
+          "nl": "Controleert in het resultaat van de laatste scan of een apparaat momenteel is gemarkeerd als \"rapporteert niet\", zonder een specifiek apparaat te kiezen.",
+          "no": "Sjekker resultatet av siste skanning for enheter som for øyeblikket er markert som \"rapporterer ikke\", uten å velge en bestemt enhet."
         },
         "args": []
       },
@@ -713,15 +1034,24 @@
         "id": "any_device_is_unavailable",
         "title": {
           "en": "!{{Any device is|No device is}} unavailable",
-          "de": "!{{Ein beliebiges Gerät ist nicht erreichbar|Kein Gerät ist nicht erreichbar}}"
+          "de": "!{{Ein beliebiges Gerät ist nicht erreichbar|Kein Gerät ist nicht erreichbar}}",
+          "sv": "!{{Någon enhet är otillgänglig|Ingen enhet är otillgänglig}}",
+          "nl": "!{{Een apparaat is niet beschikbaar|Geen apparaat is niet beschikbaar}}",
+          "no": "!{{Noen enheter er utilgjengelige|Ingen enheter er utilgjengelige}}"
         },
         "titleFormatted": {
           "en": "!{{Any device is|No device is}} unavailable",
-          "de": "!{{Ein beliebiges Gerät ist nicht erreichbar|Kein Gerät ist nicht erreichbar}}"
+          "de": "!{{Ein beliebiges Gerät ist nicht erreichbar|Kein Gerät ist nicht erreichbar}}",
+          "sv": "!{{Någon enhet är otillgänglig|Ingen enhet är otillgänglig}}",
+          "nl": "!{{Een apparaat is niet beschikbaar|Geen apparaat is niet beschikbaar}}",
+          "no": "!{{Noen enheter er utilgjengelige|Ingen enheter er utilgjengelige}}"
         },
         "hint": {
           "en": "Checks the live count of currently unavailable devices across your whole setup, without picking one specific device. Same filtering as the summary trigger and the virtual device's counter (respects \"monitored\" and \"Ignore unavailable\").",
-          "de": "Prüft die aktuelle Anzahl nicht erreichbarer Geräte über das ganze Setup, ohne ein bestimmtes Gerät auszuwählen. Gleiche Filterung wie die Sammel-Trigger-Karte und der Zähler im virtuellen Gerät (berücksichtigt \"Überwacht\" und \"Nicht erreichbar ignorieren\")."
+          "de": "Prüft die aktuelle Anzahl nicht erreichbarer Geräte über das ganze Setup, ohne ein bestimmtes Gerät auszuwählen. Gleiche Filterung wie die Sammel-Trigger-Karte und der Zähler im virtuellen Gerät (berücksichtigt \"Überwacht\" und \"Nicht erreichbar ignorieren\").",
+          "sv": "Kontrollerar det aktuella antalet otillgängliga enheter i hela din installation, utan att välja en specifik enhet. Samma filtrering som sammanfattningstriggern och den virtuella enhetens räknare (respekterar \"övervakas\" och \"Ignorera otillgänglig\").",
+          "nl": "Controleert het actuele aantal niet-beschikbare apparaten in je hele setup, zonder een specifiek apparaat te kiezen. Dezelfde filtering als de samenvattingstrigger en de teller van het virtuele apparaat (houdt rekening met \"bewaakt\" en \"Negeer niet beschikbaar\").",
+          "no": "Sjekker det faktiske antallet utilgjengelige enheter i hele oppsettet ditt, uten å velge en bestemt enhet. Samme filtrering som sammendragstriggeren og den virtuelle enhetens teller (tar hensyn til \"overvåket\" og \"Ignorer utilgjengelig\")."
         },
         "args": []
       },
@@ -729,15 +1059,24 @@
         "id": "device_has_low_battery",
         "title": {
           "en": "!{{Device has|Device doesn't have}} low battery",
-          "de": "!{{Gerät hat einen niedrigen Akkustand|Gerät hat keinen niedrigen Akkustand}}"
+          "de": "!{{Gerät hat einen niedrigen Akkustand|Gerät hat keinen niedrigen Akkustand}}",
+          "sv": "!{{Enheten har lågt batteri|Enheten har inte lågt batteri}}",
+          "nl": "!{{Apparaat heeft een lage batterij|Apparaat heeft geen lage batterij}}",
+          "no": "!{{Enheten har lavt batteri|Enheten har ikke lavt batteri}}"
         },
         "titleFormatted": {
           "en": "[[device]] !{{has|doesn't have}} low battery",
-          "de": "[[device]] !{{hat einen niedrigen Akkustand|hat keinen niedrigen Akkustand}}"
+          "de": "[[device]] !{{hat einen niedrigen Akkustand|hat keinen niedrigen Akkustand}}",
+          "sv": "[[device]] !{{har lågt batteri|har inte lågt batteri}}",
+          "nl": "[[device]] !{{heeft een lage batterij|heeft geen lage batterij}}",
+          "no": "[[device]] !{{har lavt batteri|har ikke lavt batteri}}"
         },
         "hint": {
           "en": "Checks whether a specific device was flagged with a low or alarming battery in the last scan.",
-          "de": "Prüft, ob ein bestimmtes Gerät im letzten Scan mit niedrigem Akkustand oder Batterie-Alarm markiert wurde."
+          "de": "Prüft, ob ein bestimmtes Gerät im letzten Scan mit niedrigem Akkustand oder Batterie-Alarm markiert wurde.",
+          "sv": "Kontrollerar om en specifik enhet markerades med lågt eller larmande batteri vid senaste skanningen.",
+          "nl": "Controleert of een specifiek apparaat bij de laatste scan is gemarkeerd met een lage of alarmerende batterij.",
+          "no": "Sjekker om en bestemt enhet ble markert med lavt eller alarmerende batteri ved siste skanning."
         },
         "args": [
           {
@@ -745,11 +1084,17 @@
             "type": "autocomplete",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "placeholder": {
               "en": "Choose a device",
-              "de": "Gerät wählen"
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
             }
           }
         ]
@@ -758,15 +1103,24 @@
         "id": "device_is_not_reporting",
         "title": {
           "en": "!{{Device isn't|Device is}} reporting",
-          "de": "!{{Gerät meldet sich nicht|Gerät meldet sich}}"
+          "de": "!{{Gerät meldet sich nicht|Gerät meldet sich}}",
+          "sv": "!{{Enheten rapporterar inte|Enheten rapporterar}}",
+          "nl": "!{{Apparaat rapporteert niet|Apparaat rapporteert}}",
+          "no": "!{{Enheten rapporterer ikke|Enheten rapporterer}}"
         },
         "titleFormatted": {
           "en": "[[device]] !{{isn't|is}} reporting",
-          "de": "[[device]] !{{meldet sich nicht|meldet sich}}"
+          "de": "[[device]] !{{meldet sich nicht|meldet sich}}",
+          "sv": "[[device]] !{{rapporterar inte|rapporterar}}",
+          "nl": "[[device]] !{{rapporteert niet|rapporteert}}",
+          "no": "[[device]] !{{rapporterer ikke|rapporterer}}"
         },
         "hint": {
           "en": "Checks whether a specific device was flagged as not reporting in the last scan.",
-          "de": "Prüft, ob ein bestimmtes Gerät im letzten Scan als 'meldet sich nicht' markiert wurde."
+          "de": "Prüft, ob ein bestimmtes Gerät im letzten Scan als 'meldet sich nicht' markiert wurde.",
+          "sv": "Kontrollerar om en specifik enhet markerades som \"rapporterar inte\" vid senaste skanningen.",
+          "nl": "Controleert of een specifiek apparaat bij de laatste scan als \"rapporteert niet\" is gemarkeerd.",
+          "no": "Sjekker om en bestemt enhet ble markert som \"rapporterer ikke\" ved siste skanning."
         },
         "args": [
           {
@@ -774,11 +1128,17 @@
             "type": "autocomplete",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "placeholder": {
               "en": "Choose a device",
-              "de": "Gerät wählen"
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
             }
           }
         ]
@@ -787,15 +1147,24 @@
         "id": "device_is_paused",
         "title": {
           "en": "!{{Device is|Device isn't}} paused",
-          "de": "!{{Gerät ist pausiert|Gerät ist nicht pausiert}}"
+          "de": "!{{Gerät ist pausiert|Gerät ist nicht pausiert}}",
+          "sv": "!{{Enheten är pausad|Enheten är inte pausad}}",
+          "nl": "!{{Apparaat is gepauzeerd|Apparaat is niet gepauzeerd}}",
+          "no": "!{{Enheten er satt på pause|Enheten er ikke satt på pause}}"
         },
         "titleFormatted": {
           "en": "[[device]] !{{is|isn't}} paused",
-          "de": "[[device]] !{{ist pausiert|ist nicht pausiert}}"
+          "de": "[[device]] !{{ist pausiert|ist nicht pausiert}}",
+          "sv": "[[device]] !{{är pausad|är inte pausad}}",
+          "nl": "[[device]] !{{is gepauzeerd|is niet gepauzeerd}}",
+          "no": "[[device]] !{{er satt på pause|er ikke satt på pause}}"
         },
         "hint": {
           "en": "Checks whether a specific device currently has an active seasonal pause (set under its Details, or via the \"Pause device until date\" action).",
-          "de": "Prüft, ob ein bestimmtes Gerät aktuell eine laufende Pause hat (gesetzt über dessen Details, oder über die Aktion \"Gerät bis Datum pausieren\")."
+          "de": "Prüft, ob ein bestimmtes Gerät aktuell eine laufende Pause hat (gesetzt über dessen Details, oder über die Aktion \"Gerät bis Datum pausieren\").",
+          "sv": "Kontrollerar om en specifik enhet just nu har en aktiv säsongspaus (inställd under dess Detaljer, eller via åtgärden \"Pausa enhet till datum\").",
+          "nl": "Controleert of een specifiek apparaat momenteel een actieve seizoenspauze heeft (ingesteld onder de Details van het apparaat, of via de actie \"Apparaat pauzeren tot datum\").",
+          "no": "Sjekker om en bestemt enhet for øyeblikket har en aktiv sesongpause (satt under enhetens Detaljer, eller via handlingen \"Sett enhet på pause til dato\")."
         },
         "args": [
           {
@@ -803,11 +1172,17 @@
             "type": "autocomplete",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "placeholder": {
               "en": "Choose a device",
-              "de": "Gerät wählen"
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
             }
           }
         ]
@@ -816,15 +1191,24 @@
         "id": "device_is_unavailable",
         "title": {
           "en": "!{{Device is|Device isn't}} unavailable",
-          "de": "!{{Gerät ist nicht erreichbar|Gerät ist erreichbar}}"
+          "de": "!{{Gerät ist nicht erreichbar|Gerät ist erreichbar}}",
+          "sv": "!{{Enheten är otillgänglig|Enheten är tillgänglig}}",
+          "nl": "!{{Apparaat is niet beschikbaar|Apparaat is beschikbaar}}",
+          "no": "!{{Enheten er utilgjengelig|Enheten er tilgjengelig}}"
         },
         "titleFormatted": {
           "en": "[[device]] !{{is|isn't}} unavailable",
-          "de": "[[device]] !{{ist nicht erreichbar|ist erreichbar}}"
+          "de": "[[device]] !{{ist nicht erreichbar|ist erreichbar}}",
+          "sv": "[[device]] !{{är otillgänglig|är tillgänglig}}",
+          "nl": "[[device]] !{{is niet beschikbaar|is beschikbaar}}",
+          "no": "[[device]] !{{er utilgjengelig|er tilgjengelig}}"
         },
         "hint": {
           "en": "Checks a specific device's live availability, as reported directly by Homey - independent of the interval scan. Always false if the device's \"monitored\" toggle is off.",
-          "de": "Prüft die Live-Erreichbarkeit eines bestimmten Geräts, wie direkt von Homey gemeldet - unabhängig vom Intervall-Scan. Immer falsch, wenn der \"Überwacht\"-Schalter des Geräts aus ist."
+          "de": "Prüft die Live-Erreichbarkeit eines bestimmten Geräts, wie direkt von Homey gemeldet - unabhängig vom Intervall-Scan. Immer falsch, wenn der \"Überwacht\"-Schalter des Geräts aus ist.",
+          "sv": "Kontrollerar en specifik enhets aktuella tillgänglighet, som den rapporteras direkt av Homey - oberoende av intervallskanningen. Alltid falskt om enhetens reglage \"övervakas\" är avstängt.",
+          "nl": "Controleert de live beschikbaarheid van een specifiek apparaat, zoals rechtstreeks door Homey gemeld - los van de intervalscan. Altijd onwaar als de schakelaar \"bewaakt\" van het apparaat uitstaat.",
+          "no": "Sjekker en bestemt enhets faktiske tilgjengelighet, slik den rapporteres direkte av Homey - uavhengig av intervallskanningen. Alltid usann hvis enhetens bryter \"overvåket\" er av."
         },
         "args": [
           {
@@ -832,11 +1216,17 @@
             "type": "autocomplete",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "placeholder": {
               "en": "Choose a device",
-              "de": "Gerät wählen"
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
             }
           }
         ]
@@ -847,15 +1237,24 @@
         "id": "pause_device",
         "title": {
           "en": "Pause device until date",
-          "de": "Gerät bis Datum pausieren"
+          "de": "Gerät bis Datum pausieren",
+          "sv": "Pausa enhet till datum",
+          "nl": "Apparaat pauzeren tot datum",
+          "no": "Sett enhet på pause til dato"
         },
         "titleFormatted": {
           "en": "Pause [[device]] until [[date]] [[rescanNow]]",
-          "de": "[[device]] bis [[date]] pausieren [[rescanNow]]"
+          "de": "[[device]] bis [[date]] pausieren [[rescanNow]]",
+          "sv": "Pausa [[device]] till [[date]] [[rescanNow]]",
+          "nl": "Pauzeer [[device]] tot [[date]] [[rescanNow]]",
+          "no": "Sett [[device]] på pause til [[date]] [[rescanNow]]"
         },
         "hint": {
           "en": "Skips the device entirely (like the \"monitored\" toggle turned off) until the given date, then it resumes automatically on the next scan. Same effect as setting \"Paused until\" under the device's Details. For a computed/dynamic date via a token or Homey Logic variable instead of picking a fixed date, use \"Pause device until date (variable)\" instead.\n\n\"Rescan immediately\" below forces a full device scan right after pausing, so this device's counts, the virtual device's alarm, and the dashboard widget reflect the pause right away - instead of only catching up on the next scheduled/manual scan. Useful if the device currently has an active problem you want cleared from the counts immediately. Off by default (no extra scan unless you turn it on).",
-          "de": "Überspringt das Gerät komplett (wie beim ausgeschalteten \"Überwacht\"-Schalter) bis zum angegebenen Datum, danach wird es beim nächsten Scan automatisch wieder aktiv. Gleicher Effekt wie \"Pausiert bis\" in den Geräte-Details. Für ein berechnetes/dynamisches Datum via Token oder Homey-Logic-Variable statt eines festen Datums stattdessen \"Gerät bis Datum pausieren (Variable)\" verwenden.\n\n\"Sofort neu scannen\" weiter unten erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler dieses Geräts, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln - statt erst beim nächsten geplanten/manuellen Scan nachzuziehen. Nützlich, wenn das Gerät gerade ein aktives Problem hat, das sofort aus den Zählern verschwinden soll. Standardmäßig aus (kein zusätzlicher Scan, außer du aktivierst es)."
+          "de": "Überspringt das Gerät komplett (wie beim ausgeschalteten \"Überwacht\"-Schalter) bis zum angegebenen Datum, danach wird es beim nächsten Scan automatisch wieder aktiv. Gleicher Effekt wie \"Pausiert bis\" in den Geräte-Details. Für ein berechnetes/dynamisches Datum via Token oder Homey-Logic-Variable statt eines festen Datums stattdessen \"Gerät bis Datum pausieren (Variable)\" verwenden.\n\n\"Sofort neu scannen\" weiter unten erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler dieses Geräts, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln - statt erst beim nächsten geplanten/manuellen Scan nachzuziehen. Nützlich, wenn das Gerät gerade ein aktives Problem hat, das sofort aus den Zählern verschwinden soll. Standardmäßig aus (kein zusätzlicher Scan, außer du aktivierst es).",
+          "sv": "Hoppar över enheten helt (som när reglaget \"övervakas\" är avstängt) till angivet datum, därefter återupptas den automatiskt vid nästa skanning. Samma effekt som att ange \"Pausad till\" under enhetens Detaljer. För ett beräknat/dynamiskt datum via en token eller en Homey Logic-variabel i stället för ett fast datum, använd \"Pausa enhet till datum (variabel)\" i stället.\n\n\"Skanna om direkt\" nedan tvingar fram en fullständig enhetsskanning direkt efter pausen, så att enhetens räknare, den virtuella enhetens larm och dashboard-widgeten speglar pausen direkt - i stället för att först hinna ikapp vid nästa schemalagda/manuella skanning. Användbart om enheten just nu har ett aktivt problem som du vill ta bort från räknarna omedelbart. Av som standard (ingen extra skanning om du inte slår på det).",
+          "nl": "Slaat het apparaat volledig over (alsof de schakelaar \"bewaakt\" uitstaat) tot de opgegeven datum; daarna wordt het bij de volgende scan automatisch weer opgepakt. Zelfde effect als \"Gepauzeerd tot\" instellen onder de Details van het apparaat. Voor een berekende/dynamische datum via een token of Homey Logic-variabele in plaats van een vaste datum, gebruik je in plaats daarvan \"Apparaat pauzeren tot datum (variabele)\".\n\n\"Direct opnieuw scannen\" hieronder forceert direct na het pauzeren een volledige apparaatscan, zodat de tellers van dit apparaat, het alarm van het virtuele apparaat en de dashboardwidget de pauze meteen weergeven - in plaats van pas bij de volgende geplande/handmatige scan bij te werken. Handig als het apparaat op dat moment een actief probleem heeft dat je direct uit de tellers wilt halen. Standaard uit (geen extra scan, tenzij je het inschakelt).",
+          "no": "Hopper helt over enheten (som når bryteren \"overvåket\" er slått av) til oppgitt dato, og deretter gjenopptas den automatisk ved neste skanning. Samme effekt som å sette \"Pauset til\" under enhetens Detaljer. For en beregnet/dynamisk dato via et token eller en Homey Logic-variabel i stedet for en fast dato, bruk \"Sett enhet på pause til dato (variabel)\" i stedet.\n\n\"Skann på nytt umiddelbart\" nedenfor tvinger frem en full enhetsskanning rett etter pausen, slik at enhetens tellere, den virtuelle enhetens alarm og dashboard-widgeten gjenspeiler pausen med en gang - i stedet for å først oppdatere seg ved neste planlagte/manuelle skanning. Nyttig hvis enheten har et aktivt problem du vil fjerne fra tellerne umiddelbart. Av som standard (ingen ekstra skanning med mindre du slår det på)."
         },
         "args": [
           {
@@ -863,11 +1262,17 @@
             "type": "autocomplete",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "placeholder": {
               "en": "Choose a device",
-              "de": "Gerät wählen"
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
             }
           },
           {
@@ -875,7 +1280,10 @@
             "type": "date",
             "title": {
               "en": "Paused until",
-              "de": "Pausiert bis"
+              "de": "Pausiert bis",
+              "sv": "Pausad till",
+              "nl": "Gepauzeerd tot",
+              "no": "Pauset til"
             }
           },
           {
@@ -883,7 +1291,10 @@
             "type": "checkbox",
             "title": {
               "en": "Rescan immediately",
-              "de": "Sofort neu scannen"
+              "de": "Sofort neu scannen",
+              "sv": "Skanna om direkt",
+              "nl": "Direct opnieuw scannen",
+              "no": "Skann på nytt umiddelbart"
             }
           }
         ]
@@ -892,15 +1303,24 @@
         "id": "pause_device_variable",
         "title": {
           "en": "Pause device until date (variable)",
-          "de": "Gerät bis Datum pausieren (Variable)"
+          "de": "Gerät bis Datum pausieren (Variable)",
+          "sv": "Pausa enhet till datum (variabel)",
+          "nl": "Apparaat pauzeren tot datum (variabele)",
+          "no": "Sett enhet på pause til dato (variabel)"
         },
         "titleFormatted": {
           "en": "Pause [[device]] until [[date]] [[rescanNow]]",
-          "de": "[[device]] bis [[date]] pausieren [[rescanNow]]"
+          "de": "[[device]] bis [[date]] pausieren [[rescanNow]]",
+          "sv": "Pausa [[device]] till [[date]] [[rescanNow]]",
+          "nl": "Pauzeer [[device]] tot [[date]] [[rescanNow]]",
+          "no": "Sett [[device]] på pause til [[date]] [[rescanNow]]"
         },
         "hint": {
           "en": "Same as \"Pause device until date\", but the date is a text field so you can drop in a token or a Homey Logic variable instead of picking a fixed date - useful for a computed or dynamic date. Type a date directly as YYYY-MM-DD, or insert a token/variable that resolves to one. An unrecognizable value is treated as no pause, not an error.\n\n\"Rescan immediately\" below forces a full device scan right after pausing, so this device's counts, the virtual device's alarm, and the dashboard widget reflect the pause right away - instead of only catching up on the next scheduled/manual scan. Off by default (no extra scan unless you turn it on).",
-          "de": "Wie \"Gerät bis Datum pausieren\", aber das Datum ist ein Textfeld, in das sich ein Token oder eine Homey-Logic-Variable einfügen lässt statt ein festes Datum auszuwählen - nützlich für ein berechnetes oder dynamisches Datum. Direkt als YYYY-MM-DD eintippen, oder ein Token/eine Variable einfügen, die sich dazu auflöst. Ein nicht erkennbarer Wert wird als \"keine Pause\" behandelt, nicht als Fehler.\n\n\"Sofort neu scannen\" weiter unten erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler dieses Geräts, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln - statt erst beim nächsten geplanten/manuellen Scan nachzuziehen. Standardmäßig aus (kein zusätzlicher Scan, außer du aktivierst es)."
+          "de": "Wie \"Gerät bis Datum pausieren\", aber das Datum ist ein Textfeld, in das sich ein Token oder eine Homey-Logic-Variable einfügen lässt statt ein festes Datum auszuwählen - nützlich für ein berechnetes oder dynamisches Datum. Direkt als YYYY-MM-DD eintippen, oder ein Token/eine Variable einfügen, die sich dazu auflöst. Ein nicht erkennbarer Wert wird als \"keine Pause\" behandelt, nicht als Fehler.\n\n\"Sofort neu scannen\" weiter unten erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler dieses Geräts, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln - statt erst beim nächsten geplanten/manuellen Scan nachzuziehen. Standardmäßig aus (kein zusätzlicher Scan, außer du aktivierst es).",
+          "sv": "Samma som \"Pausa enhet till datum\", men datumet är ett textfält så att du kan lägga in en token eller en Homey Logic-variabel i stället för att välja ett fast datum - användbart för ett beräknat eller dynamiskt datum. Skriv in ett datum direkt som YYYY-MM-DD, eller infoga en token/variabel som ger ett sådant. Ett värde som inte går att tolka behandlas som ingen paus, inte som ett fel.\n\n\"Skanna om direkt\" nedan tvingar fram en fullständig enhetsskanning direkt efter pausen, så att enhetens räknare, den virtuella enhetens larm och dashboard-widgeten speglar pausen direkt - i stället för att först hinna ikapp vid nästa schemalagda/manuella skanning. Av som standard (ingen extra skanning om du inte slår på det).",
+          "nl": "Hetzelfde als \"Apparaat pauzeren tot datum\", maar de datum is een tekstveld, zodat je een token of een Homey Logic-variabele kunt gebruiken in plaats van een vaste datum te kiezen - handig voor een berekende of dynamische datum. Typ een datum rechtstreeks als YYYY-MM-DD, of voeg een token/variabele in die er een oplevert. Een onherkenbare waarde wordt behandeld als geen pauze, niet als fout.\n\n\"Direct opnieuw scannen\" hieronder forceert direct na het pauzeren een volledige apparaatscan, zodat de tellers van dit apparaat, het alarm van het virtuele apparaat en de dashboardwidget de pauze meteen weergeven - in plaats van pas bij de volgende geplande/handmatige scan bij te werken. Standaard uit (geen extra scan, tenzij je het inschakelt).",
+          "no": "Samme som \"Sett enhet på pause til dato\", men datoen er et tekstfelt slik at du kan bruke et token eller en Homey Logic-variabel i stedet for å velge en fast dato - nyttig for en beregnet eller dynamisk dato. Skriv inn en dato direkte som YYYY-MM-DD, eller sett inn et token/en variabel som gir en slik dato. En verdi som ikke gjenkjennes behandles som ingen pause, ikke som en feil.\n\n\"Skann på nytt umiddelbart\" nedenfor tvinger frem en full enhetsskanning rett etter pausen, slik at enhetens tellere, den virtuelle enhetens alarm og dashboard-widgeten gjenspeiler pausen med en gang - i stedet for å først oppdatere seg ved neste planlagte/manuelle skanning. Av som standard (ingen ekstra skanning med mindre du slår det på)."
         },
         "args": [
           {
@@ -908,11 +1328,17 @@
             "type": "autocomplete",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "placeholder": {
               "en": "Choose a device",
-              "de": "Gerät wählen"
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
             }
           },
           {
@@ -920,11 +1346,17 @@
             "type": "text",
             "title": {
               "en": "Paused until (YYYY-MM-DD)",
-              "de": "Pausiert bis (JJJJ-MM-TT)"
+              "de": "Pausiert bis (JJJJ-MM-TT)",
+              "sv": "Pausad till (YYYY-MM-DD)",
+              "nl": "Gepauzeerd tot (YYYY-MM-DD)",
+              "no": "Pauset til (YYYY-MM-DD)"
             },
             "placeholder": {
               "en": "YYYY-MM-DD, e.g. 2027-03-01, or a token",
-              "de": "JJJJ-MM-TT, z.B. 2027-03-01, oder ein Token"
+              "de": "JJJJ-MM-TT, z.B. 2027-03-01, oder ein Token",
+              "sv": "YYYY-MM-DD, t.ex. 2027-03-01, eller en token",
+              "nl": "YYYY-MM-DD, bijv. 2027-03-01, of een token",
+              "no": "YYYY-MM-DD, f.eks. 2027-03-01, eller et token"
             }
           },
           {
@@ -932,7 +1364,10 @@
             "type": "checkbox",
             "title": {
               "en": "Rescan immediately",
-              "de": "Sofort neu scannen"
+              "de": "Sofort neu scannen",
+              "sv": "Skanna om direkt",
+              "nl": "Direct opnieuw scannen",
+              "no": "Skann på nytt umiddelbart"
             }
           }
         ]
@@ -941,15 +1376,24 @@
         "id": "resume_device",
         "title": {
           "en": "Resume device (clear pause)",
-          "de": "Gerät fortsetzen (Pause aufheben)"
+          "de": "Gerät fortsetzen (Pause aufheben)",
+          "sv": "Återuppta enhet (ta bort paus)",
+          "nl": "Apparaat hervatten (pauze opheffen)",
+          "no": "Gjenoppta enhet (fjern pause)"
         },
         "titleFormatted": {
           "en": "Resume [[device]] (clear pause)",
-          "de": "[[device]] fortsetzen (Pause aufheben)"
+          "de": "[[device]] fortsetzen (Pause aufheben)",
+          "sv": "Återuppta [[device]] (ta bort paus)",
+          "nl": "Hervat [[device]] (pauze opheffen)",
+          "no": "Gjenoppta [[device]] (fjern pause)"
         },
         "hint": {
           "en": "Clears an active seasonal pause early, so the device is monitored again right away instead of waiting for the pause date. Does nothing if the device isn't currently paused.",
-          "de": "Hebt eine laufende Pause vorzeitig auf, sodass das Gerät sofort wieder überwacht wird, statt bis zum Pause-Datum zu warten. Ohne Effekt, falls das Gerät gerade nicht pausiert ist."
+          "de": "Hebt eine laufende Pause vorzeitig auf, sodass das Gerät sofort wieder überwacht wird, statt bis zum Pause-Datum zu warten. Ohne Effekt, falls das Gerät gerade nicht pausiert ist.",
+          "sv": "Avslutar en aktiv säsongspaus i förtid, så att enheten övervakas igen direkt i stället för att vänta till pausdatumet. Gör ingenting om enheten inte är pausad just nu.",
+          "nl": "Heft een actieve seizoenspauze vroegtijdig op, zodat het apparaat meteen weer wordt bewaakt in plaats van te wachten tot de pauzedatum. Doet niets als het apparaat op dat moment niet gepauzeerd is.",
+          "no": "Avslutter en aktiv sesongpause før tiden, slik at enheten overvåkes igjen med en gang i stedet for å vente til pausedatoen. Gjør ingenting hvis enheten ikke er satt på pause akkurat nå."
         },
         "args": [
           {
@@ -957,11 +1401,17 @@
             "type": "autocomplete",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "placeholder": {
               "en": "Choose a device",
-              "de": "Gerät wählen"
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
             }
           }
         ]
@@ -970,30 +1420,48 @@
         "id": "run_scan",
         "title": {
           "en": "Run device scan now",
-          "de": "Geräte-Scan jetzt ausführen"
+          "de": "Geräte-Scan jetzt ausführen",
+          "sv": "Kör enhetsskanning nu",
+          "nl": "Apparaatscan nu uitvoeren",
+          "no": "Kjør enhetsskanning nå"
         },
         "titleFormatted": {
           "en": "Run device scan now",
-          "de": "Geräte-Scan jetzt ausführen"
+          "de": "Geräte-Scan jetzt ausführen",
+          "sv": "Kör enhetsskanning nu",
+          "nl": "Apparaatscan nu uitvoeren",
+          "no": "Kjør enhetsskanning nå"
         },
         "hint": {
           "en": "Runs a full device check immediately, independent of the automatic interval setting. Also works when the automatic scan is disabled in the app settings.",
-          "de": "Führt sofort einen vollständigen Geräte-Check aus, unabhängig vom automatischen Intervall. Funktioniert auch, wenn der automatische Scan in den App-Einstellungen deaktiviert ist."
+          "de": "Führt sofort einen vollständigen Geräte-Check aus, unabhängig vom automatischen Intervall. Funktioniert auch, wenn der automatische Scan in den App-Einstellungen deaktiviert ist.",
+          "sv": "Kör en fullständig enhetskontroll direkt, oberoende av inställningen för automatiskt intervall. Fungerar även när den automatiska skanningen är avstängd i appens inställningar.",
+          "nl": "Voert direct een volledige apparaatcontrole uit, los van de instelling voor het automatische interval. Werkt ook als de automatische scan in de app-instellingen is uitgeschakeld.",
+          "no": "Kjører en full enhetskontroll umiddelbart, uavhengig av innstillingen for automatisk intervall. Fungerer også når den automatiske skanningen er slått av i appinnstillingene."
         }
       },
       {
         "id": "test_device",
         "title": {
           "en": "Test device reachability",
-          "de": "Geräte-Erreichbarkeit testen"
+          "de": "Geräte-Erreichbarkeit testen",
+          "sv": "Testa enhetens nåbarhet",
+          "nl": "Bereikbaarheid van apparaat testen",
+          "no": "Test enhetens nåbarhet"
         },
         "titleFormatted": {
           "en": "Test [[device]]'s reachability",
-          "de": "Erreichbarkeit von [[device]] testen"
+          "de": "Erreichbarkeit von [[device]] testen",
+          "sv": "Testa nåbarheten för [[device]]",
+          "nl": "Test de bereikbaarheid van [[device]]",
+          "no": "Test nåbarheten til [[device]]"
         },
         "hint": {
           "en": "Re-sends the device's current value to itself as a non-intrusive reachability check (same as the \"Test\" button in Settings). Fails - stopping the flow, or following the error path in advanced flows - if the device doesn't support this or doesn't respond. Pair with \"A device test succeeds\"/\"A device test fails\" to branch on the result in a standard flow instead.",
-          "de": "Sendet den aktuellen Wert des Geräts erneut an sich selbst, als nicht-intrusive Erreichbarkeitsprüfung (wie der \"Testen\"-Button in den Einstellungen). Schlägt fehl - und stoppt den Flow bzw. folgt dem Fehler-Pfad in Advanced Flows - falls das Gerät das nicht unterstützt oder nicht antwortet. Für Verzweigung in einem Standard-Flow stattdessen mit \"Ein Geräte-Test ist erfolgreich\"/\"Ein Geräte-Test ist fehlgeschlagen\" kombinieren."
+          "de": "Sendet den aktuellen Wert des Geräts erneut an sich selbst, als nicht-intrusive Erreichbarkeitsprüfung (wie der \"Testen\"-Button in den Einstellungen). Schlägt fehl - und stoppt den Flow bzw. folgt dem Fehler-Pfad in Advanced Flows - falls das Gerät das nicht unterstützt oder nicht antwortet. Für Verzweigung in einem Standard-Flow stattdessen mit \"Ein Geräte-Test ist erfolgreich\"/\"Ein Geräte-Test ist fehlgeschlagen\" kombinieren.",
+          "sv": "Skickar enhetens aktuella värde till enheten igen som en ickestörande nåbarhetskontroll (samma som knappen \"Testa\" i inställningarna). Misslyckas - vilket stoppar flowet, eller följer felvägen i avancerade flows - om enheten inte stöder detta eller inte svarar. Kombinera med \"Ett enhetstest lyckas\"/\"Ett enhetstest misslyckas\" för att i stället förgrena på resultatet i ett vanligt flow.",
+          "nl": "Stuurt de huidige waarde van het apparaat opnieuw naar het apparaat zelf als onopvallende bereikbaarheidscontrole (hetzelfde als de knop \"Test\" in de instellingen). Mislukt - waardoor de flow stopt, of het foutpad in geavanceerde flows volgt - als het apparaat dit niet ondersteunt of niet reageert. Combineer met \"Een apparaattest slaagt\"/\"Een apparaattest mislukt\" om in een standaardflow juist op het resultaat te vertakken.",
+          "no": "Sender enhetens nåværende verdi til enheten på nytt som en ikke-forstyrrende nåbarhetskontroll (samme som \"Test\"-knappen i innstillingene). Mislykkes - noe som stopper flowen, eller følger feilstien i avanserte flows - hvis enheten ikke støtter dette eller ikke svarer. Kombiner med \"En enhetstest lykkes\"/\"En enhetstest mislykkes\" for i stedet å forgrene på resultatet i en vanlig flow."
         },
         "args": [
           {
@@ -1001,11 +1469,17 @@
             "type": "autocomplete",
             "title": {
               "en": "Device",
-              "de": "Gerät"
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
             },
             "placeholder": {
               "en": "Choose a device",
-              "de": "Gerät wählen"
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
             }
           }
         ]
@@ -1017,7 +1491,10 @@
       "id": "watchdog",
       "name": {
         "en": "Watchdog status",
-        "de": "Watchdog-Status"
+        "de": "Watchdog-Status",
+        "sv": "Watchdog-status",
+        "nl": "Watchdog-status",
+        "no": "Watchdog-status"
       },
       "class": "sensor",
       "capabilities": [
@@ -1054,7 +1531,10 @@
     "status": {
       "name": {
         "en": "Watchdog Status",
-        "de": "Watchdog Status"
+        "de": "Watchdog Status",
+        "sv": "Watchdog Status",
+        "nl": "Watchdog Status",
+        "no": "Watchdog Status"
       },
       "height": 90,
       "api": {
@@ -1076,18 +1556,27 @@
       "type": "number",
       "title": {
         "en": "Devices with low battery",
-        "de": "Geräte mit niedrigem Akku"
+        "de": "Geräte mit niedrigem Akku",
+        "sv": "Enheter med lågt batteri",
+        "nl": "Apparaten met lage batterij",
+        "no": "Enheter med lavt batteri"
       },
       "desc": {
         "en": "How many monitored devices had a low or alarming battery in the last scan.",
-        "de": "Wie viele überwachte Geräte im letzten Scan einen niedrigen oder alarmierenden Akkustand hatten."
+        "de": "Wie viele überwachte Geräte im letzten Scan einen niedrigen oder alarmierenden Akkustand hatten.",
+        "sv": "Hur många övervakade enheter som hade lågt eller larmande batteri vid senaste skanningen.",
+        "nl": "Hoeveel bewaakte apparaten bij de laatste scan een lage of alarmerende batterij hadden.",
+        "no": "Hvor mange overvåkede enheter som hadde lavt eller alarmerende batteri ved siste skanning."
       },
       "getable": true,
       "setable": false,
       "uiComponent": "sensor",
       "units": {
         "en": "",
-        "de": ""
+        "de": "",
+        "sv": "",
+        "nl": "",
+        "no": ""
       },
       "decimals": 0,
       "min": 0,
@@ -1097,18 +1586,27 @@
       "type": "number",
       "title": {
         "en": "Devices not reporting",
-        "de": "Geräte melden sich nicht"
+        "de": "Geräte melden sich nicht",
+        "sv": "Enheter som inte rapporterar",
+        "nl": "Apparaten die niet rapporteren",
+        "no": "Enheter som ikke rapporterer"
       },
       "desc": {
         "en": "How many monitored devices were flagged as not reporting in the last scan.",
-        "de": "Wie viele überwachte Geräte im letzten Scan als 'meldet sich nicht' markiert wurden."
+        "de": "Wie viele überwachte Geräte im letzten Scan als 'meldet sich nicht' markiert wurden.",
+        "sv": "Hur många övervakade enheter som markerades som \"rapporterar inte\" vid senaste skanningen.",
+        "nl": "Hoeveel bewaakte apparaten bij de laatste scan als \"rapporteert niet\" zijn gemarkeerd.",
+        "no": "Hvor mange overvåkede enheter som ble markert som \"rapporterer ikke\" ved siste skanning."
       },
       "getable": true,
       "setable": false,
       "uiComponent": "sensor",
       "units": {
         "en": "",
-        "de": ""
+        "de": "",
+        "sv": "",
+        "nl": "",
+        "no": ""
       },
       "decimals": 0,
       "min": 0,
@@ -1118,18 +1616,27 @@
       "type": "number",
       "title": {
         "en": "Devices unavailable",
-        "de": "Geräte nicht erreichbar"
+        "de": "Geräte nicht erreichbar",
+        "sv": "Otillgängliga enheter",
+        "nl": "Niet-beschikbare apparaten",
+        "no": "Utilgjengelige enheter"
       },
       "desc": {
         "en": "How many devices Homey currently reports as unavailable, updated in realtime.",
-        "de": "Wie viele Geräte Homey aktuell als nicht erreichbar meldet, in Echtzeit aktualisiert."
+        "de": "Wie viele Geräte Homey aktuell als nicht erreichbar meldet, in Echtzeit aktualisiert.",
+        "sv": "Hur många enheter som Homey just nu rapporterar som otillgängliga, uppdateras i realtid.",
+        "nl": "Hoeveel apparaten Homey momenteel als niet beschikbaar meldt, in realtime bijgewerkt.",
+        "no": "Hvor mange enheter Homey for øyeblikket melder som utilgjengelige, oppdatert i sanntid."
       },
       "getable": true,
       "setable": false,
       "uiComponent": "sensor",
       "units": {
         "en": "",
-        "de": ""
+        "de": "",
+        "sv": "",
+        "nl": "",
+        "no": ""
       },
       "decimals": 0,
       "min": 0,

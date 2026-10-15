@@ -2,22 +2,31 @@
   "id": "test_device",
   "title": {
     "en": "Test device reachability",
-    "de": "Geräte-Erreichbarkeit testen"
+    "de": "Geräte-Erreichbarkeit testen",
+    "sv": "Testa enhetens nåbarhet",
+    "nl": "Bereikbaarheid van apparaat testen",
+    "no": "Test enhetens nåbarhet"
   },
   "titleFormatted": {
     "en": "Test [[device]]'s reachability",
-    "de": "Erreichbarkeit von [[device]] testen"
+    "de": "Erreichbarkeit von [[device]] testen",
+    "sv": "Testa nåbarheten för [[device]]",
+    "nl": "Test de bereikbaarheid van [[device]]",
+    "no": "Test nåbarheten til [[device]]"
   },
   "hint": {
     "en": "Re-sends the device's current value to itself as a non-intrusive reachability check (same as the \"Test\" button in Settings). Fails - stopping the flow, or following the error path in advanced flows - if the device doesn't support this or doesn't respond. Pair with \"A device test succeeds\"/\"A device test fails\" to branch on the result in a standard flow instead.",
-    "de": "Sendet den aktuellen Wert des Geräts erneut an sich selbst, als nicht-intrusive Erreichbarkeitsprüfung (wie der \"Testen\"-Button in den Einstellungen). Schlägt fehl - und stoppt den Flow bzw. folgt dem Fehler-Pfad in Advanced Flows - falls das Gerät das nicht unterstützt oder nicht antwortet. Für Verzweigung in einem Standard-Flow stattdessen mit \"Ein Geräte-Test ist erfolgreich\"/\"Ein Geräte-Test ist fehlgeschlagen\" kombinieren."
+    "de": "Sendet den aktuellen Wert des Geräts erneut an sich selbst, als nicht-intrusive Erreichbarkeitsprüfung (wie der \"Testen\"-Button in den Einstellungen). Schlägt fehl - und stoppt den Flow bzw. folgt dem Fehler-Pfad in Advanced Flows - falls das Gerät das nicht unterstützt oder nicht antwortet. Für Verzweigung in einem Standard-Flow stattdessen mit \"Ein Geräte-Test ist erfolgreich\"/\"Ein Geräte-Test ist fehlgeschlagen\" kombinieren.",
+    "sv": "Skickar enhetens aktuella värde till enheten igen som en ickestörande nåbarhetskontroll (samma som knappen \"Testa\" i inställningarna). Misslyckas - vilket stoppar flowet, eller följer felvägen i avancerade flows - om enheten inte stöder detta eller inte svarar. Kombinera med \"Ett enhetstest lyckas\"/\"Ett enhetstest misslyckas\" för att i stället förgrena på resultatet i ett vanligt flow.",
+    "nl": "Stuurt de huidige waarde van het apparaat opnieuw naar het apparaat zelf als onopvallende bereikbaarheidscontrole (hetzelfde als de knop \"Test\" in de instellingen). Mislukt - waardoor de flow stopt, of het foutpad in geavanceerde flows volgt - als het apparaat dit niet ondersteunt of niet reageert. Combineer met \"Een apparaattest slaagt\"/\"Een apparaattest mislukt\" om in een standaardflow juist op het resultaat te vertakken.",
+    "no": "Sender enhetens nåværende verdi til enheten på nytt som en ikke-forstyrrende nåbarhetskontroll (samme som \"Test\"-knappen i innstillingene). Mislykkes - noe som stopper flowen, eller følger feilstien i avanserte flows - hvis enheten ikke støtter dette eller ikke svarer. Kombiner med \"En enhetstest lykkes\"/\"En enhetstest mislykkes\" for i stedet å forgrene på resultatet i en vanlig flow."
   },
   "args": [
     {
       "name": "device",
       "type": "autocomplete",
-      "title": { "en": "Device", "de": "Gerät" },
-      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen", "sv": "Välj en enhet", "nl": "Kies een apparaat", "no": "Velg en enhet" }
     }
   ]
 }

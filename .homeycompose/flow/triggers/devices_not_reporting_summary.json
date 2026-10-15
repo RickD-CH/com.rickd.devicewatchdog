@@ -2,28 +2,37 @@
   "id": "devices_not_reporting_summary",
   "title": {
     "en": "Devices are newly found not reporting",
-    "de": "Es werden neu Geräte gefunden, die sich nicht mehr melden"
+    "de": "Es werden neu Geräte gefunden, die sich nicht mehr melden",
+    "sv": "Enheter har nyss visat sig inte rapportera",
+    "nl": "Er zijn zojuist apparaten gevonden die niet rapporteren",
+    "no": "Det er nettopp funnet enheter som ikke rapporterer"
   },
   "titleFormatted": {
     "en": "Devices are newly found not reporting",
-    "de": "Es werden neu Geräte gefunden, die sich nicht mehr melden"
+    "de": "Es werden neu Geräte gefunden, die sich nicht mehr melden",
+    "sv": "Enheter har nyss visat sig inte rapportera",
+    "nl": "Er zijn zojuist apparaten gevonden die niet rapporteren",
+    "no": "Det er nettopp funnet enheter som ikke rapporterer"
   },
   "hint": {
     "en": "Fires once per scan, bundling every device that newly stopped reporting in that scan into a single trigger - instead of firing \"A device stops reporting\" once per device.",
-    "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die in diesem Scan neu als 'meldet sich nicht' erkannt wurden, in einem einzigen Trigger - statt \"Ein Gerät meldet sich nicht mehr\" einzeln pro Gerät auszulösen."
+    "de": "Wird einmal pro Scan ausgelöst und bündelt alle Geräte, die in diesem Scan neu als 'meldet sich nicht' erkannt wurden, in einem einzigen Trigger - statt \"Ein Gerät meldet sich nicht mehr\" einzeln pro Gerät auszulösen.",
+    "sv": "Utlöses en gång per skanning och samlar alla enheter som nyss slutat rapportera i den skanningen i en enda trigger - i stället för att utlösa \"En enhet slutar rapportera\" en gång per enhet.",
+    "nl": "Wordt één keer per scan geactiveerd en bundelt alle apparaten die in die scan net zijn gestopt met rapporteren in één trigger - in plaats van \"Een apparaat stopt met rapporteren\" één keer per apparaat te activeren.",
+    "no": "Utløses én gang per skanning og samler alle enheter som nettopp har sluttet å rapportere i den skanningen i én enkelt trigger - i stedet for å utløse \"En enhet slutter å rapportere\" én gang per enhet."
   },
   "tokens": [
     {
       "name": "count",
       "type": "number",
-      "title": { "en": "Count", "de": "Anzahl" },
+      "title": { "en": "Count", "de": "Anzahl", "sv": "Antal", "nl": "Aantal", "no": "Antall" },
       "example": 2
     },
     {
       "name": "devices",
       "type": "string",
-      "title": { "en": "Devices", "de": "Geräte" },
-      "example": { "en": "Garage sensor, Garden sensor", "de": "Garage Sensor, Garten Sensor" }
+      "title": { "en": "Devices", "de": "Geräte", "sv": "Enheter", "nl": "Apparaten", "no": "Enheter" },
+      "example": { "en": "Garage sensor, Garden sensor", "de": "Garage Sensor, Garten Sensor", "sv": "Garagesensor, Trädgårdssensor", "nl": "Garagesensor, Tuinsensor", "no": "Garasjesensor, Hagesensor" }
     }
   ]
 }

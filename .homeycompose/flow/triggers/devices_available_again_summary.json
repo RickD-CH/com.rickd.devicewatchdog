@@ -2,28 +2,37 @@
   "id": "devices_available_again_summary",
   "title": {
     "en": "Devices become available again",
-    "de": "Geräte werden wieder erreichbar"
+    "de": "Geräte werden wieder erreichbar",
+    "sv": "Enheter blir tillgängliga igen",
+    "nl": "Apparaten worden weer beschikbaar",
+    "no": "Enheter blir tilgjengelige igjen"
   },
   "titleFormatted": {
     "en": "Devices become available again",
-    "de": "Geräte werden wieder erreichbar"
+    "de": "Geräte werden wieder erreichbar",
+    "sv": "Enheter blir tillgängliga igen",
+    "nl": "Apparaten worden weer beschikbaar",
+    "no": "Enheter blir tilgjengelige igjen"
   },
   "hint": {
     "en": "Fires in realtime, bundling every device that becomes available again within a few seconds of each other into a single trigger - the recovery counterpart to \"Devices newly become unavailable\".",
-    "de": "Wird in Echtzeit ausgelöst und bündelt alle Geräte, die innerhalb weniger Sekunden nacheinander wieder erreichbar werden, in einem einzigen Trigger - das Erholungs-Gegenstück zu \"Es werden neu Geräte nicht erreichbar\"."
+    "de": "Wird in Echtzeit ausgelöst und bündelt alle Geräte, die innerhalb weniger Sekunden nacheinander wieder erreichbar werden, in einem einzigen Trigger - das Erholungs-Gegenstück zu \"Es werden neu Geräte nicht erreichbar\".",
+    "sv": "Utlöses i realtid och samlar alla enheter som blir tillgängliga igen inom några sekunder från varandra i en enda trigger - motsvarigheten vid återhämtning till \"Enheter har nyss blivit otillgängliga\".",
+    "nl": "Wordt in realtime geactiveerd en bundelt alle apparaten die binnen enkele seconden na elkaar weer beschikbaar worden in één trigger - het herstel-equivalent van \"Apparaten zijn zojuist niet beschikbaar geworden\".",
+    "no": "Utløses i sanntid og samler alle enheter som blir tilgjengelige igjen innen noen få sekunder fra hverandre i én enkelt trigger - motstykket ved gjenoppretting til \"Enheter har nettopp blitt utilgjengelige\"."
   },
   "tokens": [
     {
       "name": "count",
       "type": "number",
-      "title": { "en": "Count", "de": "Anzahl" },
+      "title": { "en": "Count", "de": "Anzahl", "sv": "Antal", "nl": "Aantal", "no": "Antall" },
       "example": 2
     },
     {
       "name": "devices",
       "type": "string",
-      "title": { "en": "Devices", "de": "Geräte" },
-      "example": { "en": "Front door lock, Garden sensor", "de": "Haustürschloss, Garten Sensor" }
+      "title": { "en": "Devices", "de": "Geräte", "sv": "Enheter", "nl": "Apparaten", "no": "Enheter" },
+      "example": { "en": "Front door lock, Garden sensor", "de": "Haustürschloss, Garten Sensor", "sv": "Ytterdörrslås, Trädgårdssensor", "nl": "Voordeurslot, Tuinsensor", "no": "Inngangsdørlås, Hagesensor" }
     }
   ]
 }

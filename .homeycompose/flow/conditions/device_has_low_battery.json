@@ -2,22 +2,31 @@
   "id": "device_has_low_battery",
   "title": {
     "en": "!{{Device has|Device doesn't have}} low battery",
-    "de": "!{{Gerät hat einen niedrigen Akkustand|Gerät hat keinen niedrigen Akkustand}}"
+    "de": "!{{Gerät hat einen niedrigen Akkustand|Gerät hat keinen niedrigen Akkustand}}",
+    "sv": "!{{Enheten har lågt batteri|Enheten har inte lågt batteri}}",
+    "nl": "!{{Apparaat heeft een lage batterij|Apparaat heeft geen lage batterij}}",
+    "no": "!{{Enheten har lavt batteri|Enheten har ikke lavt batteri}}"
   },
   "titleFormatted": {
     "en": "[[device]] !{{has|doesn't have}} low battery",
-    "de": "[[device]] !{{hat einen niedrigen Akkustand|hat keinen niedrigen Akkustand}}"
+    "de": "[[device]] !{{hat einen niedrigen Akkustand|hat keinen niedrigen Akkustand}}",
+    "sv": "[[device]] !{{har lågt batteri|har inte lågt batteri}}",
+    "nl": "[[device]] !{{heeft een lage batterij|heeft geen lage batterij}}",
+    "no": "[[device]] !{{har lavt batteri|har ikke lavt batteri}}"
   },
   "hint": {
     "en": "Checks whether a specific device was flagged with a low or alarming battery in the last scan.",
-    "de": "Prüft, ob ein bestimmtes Gerät im letzten Scan mit niedrigem Akkustand oder Batterie-Alarm markiert wurde."
+    "de": "Prüft, ob ein bestimmtes Gerät im letzten Scan mit niedrigem Akkustand oder Batterie-Alarm markiert wurde.",
+    "sv": "Kontrollerar om en specifik enhet markerades med lågt eller larmande batteri vid senaste skanningen.",
+    "nl": "Controleert of een specifiek apparaat bij de laatste scan is gemarkeerd met een lage of alarmerende batterij.",
+    "no": "Sjekker om en bestemt enhet ble markert med lavt eller alarmerende batteri ved siste skanning."
   },
   "args": [
     {
       "name": "device",
       "type": "autocomplete",
-      "title": { "en": "Device", "de": "Gerät" },
-      "placeholder": { "en": "Choose a device", "de": "Gerät wählen" }
+      "title": { "en": "Device", "de": "Gerät", "sv": "Enhet", "nl": "Apparaat", "no": "Enhet" },
+      "placeholder": { "en": "Choose a device", "de": "Gerät wählen", "sv": "Välj en enhet", "nl": "Kies een apparaat", "no": "Velg en enhet" }
     }
   ]
 }

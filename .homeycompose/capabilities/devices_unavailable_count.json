@@ -1,14 +1,17 @@
 {
   "type": "number",
-  "title": { "en": "Devices unavailable", "de": "Geräte nicht erreichbar" },
+  "title": { "en": "Devices unavailable", "de": "Geräte nicht erreichbar", "sv": "Otillgängliga enheter", "nl": "Niet-beschikbare apparaten", "no": "Utilgjengelige enheter" },
   "desc": {
     "en": "How many devices Homey currently reports as unavailable, updated in realtime.",
-    "de": "Wie viele Geräte Homey aktuell als nicht erreichbar meldet, in Echtzeit aktualisiert."
+    "de": "Wie viele Geräte Homey aktuell als nicht erreichbar meldet, in Echtzeit aktualisiert.",
+    "sv": "Hur många enheter som Homey just nu rapporterar som otillgängliga, uppdateras i realtid.",
+    "nl": "Hoeveel apparaten Homey momenteel als niet beschikbaar meldt, in realtime bijgewerkt.",
+    "no": "Hvor mange enheter Homey for øyeblikket melder som utilgjengelige, oppdatert i sanntid."
   },
   "getable": true,
   "setable": false,
   "uiComponent": "sensor",
-  "units": { "en": "", "de": "" },
+  "units": { "en": "", "de": "", "sv": "", "nl": "", "no": "" },
   "decimals": 0,
   "min": 0,
   "icon": "/assets/capabilities/devices_unavailable_count.svg"
