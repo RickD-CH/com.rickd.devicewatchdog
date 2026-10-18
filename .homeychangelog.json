@@ -1,4 +1,11 @@
 {
+  "1.9.49": {
+    "en": "• Fixed: opening the dashboard widget right after a Homey restart ran a full scan and ignored the \"Wait after app start\" setting, flagging a burst of devices as \"not reporting\" by mistake. The widget now just shows the last result until the wait is over (the \"Scan now\" button still scans immediately)",
+    "de": "• Fehlerbehebung: Das Öffnen des Dashboard-Widgets direkt nach einem Homey-Neustart hat einen vollständigen Scan ausgelöst und die Einstellung \"Wartezeit nach App-Start\" ignoriert - dadurch wurden plötzlich viele Geräte fälschlich als \"meldet sich nicht\" markiert. Das Widget zeigt jetzt bis zum Ablauf der Wartezeit nur das letzte Ergebnis (der Button \"Jetzt scannen\" scannt weiterhin sofort)",
+    "sv": "• Rättat: att öppna dashboard-widgeten direkt efter en Homey-omstart körde en fullständig skanning och ignorerade inställningen \"Vänta efter appstart\", vilket felaktigt markerade en rad enheter som \"rapporterar inte\". Widgeten visar nu bara det senaste resultatet tills väntetiden är över (knappen \"Skanna nu\" skannar fortfarande direkt)",
+    "nl": "• Opgelost: het openen van de dashboardwidget direct na een Homey-herstart voerde een volledige scan uit en negeerde de instelling \"Wachten na app-start\", waardoor ineens een reeks apparaten onterecht als \"rapporteert niet\" werd gemarkeerd. De widget toont nu alleen het laatste resultaat tot de wachttijd voorbij is (de knop \"Nu scannen\" scant nog steeds meteen)",
+    "no": "• Rettet: å åpne dashboard-widgeten rett etter en Homey-omstart kjørte en full skanning og ignorerte innstillingen \"Vent etter appstart\", noe som feilaktig merket en rekke enheter som \"rapporterer ikke\". Widgeten viser nå bare det siste resultatet til ventetiden er over (knappen \"Skann nå\" skanner fortsatt umiddelbart)"
+  },
   "1.9.48": {
     "en": "• New languages: Device Watchdog is now available in Swedish, Dutch and Norwegian - settings page, Flow cards, widget, virtual device and the App Store description. Feedback on the wording is welcome",
     "de": "• Neue Sprachen: Device Watchdog gibt es jetzt auch auf Schwedisch, Niederländisch und Norwegisch - Einstellungen, Flow-Karten, Widget, virtuelles Gerät und die App-Store-Beschreibung. Feedback zu den Formulierungen ist willkommen",

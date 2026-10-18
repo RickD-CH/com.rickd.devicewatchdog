@@ -844,6 +844,10 @@ class DeviceWatchdogApp extends Homey.App {
     }
   }
 
+  isInStartupGrace() {
+    return this._startupGraceTimer !== null;
+  }
+
   // ---------------------------------------------------------------------
   // Config / rules (used by api.js)
   // ---------------------------------------------------------------------

@@ -316,7 +316,7 @@
       // realtime availability for every device against Homey right now (see
       // _handleDeviceUpdate in app.js) - catches a stuck "unavailable" that a missed
       // realtime event left behind, not just stale notReporting/lowBattery numbers.
-      Homey.api('POST', '/scan')
+      Homey.api('POST', '/scan', { onOpen: true })
         .catch(function (err) { console.error(err); })
         .then(function () { return fetchSummary(Homey); });
       // Widgets aren't pushed updates - periodic re-fetch (no full scan) so a dashboard
