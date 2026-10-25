@@ -235,7 +235,7 @@
     .search-input::placeholder { color: #4a4a4a; -webkit-text-fill-color: #4a4a4a; opacity: 1; }
     .select-input { min-width: 150px; }
     .unit-field { display: flex; gap: 6px; align-items: center; }
-    .pause-field { display: flex; gap: 6px; align-items: center; }
+    .pause-field { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     .unit-field input[type=number] { width: 90px; }
     .unit-select { padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-input-bg); color: var(--color-text); font-size: 13px; }
     .search-wrap { position: relative; display: inline-flex; }
@@ -691,6 +691,10 @@
         filterMode: null,
         zoneOpenOverride: {},
         openAdvanced: {},
+        // Not-yet-applied value of a device's "Paused until" field (see the apply-pause action)
+        // and the unmonitored ids of the previous render (to spot a device that just moved there).
+        pauseDraft: {},
+        prevUnmonitoredIds: null,
         // "Capabilities" sub-panel per device (nested inside "Details"), lazy-loaded on
         // first expand - see loadDeviceCapabilities. capOpen mirrors the nested <details>'
         // own open state across renders (same reason zoneOpenOverride exists); capData/
@@ -921,8 +925,24 @@
         if (!rule || !rule.pausedUntil) return false;
         var end = new Date(rule.pausedUntil);
         if (isNaN(end.getTime())) return false;
+        // "YYYY-MM-DDTHH:mm" = until exactly that time; a bare "YYYY-MM-DD" = end of that day.
+        if (String(rule.pausedUntil).indexOf('T') !== -1) return Date.now() < end.getTime();
         end.setHours(23, 59, 59, 999);
         return Date.now() <= end.getTime();
+      }
+
+      // What the datetime-local input shows for a stored pause: a legacy date-only value
+      // lasts through the end of that day, so 23:59 is the honest time to display for it.
+      function pauseInputValue(pausedUntil) {
+        if (!pausedUntil) return '';
+        return String(pausedUntil).length === 10 ? pausedUntil + 'T23:59' : pausedUntil;
+      }
+
+      function formatPauseEnd(pausedUntil) {
+        var d = new Date(pausedUntil);
+        return String(pausedUntil).indexOf('T') !== -1
+          ? d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          : d.toLocaleDateString();
       }
 
       function apiCall(method, path, body) {
@@ -1176,7 +1196,7 @@
       function badgeHtml(view) {
         if (!view.monitored) {
           if (view.paused) {
-            return '<span class="badge">' + Homey.__('badge.paused', { date: new Date(view.pauseDate).toLocaleDateString() }) + '</span>';
+            return '<span class="badge">' + Homey.__('badge.paused', { date: formatPauseEnd(view.pauseDate) }) + '</span>';
           }
           return '<span class="badge">' + Homey.__('badge.notMonitored') + '</span>';
         }
@@ -1566,9 +1586,16 @@
           '</div>'
         : '';
 
+        // Picking a value only fills a draft - the pause itself is applied by the button. iOS
+        // pre-fills "now" and fires change the moment the picker opens, which used to pause
+        // the device (and drop it out of the list) before the user had chosen anything.
+        var pauseStored = pauseInputValue(r.pausedUntil);
+        var pauseDraft = state.pauseDraft[id] !== undefined ? state.pauseDraft[id] : pauseStored;
+        var pauseDirty = pauseDraft !== '' && pauseDraft !== pauseStored;
         var pauseInner =
           '<div class="f" title="' + escapeHtml(Homey.__('advanced.pausedUntilHint')) + '"><label>' + Homey.__('advanced.pausedUntil') + '</label><div class="pause-field">' +
-            '<input type="date" data-field="pausedUntil" data-id="' + id + '" value="' + (r.pausedUntil || '') + '" />' +
+            '<input type="datetime-local" data-field="pausedUntilDraft" data-id="' + id + '" value="' + escapeHtml(pauseDraft) + '" />' +
+            '<button class="btn small primary" data-action="apply-pause" data-id="' + id + '"' + (pauseDirty ? '' : ' disabled') + '>' + Homey.__('advanced.applyPauseButton') + '</button>' +
             (r.pausedUntil ? '<button class="btn small link" data-action="clear-pause" data-id="' + id + '">' + Homey.__('advanced.clearPauseButton') + '</button>' : '') +
           '</div></div>';
 
@@ -2069,6 +2096,16 @@
         document.getElementById('unmonitored-summary').textContent = Homey.__('devices.unmonitoredSummary', { count: unmonitoredViews.length });
         var unmonitoredDetails = document.getElementById('unmonitored-details');
         unmonitoredDetails.style.display = unmonitoredViews.length ? 'block' : 'none';
+        // A device whose Details are open and that just became unmonitored (e.g. paused) would
+        // otherwise vanish into the collapsed block below, taking the open panel with it -
+        // open it once, the moment that happens (not on every render, so it stays collapsible).
+        var nowUnmonitoredIds = {};
+        unmonitoredViews.forEach(function (v) { nowUnmonitoredIds[v.device.id] = true; });
+        var movedIntoUnmonitored = state.prevUnmonitoredIds && unmonitoredViews.some(function (v) {
+          return state.openAdvanced[v.device.id] && !state.prevUnmonitoredIds[v.device.id];
+        });
+        state.prevUnmonitoredIds = nowUnmonitoredIds;
+        if (movedIntoUnmonitored) unmonitoredDetails.open = true;
         // Same "expand where found" rule as the per-zone groups: a search match that's
         // hidden behind a collapsed <summary> defeats the point of searching.
         if (isSearching && unmonitoredViews.length) {
@@ -2291,9 +2328,25 @@
               renderDevices();
             }
           }
+          if (e.target.dataset.action === 'apply-pause') {
+            e.preventDefault();
+            e.stopPropagation();
+            var pauseId = e.target.dataset.id;
+            var pauseInput = document.querySelector('input[data-field="pausedUntilDraft"][data-id="' + pauseId + '"]');
+            var pauseValue = pauseInput ? pauseInput.value : '';
+            if (pauseValue) {
+              var pausedDevice = state.devices.find(function (dv) { return dv.id === pauseId; });
+              ensureDeviceRule(pauseId, pausedDevice ? pausedDevice.name : '').pausedUntil = pauseValue;
+              delete state.pauseDraft[pauseId];
+              cleanupDeviceRule(pauseId);
+              scheduleAutoSave(true);
+              renderDevices();
+            }
+          }
           if (e.target.dataset.action === 'clear-pause') {
             e.preventDefault();
             e.stopPropagation();
+            delete state.pauseDraft[e.target.dataset.id];
             var pausedRule = getDeviceRule(e.target.dataset.id);
             if (pausedRule) {
               pausedRule.pausedUntil = null;
@@ -2444,6 +2497,17 @@
 
           var field = e.target.dataset.field;
           if (!field) return;
+          if (field === 'pausedUntilDraft') {
+            // Draft only - nothing is saved or re-rendered until "Apply pause" is tapped.
+            state.pauseDraft[id] = e.target.value;
+            var applyPauseBtn = e.target.closest('.pause-field').querySelector('[data-action="apply-pause"]');
+            var storedRule = getDeviceRule(id);
+            if (applyPauseBtn) {
+              applyPauseBtn.disabled = e.target.value === ''
+                || e.target.value === pauseInputValue(storedRule ? storedRule.pausedUntil : null);
+            }
+            return;
+          }
           // Unlike monitor-toggle/toggle-advanced above, the individual field inputs
           // inside the Details panel (notReportingHours, batteryThreshold, pausedUntil,
           // etc.) don't carry their own data-name - editing one of them as the FIRST
@@ -2491,9 +2555,6 @@
             // the generic Number(e.target.value) fallback below, which would reintroduce
             // the OS-locale decimal-separator bug that field was specifically fixed for.
             r[field] = e.target.value === '' ? null : Number(String(e.target.value).replace(',', '.'));
-          } else if (field === 'pausedUntil') {
-            r[field] = e.target.value === '' ? null : e.target.value;
-            needsRerender = true; // clear/set toggles the inline "Clear pause" button's visibility
           } else if (field === 'batteryTypeOverride') {
             var trimmed = e.target.value.trim();
             r[field] = trimmed === '' ? null : trimmed;
