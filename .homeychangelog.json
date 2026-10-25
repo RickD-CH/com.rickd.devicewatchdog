@@ -1,4 +1,11 @@
 {
+  "1.9.50": {
+    "en": "• New setting: choose which kinds of problems write a Timeline entry - unavailable, not reporting and/or low battery (Settings → Notifications). The matching \"again\" entries follow the same choice. Everything stays on by default",
+    "de": "• Neue Einstellung: Wähle, welche Arten von Problemen einen Zeitleisten-Eintrag schreiben - nicht erreichbar, meldet sich nicht und/oder niedriger Akku (Einstellungen → Benachrichtigungen). Die passenden \"wieder OK\"-Einträge folgen derselben Auswahl. Standardmäßig bleibt alles aktiv",
+    "sv": "• Ny inställning: välj vilka typer av problem som skriver en tidslinjepost - otillgänglig, rapporterar inte och/eller lågt batteri (Inställningar → Aviseringar). Motsvarande \"igen\"-poster följer samma val. Allt är på som standard",
+    "nl": "• Nieuwe instelling: kies welke soorten problemen een tijdlijnbericht schrijven - niet beschikbaar, rapporteert niet en/of lage batterij (Instellingen → Meldingen). De bijbehorende \"weer\"-berichten volgen dezelfde keuze. Standaard blijft alles aan",
+    "no": "• Ny innstilling: velg hvilke typer problemer som skriver en tidslinjeoppføring - utilgjengelig, rapporterer ikke og/eller lavt batteri (Innstillinger → Varsler). De tilsvarende \"igjen\"-oppføringene følger samme valg. Alt er på som standard"
+  },
   "1.9.49": {
     "en": "• Fixed: opening the dashboard widget right after a Homey restart ran a full scan and ignored the \"Wait after app start\" setting, flagging a burst of devices as \"not reporting\" by mistake. The widget now just shows the last result until the wait is over (the \"Scan now\" button still scans immediately)",
     "de": "• Fehlerbehebung: Das Öffnen des Dashboard-Widgets direkt nach einem Homey-Neustart hat einen vollständigen Scan ausgelöst und die Einstellung \"Wartezeit nach App-Start\" ignoriert - dadurch wurden plötzlich viele Geräte fälschlich als \"meldet sich nicht\" markiert. Das Widget zeigt jetzt bis zum Ablauf der Wartezeit nur das letzte Ergebnis (der Button \"Jetzt scannen\" scannt weiterhin sofort)",

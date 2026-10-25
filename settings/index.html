@@ -582,6 +582,19 @@
         <label class="switch"><input type="checkbox" id="cfg-timeline-notifications" /><span class="slider"></span></label>
       </div>
       <p class="hint" id="hint-timeline-notifications">Schreibt einen Eintrag in Homeys Zeitleiste, sobald ein Scan neu ein Gerät mit niedrigem Akku, "meldet sich nicht" oder nicht erreichbar findet. Einmalig pro Zustandswechsel, kein Spam bei anhaltendem Problem.</p>
+      <p class="hint" id="hint-timeline-categories">Welche Arten von Problemen einen Zeitleisten-Eintrag schreiben. Die passenden Erholungs-Einträge ("wieder erreichbar", "meldet sich wieder", "Akku wieder OK") folgen derselben Auswahl. Gilt nur, solange der Schalter oben aktiv ist.</p>
+      <div class="field-row toggle-row">
+        <label for="cfg-timeline-unavailable" id="lbl-timeline-unavailable">Nicht erreichbar einbeziehen</label>
+        <label class="switch"><input type="checkbox" id="cfg-timeline-unavailable" /><span class="slider"></span></label>
+      </div>
+      <div class="field-row toggle-row">
+        <label for="cfg-timeline-not-reporting" id="lbl-timeline-not-reporting">Meldet sich nicht einbeziehen</label>
+        <label class="switch"><input type="checkbox" id="cfg-timeline-not-reporting" /><span class="slider"></span></label>
+      </div>
+      <div class="field-row toggle-row">
+        <label for="cfg-timeline-low-battery" id="lbl-timeline-low-battery">Niedriger Akku einbeziehen</label>
+        <label class="switch"><input type="checkbox" id="cfg-timeline-low-battery" /><span class="slider"></span></label>
+      </div>
     </div>
 
     <div class="card">
@@ -816,6 +829,10 @@
         document.getElementById('h2-notifications').textContent = Homey.__('settingsTab.notificationsTitle');
         document.getElementById('lbl-timeline-notifications').textContent = Homey.__('settingsTab.timelineLabel');
         document.getElementById('hint-timeline-notifications').textContent = Homey.__('settingsTab.timelineHint');
+        document.getElementById('hint-timeline-categories').textContent = Homey.__('settingsTab.timelineCategoriesHint');
+        document.getElementById('lbl-timeline-unavailable').textContent = Homey.__('settingsTab.timelineIncludeUnavailable');
+        document.getElementById('lbl-timeline-not-reporting').textContent = Homey.__('settingsTab.timelineIncludeNotReporting');
+        document.getElementById('lbl-timeline-low-battery').textContent = Homey.__('settingsTab.timelineIncludeLowBattery');
         document.getElementById('h2-vd-alarm').textContent = Homey.__('settingsTab.vdAlarmTitle');
         document.getElementById('hint-vd-alarm').textContent = Homey.__('settingsTab.vdAlarmHint');
         document.getElementById('lbl-alarm-unavailable').textContent = Homey.__('settingsTab.vdAlarmUnavailable');
@@ -1010,6 +1027,9 @@
         document.getElementById('cfg-unavailable-delay-unit').value = state.secondsUnitGlobal;
         document.getElementById('cfg-unavailable-delay').value = secondsToDisplay(c.unavailableDelaySeconds, state.secondsUnitGlobal);
         document.getElementById('cfg-timeline-notifications').checked = !!c.timelineNotifications;
+        document.getElementById('cfg-timeline-unavailable').checked = c.timelineIncludesUnavailable !== false;
+        document.getElementById('cfg-timeline-not-reporting').checked = c.timelineIncludesNotReporting !== false;
+        document.getElementById('cfg-timeline-low-battery').checked = c.timelineIncludesLowBattery !== false;
         document.getElementById('cfg-alarm-unavailable').checked = c.alarmIncludesUnavailable !== false;
         document.getElementById('cfg-alarm-not-reporting').checked = c.alarmIncludesNotReporting !== false;
         document.getElementById('cfg-alarm-low-battery').checked = c.alarmIncludesLowBattery !== false;
@@ -1051,6 +1071,9 @@
           lowBatteryDelaySeconds: displayToSeconds(document.getElementById('cfg-low-battery-delay').value, state.secondsUnitGlobalLowBattery) || 0,
           unavailableDelaySeconds: displayToSeconds(document.getElementById('cfg-unavailable-delay').value, state.secondsUnitGlobal) || 0,
           timelineNotifications: document.getElementById('cfg-timeline-notifications').checked,
+          timelineIncludesUnavailable: document.getElementById('cfg-timeline-unavailable').checked,
+          timelineIncludesNotReporting: document.getElementById('cfg-timeline-not-reporting').checked,
+          timelineIncludesLowBattery: document.getElementById('cfg-timeline-low-battery').checked,
           alarmIncludesUnavailable: document.getElementById('cfg-alarm-unavailable').checked,
           alarmIncludesNotReporting: document.getElementById('cfg-alarm-not-reporting').checked,
           alarmIncludesLowBattery: document.getElementById('cfg-alarm-low-battery').checked,

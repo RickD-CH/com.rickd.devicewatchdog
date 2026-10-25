@@ -45,6 +45,14 @@ const BATTERY_CAPABILITIES = ['measure_battery', 'alarm_battery'];
 // Rolling cap for the Verlauf/log tab - keeps homey.settings from growing unbounded.
 const MAX_LOG_ENTRIES = 200;
 
+// Config key that switches Timeline entries on/off per problem category (recoveries use
+// their category's key too) - see _notifyTimeline.
+const TIMELINE_CATEGORY_CONFIG_KEYS = {
+  unavailable: 'timelineIncludesUnavailable',
+  notReporting: 'timelineIncludesNotReporting',
+  lowBattery: 'timelineIncludesLowBattery',
+};
+
 // How often to check the HomeyAPI realtime socket and resync availability, independent
 // of the scan interval (which the user can disable entirely) - see _checkRealtimeConnection.
 const REALTIME_HEALTHCHECK_MS = 5 * 60 * 1000;
@@ -404,8 +412,9 @@ class DeviceWatchdogApp extends Homey.App {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  _notifyTimeline(excerpt) {
+  _notifyTimeline(excerpt, category) {
     if (!this.config.timelineNotifications) return;
+    if (this.config[TIMELINE_CATEGORY_CONFIG_KEYS[category]] === false) return;
     this.homey.notifications.createNotification({ excerpt })
       .catch((err) => this.error('Timeline-Meldung fehlgeschlagen:', err));
   }
@@ -769,7 +778,7 @@ class DeviceWatchdogApp extends Homey.App {
         ?.trigger({ count: names.length, devices: devicesList })
         .catch((err) => this.error('Trigger devices_unavailable_summary fehlgeschlagen:', err));
 
-      this._notifyTimeline(this.homey.__('backend.timelineUnavailable', { count: names.length, devices: devicesList }));
+      this._notifyTimeline(this.homey.__('backend.timelineUnavailable', { count: names.length, devices: devicesList }), 'unavailable');
     }, 3000);
   }
 
@@ -791,7 +800,7 @@ class DeviceWatchdogApp extends Homey.App {
         ?.trigger({ count: names.length, devices: devicesList })
         .catch((err) => this.error('Trigger devices_available_again_summary fehlgeschlagen:', err));
 
-      this._notifyTimeline(this.homey.__('backend.timelineAvailableAgain', { count: names.length, devices: devicesList }));
+      this._notifyTimeline(this.homey.__('backend.timelineAvailableAgain', { count: names.length, devices: devicesList }), 'unavailable');
     }, 3000);
   }
 
@@ -1590,7 +1599,7 @@ class DeviceWatchdogApp extends Homey.App {
         ?.trigger({ count: recoveredNotReporting.length, devices: devicesList })
         .catch((err) => this.error('Trigger devices_reporting_again_summary fehlgeschlagen:', err));
 
-      this._notifyTimeline(this.homey.__('backend.timelineReportingAgain', { count: recoveredNotReporting.length, devices: devicesList }));
+      this._notifyTimeline(this.homey.__('backend.timelineReportingAgain', { count: recoveredNotReporting.length, devices: devicesList }), 'notReporting');
     }
 
     if (recoveredLowBattery.length) {
@@ -1600,7 +1609,7 @@ class DeviceWatchdogApp extends Homey.App {
         ?.trigger({ count: recoveredLowBattery.length, devices: devicesList })
         .catch((err) => this.error('Trigger devices_battery_ok_again_summary fehlgeschlagen:', err));
 
-      this._notifyTimeline(this.homey.__('backend.timelineBatteryOkAgain', { count: recoveredLowBattery.length, devices: devicesList }));
+      this._notifyTimeline(this.homey.__('backend.timelineBatteryOkAgain', { count: recoveredLowBattery.length, devices: devicesList }), 'lowBattery');
     }
 
     // "Since" bookkeeping for the widget detail view - set when a device newly enters a
@@ -1666,7 +1675,7 @@ class DeviceWatchdogApp extends Homey.App {
         ?.trigger({ count: newlyNotReporting.length, devices: devicesList })
         .catch((err) => this.error('Trigger devices_not_reporting_summary fehlgeschlagen:', err));
 
-      this._notifyTimeline(this.homey.__('backend.timelineNotReporting', { count: newlyNotReporting.length, devices: devicesList }));
+      this._notifyTimeline(this.homey.__('backend.timelineNotReporting', { count: newlyNotReporting.length, devices: devicesList }), 'notReporting');
     }
 
     if (newlyLowBatteryConfirmed.length) {
@@ -1676,7 +1685,7 @@ class DeviceWatchdogApp extends Homey.App {
         ?.trigger({ count: newlyLowBatteryConfirmed.length, devices: devicesList })
         .catch((err) => this.error('Trigger devices_low_battery_summary fehlgeschlagen:', err));
 
-      this._notifyTimeline(this.homey.__('backend.timelineLowBattery', { count: newlyLowBatteryConfirmed.length, devices: devicesList }));
+      this._notifyTimeline(this.homey.__('backend.timelineLowBattery', { count: newlyLowBatteryConfirmed.length, devices: devicesList }), 'lowBattery');
     }
 
     // Carry forward anything genuinely missing from this round entirely (see knownIds
