@@ -305,6 +305,7 @@
     "timelineReportingAgain": "🟢 __count__ Gerät(e) melden sich wieder: __devices__",
     "timelineBatteryOkAgain": "🟢 __count__ Gerät(e) haben wieder einen normalen Akkustand: __devices__",
     "andMore": "und __count__ weitere",
+    "afterDuration": "__device__ (nach __duration__)",
     "deviceNotFound": "Gerät nicht gefunden",
     "noTestableCapability": "Keine testbare Capability (onoff/dim) vorhanden",
     "noCurrentValue": "Kein aktueller Wert verfügbar"

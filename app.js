@@ -70,6 +70,21 @@ function formatNameList(names, homey) {
   return `${shown.join(', ')} … ${more}`;
 }
 
+// How long a device was unavailable, for the Timeline's "available again" entry:
+// "11 s" / "3 min" / "2 h 5 min" / "2 d 3 h".
+function formatDuration(ms) {
+  const totalSeconds = Math.max(1, Math.round(ms / 1000));
+  if (totalSeconds < 60) return `${totalSeconds} s`;
+  const totalMinutes = Math.round(totalSeconds / 60);
+  if (totalMinutes < 60) return `${totalMinutes} min`;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours < 24) return minutes ? `${hours} h ${minutes} min` : `${hours} h`;
+  const days = Math.floor(hours / 24);
+  const remHours = hours % 24;
+  return remHours ? `${days} d ${remHours} h` : `${days} d`;
+}
+
 // The Settings UI's <input min="..."> is a client-side hint only - it doesn't stop a
 // negative/NaN value from being typed or POSTed directly. These guard the numbers that
 // feed threshold math in lib/scanner.js, where e.g. a negative "hours" would make a
@@ -209,8 +224,11 @@ class DeviceWatchdogApp extends Homey.App {
     this._scanPromise = null;
     this._unavailableBatch = new Set();
     this._unavailableBatchTimer = null;
-    this._availableAgainBatch = new Set();
+    this._availableAgainBatch = new Map();
     this._availableAgainBatchTimer = null;
+    // deviceId -> when a live "available -> unavailable" transition was seen (not primed at
+    // startup), so the recovery can report how long the device was down.
+    this._unavailableStartedAt = new Map();
     this._pendingUnavailableTimers = new Map();
     this._confirmedUnavailable = new Set();
     // deviceId -> { capId, setAt } - armed by _runAutoTests right after a successful
@@ -506,6 +524,7 @@ class DeviceWatchdogApp extends Homey.App {
     this._availabilityMap.set(device.id, isAvailable);
 
     if (wasAvailable === true && isAvailable === false) {
+      this._unavailableStartedAt.set(device.id, Date.now());
       const delaySeconds = this._getUnavailableDelaySeconds(device.id);
       if (delaySeconds > 0) {
         this._scheduleUnavailableConfirmation(device, delaySeconds);
@@ -519,6 +538,8 @@ class DeviceWatchdogApp extends Homey.App {
       // this cancels the pending confirmation and nothing ever fired for it. If it was
       // already confirmed, clear that immediately (good news shouldn't wait either).
       this._cancelPendingUnavailableConfirmation(device.id);
+      const wentDownAt = this._unavailableStartedAt.get(device.id);
+      this._unavailableStartedAt.delete(device.id);
       if (this._confirmedUnavailable.delete(device.id)) {
         delete this.problemSince.unavailable[device.id];
         this._persistProblemSince();
@@ -531,7 +552,7 @@ class DeviceWatchdogApp extends Homey.App {
         if (!this._isExcludedFromUnavailable(device.id)) {
           const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
           this._recordEvent('available', { device: device.name, zone: zoneName });
-          this._queueAvailableAgainSummary(device.name || '');
+          this._queueAvailableAgainSummary(device.name || '', wentDownAt === undefined ? null : Date.now() - wentDownAt);
         }
       }
     }
@@ -785,22 +806,28 @@ class DeviceWatchdogApp extends Homey.App {
   // Recovery counterpart to _queueUnavailableSummary above - same 3s bundling window, so
   // devices that come back within a few seconds of each other (e.g. a mesh network
   // reconnecting all at once) fire one summary trigger instead of one per device.
-  _queueAvailableAgainSummary(name) {
-    this._availableAgainBatch.add(name);
+  // durationMs (how long the device was down, null if we didn't witness it going down) only
+  // ends up in the Timeline text - the Flow token stays plain names.
+  _queueAvailableAgainSummary(name, durationMs = null) {
+    this._availableAgainBatch.set(name, durationMs);
     if (this._availableAgainBatchTimer) return;
 
     this._availableAgainBatchTimer = this.homey.setTimeout(() => {
-      const names = Array.from(this._availableAgainBatch);
+      const batch = Array.from(this._availableAgainBatch.entries());
       this._availableAgainBatch.clear();
       this._availableAgainBatchTimer = null;
 
+      const names = batch.map(([deviceName]) => deviceName);
       const devicesList = formatNameList(names, this.homey);
+      const timelineList = formatNameList(batch.map(([deviceName, ms]) => (ms === null
+        ? deviceName
+        : this.homey.__('backend.afterDuration', { device: deviceName, duration: formatDuration(ms) }))), this.homey);
 
       this._triggerAvailableAgainSummary
         ?.trigger({ count: names.length, devices: devicesList })
         .catch((err) => this.error('Trigger devices_available_again_summary fehlgeschlagen:', err));
 
-      this._notifyTimeline(this.homey.__('backend.timelineAvailableAgain', { count: names.length, devices: devicesList }), 'unavailable');
+      this._notifyTimeline(this.homey.__('backend.timelineAvailableAgain', { count: names.length, devices: timelineList }), 'unavailable');
     }, 3000);
   }
 

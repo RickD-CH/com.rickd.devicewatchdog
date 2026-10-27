@@ -305,6 +305,7 @@
     "timelineReportingAgain": "🟢 __count__ apparaat/apparaten rapporteren weer: __devices__",
     "timelineBatteryOkAgain": "🟢 __count__ apparaat/apparaten met batterij weer normaal: __devices__",
     "andMore": "en nog __count__",
+    "afterDuration": "__device__ (na __duration__)",
     "deviceNotFound": "Apparaat niet gevonden",
     "noTestableCapability": "Geen testbare capability (onoff/dim) beschikbaar",
     "noCurrentValue": "Geen huidige waarde beschikbaar"

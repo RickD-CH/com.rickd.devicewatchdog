@@ -305,6 +305,7 @@
     "timelineReportingAgain": "🟢 __count__ enhet(er) rapporterar igen: __devices__",
     "timelineBatteryOkAgain": "🟢 __count__ enhet(er) har batteriet tillbaka till normalt: __devices__",
     "andMore": "och __count__ till",
+    "afterDuration": "__device__ (efter __duration__)",
     "deviceNotFound": "Enheten hittades inte",
     "noTestableCapability": "Ingen testbar capability (onoff/dim) tillgänglig",
     "noCurrentValue": "Inget aktuellt värde tillgängligt"

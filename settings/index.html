@@ -969,6 +969,17 @@
       // (discrete actions), text/number fields debounce briefly so typing doesn't fire
       // a request per keystroke.
       var autoSaveTimer = null;
+
+      // True while the user is typing in one of the global text/number fields. The auto-save
+      // response must not re-fill the form then: a half-edited field (e.g. just cleared, saved
+      // as its fallback value) would snap back to that value mid-typing - the next save,
+      // fired when the field is left, re-syncs it anyway.
+      function isEditingConfigField() {
+        var a = document.activeElement;
+        return !!a && a.tagName === 'INPUT' && (a.type === 'text' || a.type === 'number')
+          && !!a.id && a.id.indexOf('cfg-') === 0;
+      }
+
       function scheduleAutoSave(immediate) {
         if (autoSaveTimer) {
           clearTimeout(autoSaveTimer);
@@ -3120,7 +3131,7 @@
         return apiCall('POST', '/config', payload).then(function (saved) {
           state.config = saved.config;
           state.rules = saved.rules;
-          fillSettingsTab();
+          if (!isEditingConfigField()) fillSettingsTab();
           // Gespeicherte Regeln (z.B. "Batterie ignorieren") wirken sich auf den Status aus -
           // ohne frischen Scan wuerde die Liste noch die alten Badges/Filter-Zugehoerigkeiten zeigen.
           setSaveStatus(Homey.__('save.savingRefresh'), false);
