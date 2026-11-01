@@ -50,6 +50,8 @@
     "unmonitoredSummary": "__count__ apparaat/apparaten niet bewaakt",
     "noScanYet": "Nog geen scan uitgevoerd",
     "lastScan": "Laatste scan: __date__",
+    "globalPausedBanner": "Watchdog is gepauzeerd tot __date__ - tot die tijd wordt niets bewaakt of gemeld.",
+    "resumeNow": "Nu hervatten",
     "empty": "Geen apparaten gevonden.",
     "scanFailed": "Scan mislukt: __error__",
     "loadFailed": "Laden mislukt: __error__",
@@ -306,6 +308,7 @@
     "timelineBatteryOkAgain": "🟢 __count__ apparaat/apparaten met batterij weer normaal: __devices__",
     "andMore": "en nog __count__",
     "afterDuration": "__device__ (na __duration__)",
+    "invalidPause": "Ongeldige pauze - geef een getal groter dan 0 of een tijdstip zoals 06:00 op.",
     "deviceNotFound": "Apparaat niet gevonden",
     "noTestableCapability": "Geen testbare capability (onoff/dim) beschikbaar",
     "noCurrentValue": "Geen huidige waarde beschikbaar"

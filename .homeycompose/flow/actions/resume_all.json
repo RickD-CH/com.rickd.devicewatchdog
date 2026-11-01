@@ -1,0 +1,24 @@
+{
+  "id": "resume_all",
+  "title": {
+    "en": "Resume Watchdog",
+    "de": "Watchdog fortsetzen",
+    "sv": "Återuppta Watchdog",
+    "nl": "Watchdog hervatten",
+    "no": "Gjenoppta Watchdog"
+  },
+  "titleFormatted": {
+    "en": "Resume Watchdog",
+    "de": "Watchdog fortsetzen",
+    "sv": "Återuppta Watchdog",
+    "nl": "Watchdog hervatten",
+    "no": "Gjenoppta Watchdog"
+  },
+  "hint": {
+    "en": "Ends a \"Pause Watchdog\" early and runs a scan right away. Does nothing if Watchdog isn't paused.",
+    "de": "Beendet eine \"Watchdog pausieren\"-Pause vorzeitig und führt sofort einen Scan aus. Tut nichts, wenn Watchdog nicht pausiert ist.",
+    "sv": "Avslutar en \"Pausa Watchdog\"-paus i förtid och kör en skanning direkt. Gör ingenting om Watchdog inte är pausad.",
+    "nl": "Beëindigt een \"Watchdog pauzeren\"-pauze vroegtijdig en voert direct een scan uit. Doet niets als Watchdog niet gepauzeerd is.",
+    "no": "Avslutter en \"Sett Watchdog på pause\"-pause før tiden og kjører en skanning med en gang. Gjør ingenting hvis Watchdog ikke er satt på pause."
+  }
+}

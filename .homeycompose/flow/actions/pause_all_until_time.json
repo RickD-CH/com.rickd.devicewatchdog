@@ -1,0 +1,37 @@
+{
+  "id": "pause_all_until_time",
+  "title": {
+    "en": "Pause Watchdog until a time of day",
+    "de": "Watchdog bis zu einer Uhrzeit pausieren",
+    "sv": "Pausa Watchdog till ett klockslag",
+    "nl": "Watchdog pauzeren tot een tijdstip",
+    "no": "Sett Watchdog på pause til et klokkeslett"
+  },
+  "titleFormatted": {
+    "en": "Pause Watchdog until [[time]]",
+    "de": "Watchdog bis [[time]] pausieren",
+    "sv": "Pausa Watchdog till [[time]]",
+    "nl": "Pauzeer Watchdog tot [[time]]",
+    "no": "Sett Watchdog på pause til [[time]]"
+  },
+  "hint": {
+    "en": "Pauses all monitoring until the next time the clock reaches the given time (today if it's still ahead, otherwise tomorrow) - e.g. started at 23:00 with \"06:00\" it pauses overnight. Same effect as \"Pause Watchdog for a while\"; ends earlier with \"Resume Watchdog\".",
+    "de": "Pausiert die gesamte Überwachung, bis die Uhr das nächste Mal die angegebene Uhrzeit erreicht (heute, falls sie noch bevorsteht, sonst morgen) - z.B. um 23:00 gestartet mit \"06:00\" pausiert über Nacht. Gleiche Wirkung wie \"Watchdog für eine Zeit pausieren\"; endet früher mit \"Watchdog fortsetzen\".",
+    "sv": "Pausar all övervakning tills klockan nästa gång når angiven tid (idag om den ligger framåt, annars imorgon) - t.ex. startad kl. 23:00 med \"06:00\" pausar den över natten. Samma effekt som \"Pausa Watchdog under en tid\"; avslutas tidigare med \"Återuppta Watchdog\".",
+    "nl": "Pauzeert alle bewaking tot de klok de opgegeven tijd weer bereikt (vandaag als die nog komt, anders morgen) - bijv. om 23:00 gestart met \"06:00\" pauzeert het over de nacht heen. Zelfde effect als \"Watchdog een tijdje pauzeren\"; eerder beëindigen kan met \"Watchdog hervatten\".",
+    "no": "Setter all overvåking på pause til klokken neste gang når det angitte tidspunktet (i dag hvis det ligger foran, ellers i morgen) - f.eks. startet kl. 23:00 med \"06:00\" pauser den over natten. Samme effekt som \"Sett Watchdog på pause en stund\"; avsluttes tidligere med \"Gjenoppta Watchdog\"."
+  },
+  "args": [
+    {
+      "name": "time",
+      "type": "time",
+      "title": {
+        "en": "Until (time of day)",
+        "de": "Bis (Uhrzeit)",
+        "sv": "Till (klockslag)",
+        "nl": "Tot (tijdstip)",
+        "no": "Til (klokkeslett)"
+      }
+    }
+  ]
+}

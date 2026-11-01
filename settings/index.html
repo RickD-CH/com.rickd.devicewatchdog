@@ -206,6 +206,7 @@
        landed in which row every time. A fixed column count can't reshuffle - tiles just
        get narrower or wider, never reordered. */
     .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px; margin-bottom: 14px; }
+    .global-pause-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 14px; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-bg-alt); box-shadow: inset 3px 0 0 var(--color-warn); }
     .stat {
       border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 10px; min-width: 0;
       cursor: pointer; transition: border-color .15s, background-color .15s;
@@ -459,6 +460,11 @@
       </select>
       <span class="spacer"></span>
       <span id="last-scan-info" class="hint" style="margin:0;"></span>
+    </div>
+
+    <div class="global-pause-banner" id="global-pause-banner" style="display:none;">
+      <span id="global-pause-text"></span>
+      <button class="btn small" id="btn-resume-global">Jetzt fortsetzen</button>
     </div>
 
     <div class="stat-grid" id="stat-grid"></div>
@@ -803,6 +809,7 @@
         document.getElementById('btn-clear-log').textContent = Homey.__('log.clearButton');
         document.getElementById('btn-clear-search').title = Homey.__('devices.clearSearch');
         document.getElementById('btn-run-scan').textContent = Homey.__('devices.scanNow');
+        document.getElementById('btn-resume-global').textContent = Homey.__('devices.resumeNow');
         document.getElementById('device-search').placeholder = Homey.__('devices.searchPlaceholder');
         document.getElementById('opt-sort-priority').textContent = Homey.__('devices.sortPriority');
         document.getElementById('opt-sort-name').textContent = Homey.__('devices.sortName');
@@ -2123,6 +2130,20 @@
           unmonitoredDetails.open = true;
         }
 
+        // Whole-Watchdog pause (Flow actions) - nothing below is being monitored while it lasts.
+        var globalPausedUntil = state.config && typeof state.config.globalPausedUntilMs === 'number'
+          ? state.config.globalPausedUntilMs : null;
+        var pauseBanner = document.getElementById('global-pause-banner');
+        if (globalPausedUntil && globalPausedUntil > Date.now()) {
+          var pauseEnd = new Date(globalPausedUntil);
+          document.getElementById('global-pause-text').textContent = Homey.__('devices.globalPausedBanner', {
+            date: pauseEnd.toLocaleDateString() + ' ' + pauseEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          });
+          pauseBanner.style.display = 'flex';
+        } else {
+          pauseBanner.style.display = 'none';
+        }
+
         var grid = document.getElementById('stat-grid');
         var total = state.devices.length;
         var offline = state.lastScan ? state.lastScan.notReporting.length : 0;
@@ -3073,6 +3094,25 @@
         renderDevices();
       });
 
+      document.getElementById('btn-resume-global').addEventListener('click', function () {
+        var btn = document.getElementById('btn-resume-global');
+        btn.disabled = true;
+        // The server runs a scan as part of resuming, so the status pulled afterwards is already fresh.
+        apiCall('POST', '/pause/resume').then(function (cfg) {
+          state.config.globalPausedUntilMs = cfg.config.globalPausedUntilMs;
+          return Promise.all([apiCall('GET', '/status'), apiCall('GET', '/devices/raw'), apiCall('GET', '/devices/unavailable')]);
+        }).then(function (results) {
+          state.lastScan = results[0].lastScan;
+          state.devices = results[1];
+          state.unavailableIds = results[2].ids;
+          renderDevices();
+        }).catch(function (err) {
+          Homey.alert(err && err.message ? err.message : String(err));
+        }).finally(function () {
+          btn.disabled = false;
+        });
+      });
+
       document.getElementById('btn-run-scan').addEventListener('click', function () {
         var btn = document.getElementById('btn-run-scan');
         btn.disabled = true;
@@ -3178,9 +3218,16 @@
       function refreshIfScanChanged() {
         if (pollInFlight || saveInFlight || autoSaveTimer) return Promise.resolve();
         pollInFlight = true;
-        return apiCall('GET', '/status').then(function (status) {
+        return Promise.all([apiCall('GET', '/status'), apiCall('GET', '/config')]).then(function (res) {
+          var status = res[0];
+          // Only this one field - never the rest of state.config, which may hold unsaved edits.
+          var pauseChanged = res[1].config.globalPausedUntilMs !== state.config.globalPausedUntilMs;
+          state.config.globalPausedUntilMs = res[1].config.globalPausedUntilMs;
           var freshAt = status && status.lastScan && status.lastScan.generatedAt;
-          if (!freshAt || freshAt === (state.lastScan && state.lastScan.generatedAt)) return null;
+          if (!freshAt || freshAt === (state.lastScan && state.lastScan.generatedAt)) {
+            if (pauseChanged) renderDevices();
+            return null;
+          }
           return Promise.all([apiCall('GET', '/devices/raw'), apiCall('GET', '/devices/unavailable')]).then(function (r) {
             var scrollY = window.scrollY;
             state.lastScan = status.lastScan;

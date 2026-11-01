@@ -5,6 +5,7 @@ const { HomeyAPI } = require('homey-api');
 const { DEFAULT_CONFIG, DEFAULT_RULES } = require('./lib/defaults');
 const scanner = require('./lib/scanner');
 const rulesLib = require('./lib/rules');
+const { formatDuration, msUntilNextTimeOfDay } = require('./lib/time');
 
 const SETTINGS_KEY_CONFIG = 'config';
 const SETTINGS_KEY_RULES = 'rules';
@@ -70,20 +71,8 @@ function formatNameList(names, homey) {
   return `${shown.join(', ')} … ${more}`;
 }
 
-// How long a device was unavailable, for the Timeline's "available again" entry:
-// "11 s" / "3 min" / "2 h 5 min" / "2 d 3 h".
-function formatDuration(ms) {
-  const totalSeconds = Math.max(1, Math.round(ms / 1000));
-  if (totalSeconds < 60) return `${totalSeconds} s`;
-  const totalMinutes = Math.round(totalSeconds / 60);
-  if (totalMinutes < 60) return `${totalMinutes} min`;
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  if (hours < 24) return minutes ? `${hours} h ${minutes} min` : `${hours} h`;
-  const days = Math.floor(hours / 24);
-  const remHours = hours % 24;
-  return remHours ? `${days} d ${remHours} h` : `${days} d`;
-}
+// setTimeout can't take more than ~24.8 days - a longer global pause re-arms itself.
+const MAX_TIMEOUT_MS = 2147483647;
 
 // The Settings UI's <input min="..."> is a client-side hint only - it doesn't stop a
 // negative/NaN value from being typed or POSTed directly. These guard the numbers that
@@ -221,6 +210,7 @@ class DeviceWatchdogApp extends Homey.App {
     this._availabilityMap = new Map();
     this._intervalTimer = null;
     this._startupGraceTimer = null;
+    this._globalPauseTimer = null;
     this._scanPromise = null;
     this._unavailableBatch = new Set();
     this._unavailableBatchTimer = null;
@@ -247,6 +237,7 @@ class DeviceWatchdogApp extends Homey.App {
     }
 
     this._scheduleInterval({ runImmediately: true });
+    this._scheduleGlobalPauseEnd();
 
     // Independent safety net for the realtime socket: runs regardless of whether the
     // interval scan is enabled, so "unavailable" tracking stays correct even with
@@ -349,6 +340,25 @@ class DeviceWatchdogApp extends Homey.App {
         return true;
       })
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
+
+    // Global pause - see isGloballyPaused.
+    this.homey.flow.getActionCard('pause_all_for')
+      .registerRunListener(async (args) => {
+        await this.pauseGlobalFor(args.amount, args.unit);
+        return true;
+      });
+    this.homey.flow.getActionCard('pause_all_until_time')
+      .registerRunListener(async (args) => {
+        await this.pauseGlobalUntilTime(args.time);
+        return true;
+      });
+    this.homey.flow.getActionCard('resume_all')
+      .registerRunListener(async () => {
+        await this.resumeGlobal();
+        return true;
+      });
+    this.homey.flow.getConditionCard('watchdog_is_paused')
+      .registerRunListener(async () => this.isGloballyPaused());
 
     // Summary triggers: fire once per batch (scan, or realtime debounce window) with
     // every newly-affected device bundled into count/devices tokens, so a Flow doesn't
@@ -752,7 +762,7 @@ class DeviceWatchdogApp extends Homey.App {
   // unavailable" toggle.
   _isMonitored(deviceId) {
     const { rule } = scanner.findRuleIndexed({ id: deviceId }, this._ruleIndex);
-    return !rule?.excludeAll && !scanner.isRulePaused(rule);
+    return !rule?.excludeAll && !scanner.isRulePaused(rule) && !this.isGloballyPaused();
   }
 
   // A device with monitoring off entirely (excludeAll) or currently paused should stay
@@ -763,7 +773,8 @@ class DeviceWatchdogApp extends Homey.App {
   // Flow usage (see _isMonitored).
   _isExcludedFromUnavailable(deviceId) {
     const { rule } = scanner.findRuleIndexed({ id: deviceId }, this._ruleIndex);
-    return !!rule?.excludeAll || !!rule?.excludeFromUnavailable || scanner.isRulePaused(rule);
+    return !!rule?.excludeAll || !!rule?.excludeFromUnavailable || scanner.isRulePaused(rule)
+      || this.isGloballyPaused();
   }
 
   // Pushes counts to the virtual "Watchdog status" device (drivers/watchdog), if the
@@ -885,6 +896,94 @@ class DeviceWatchdogApp extends Homey.App {
   }
 
   // ---------------------------------------------------------------------
+  // Global pause ("Pause Watchdog" Flow actions): every device behaves like a paused one -
+  // no scan results, no triggers/log/timeline, counters at 0 - until the time is up or
+  // "Resume Watchdog" runs. Realtime updates are still recorded, so the reporting
+  // statistics behind the Recommendations tab keep their history.
+  // ---------------------------------------------------------------------
+
+  isGloballyPaused() {
+    const until = this.config.globalPausedUntilMs;
+    return typeof until === 'number' && Date.now() < until;
+  }
+
+  async pauseGlobalUntil(untilMs) {
+    if (!(Number.isFinite(untilMs) && untilMs > Date.now())) {
+      throw new Error(this.homey.__('backend.invalidPause'));
+    }
+    await this._setGlobalPause(untilMs);
+  }
+
+  async pauseGlobalFor(amount, unit) {
+    const count = Number(amount);
+    if (!(Number.isFinite(count) && count > 0)) throw new Error(this.homey.__('backend.invalidPause'));
+    await this.pauseGlobalUntil(Date.now() + count * (unit === 'hours' ? 3600 * 1000 : 60 * 1000));
+  }
+
+  // "Until 06:00" = the next time that clock reading comes round on the Homey's own clock.
+  async pauseGlobalUntilTime(time) {
+    let timeZone;
+    try {
+      timeZone = this.homey.clock.getTimezone();
+    } catch (err) {
+      timeZone = undefined;
+    }
+    const ms = msUntilNextTimeOfDay(time, new Date(Date.now()), timeZone);
+    if (ms === null) throw new Error(this.homey.__('backend.invalidPause'));
+    await this.pauseGlobalUntil(Date.now() + ms);
+  }
+
+  async resumeGlobal() {
+    if (this.config.globalPausedUntilMs == null) return;
+    await this._setGlobalPause(null);
+  }
+
+  async _setGlobalPause(untilMs) {
+    this.config = { ...this.config, globalPausedUntilMs: untilMs };
+    this.homey.settings.set(SETTINGS_KEY_CONFIG, this.config);
+    this._scheduleGlobalPauseEnd();
+    await this._refreshAfterGlobalPauseChange();
+  }
+
+  // The unavailable count changes without any scan being involved; one scan afterwards
+  // makes everything else (widget, not-reporting / low-battery counts) follow right away.
+  async _refreshAfterGlobalPauseChange() {
+    await this._updateWatchdogDevice({ unavailableCount: this._countUnavailable() });
+    await this.runScan('pause').catch((err) => this.error('Scan nach Pause-Wechsel fehlgeschlagen:', err));
+  }
+
+  _scheduleGlobalPauseEnd() {
+    if (this._globalPauseTimer) {
+      this.homey.clearTimeout(this._globalPauseTimer);
+      this._globalPauseTimer = null;
+    }
+    const until = this.config.globalPausedUntilMs;
+    if (typeof until !== 'number') return;
+
+    const remaining = until - Date.now();
+    if (remaining <= 0) {
+      // Ran out while the app wasn't running - just tidy up, the next scan sorts the rest.
+      this.config = { ...this.config, globalPausedUntilMs: null };
+      this.homey.settings.set(SETTINGS_KEY_CONFIG, this.config);
+      return;
+    }
+    this._globalPauseTimer = this.homey.setTimeout(() => {
+      this._globalPauseTimer = null;
+      this._onGlobalPauseTimer().catch((err) => this.error('Ende der Pause fehlgeschlagen:', err));
+    }, Math.min(remaining, MAX_TIMEOUT_MS));
+  }
+
+  async _onGlobalPauseTimer() {
+    if (this.isGloballyPaused()) {
+      this._scheduleGlobalPauseEnd(); // a pause longer than MAX_TIMEOUT_MS: not over yet
+      return;
+    }
+    this.config = { ...this.config, globalPausedUntilMs: null };
+    this.homey.settings.set(SETTINGS_KEY_CONFIG, this.config);
+    await this._refreshAfterGlobalPauseChange();
+  }
+
+  // ---------------------------------------------------------------------
   // Config / rules (used by api.js)
   // ---------------------------------------------------------------------
 
@@ -906,6 +1005,8 @@ class DeviceWatchdogApp extends Homey.App {
   // to a clean slate while testing. Deliberately leaves the log/last-scan history alone,
   // those have their own dedicated "clear" controls with different semantics.
   async resetSettings() {
+    this.config = { ...this.config, globalPausedUntilMs: null };
+    this._scheduleGlobalPauseEnd();
     return this.saveConfig({ config: { ...DEFAULT_CONFIG }, rules: [] });
   }
 
@@ -978,6 +1079,8 @@ class DeviceWatchdogApp extends Homey.App {
         recommendationBasis: basisOrDefault(
           config.recommendationBasis, DEFAULT_CONFIG.recommendationBasis,
         ),
+        // Only the pause/resume actions change this, never a Settings save.
+        globalPausedUntilMs: this.config.globalPausedUntilMs ?? null,
       };
       this.homey.settings.set(SETTINGS_KEY_CONFIG, this.config);
     }
@@ -1448,7 +1551,7 @@ class DeviceWatchdogApp extends Homey.App {
     }
 
     const result = scanner.runScan({
-      devices, zones, rules: this.rules, config: this.config,
+      devices, zones, rules: this.rules, config: this.config, globalPause: this.isGloballyPaused(),
     });
 
     // Opt-in "test before you alarm": for devices that would otherwise be newly/still
@@ -1719,9 +1822,14 @@ class DeviceWatchdogApp extends Homey.App {
     // above) - a device excluded by rule this round still cleanly drops out below, same
     // as before this fix; only a device Homey didn't account for at all keeps its old
     // flagged state until a future scan can actually re-confirm it one way or the other.
-    const carriedNotReporting = [...prevNotReporting].filter((id) => !knownIds.has(id));
-    const carriedLowBattery = [...prevLowBattery].filter((id) => !knownIds.has(id));
-    const carriedLowBatteryConfirmed = [...prevLowBatteryConfirmed].filter((id) => !knownIds.has(id));
+    // A device that is merely paused (its own pause, or the global one) keeps its flagged state
+    // too: otherwise every ongoing problem would be announced as "newly found" again the moment
+    // the pause ends. (A device excluded outright, "monitored" off, still drops out cleanly.)
+    const pausedIds = new Set((result.excluded || []).filter((d) => d.reason === 'paused').map((d) => d.id));
+    const keepFlag = (id) => !knownIds.has(id) || pausedIds.has(id);
+    const carriedNotReporting = [...prevNotReporting].filter(keepFlag);
+    const carriedLowBattery = [...prevLowBattery].filter(keepFlag);
+    const carriedLowBatteryConfirmed = [...prevLowBatteryConfirmed].filter(keepFlag);
 
     this.flagState = {
       notReporting: [...result.notReporting.map((d) => d.id), ...carriedNotReporting],
@@ -1733,9 +1841,10 @@ class DeviceWatchdogApp extends Homey.App {
     // Keep problemSince.notReporting / .lowBattery from silently accumulating orphans.
     // The recovery loops above only prune an entry when the device is still in flagState
     // AND was re-scanned this round (scannedIds = result.all only). A device that instead
-    // gets excluded or paused while flagged leaves flagState cleanly (it's in knownIds,
-    // so not carried) but its problemSince entry is skipped (it's in result.excluded, not
-    // scannedIds) - so it would sit there forever. Enforce the invariant directly: these
+    // gets excluded outright while flagged leaves flagState cleanly (it's in knownIds, so
+    // not carried - a merely paused one is carried, see above) but its problemSince entry
+    // is skipped (it's in result.excluded, not scannedIds) - so it would sit there
+    // forever. Enforce the invariant directly: these
     // maps only ever hold ids that are currently flagged. (problemSince.unavailable is
     // managed separately and already self-heals in _primeAvailabilityMap.)
     const pruneSince = (map, keepIds) => {
@@ -1752,7 +1861,9 @@ class DeviceWatchdogApp extends Homey.App {
     // Virtual device counter/alarm - gated by confirmation same as the trigger/log/
     // timeline above (see _getLowBatteryDelaySeconds), deliberately NOT the raw
     // result.lowBattery.length the Settings UI/widget/condition cards use.
-    await this._updateWatchdogDevice({ lowBatteryCount: this.flagState.lowBatteryConfirmed.length });
+    await this._updateWatchdogDevice({
+      lowBatteryCount: this.flagState.lowBatteryConfirmed.filter((id) => !pausedIds.has(id)).length,
+    });
   }
 
 }

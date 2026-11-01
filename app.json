@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.rickd.devicewatchdog",
-  "version": "1.9.52",
+  "version": "1.9.53",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -122,6 +122,10 @@
     "resetSettings": {
       "method": "post",
       "path": "/settings/reset"
+    },
+    "resumeGlobalPause": {
+      "method": "post",
+      "path": "/pause/resume"
     },
     "getStatus": {
       "method": "get",
@@ -1230,9 +1234,136 @@
             }
           }
         ]
+      },
+      {
+        "id": "watchdog_is_paused",
+        "title": {
+          "en": "!{{Watchdog is|Watchdog isn't}} paused",
+          "de": "!{{Watchdog ist pausiert|Watchdog ist nicht pausiert}}",
+          "sv": "!{{Watchdog är pausad|Watchdog är inte pausad}}",
+          "nl": "!{{Watchdog is gepauzeerd|Watchdog is niet gepauzeerd}}",
+          "no": "!{{Watchdog er satt på pause|Watchdog er ikke satt på pause}}"
+        },
+        "titleFormatted": {
+          "en": "!{{Watchdog is|Watchdog isn't}} paused",
+          "de": "!{{Watchdog ist pausiert|Watchdog ist nicht pausiert}}",
+          "sv": "!{{Watchdog är pausad|Watchdog är inte pausad}}",
+          "nl": "!{{Watchdog is gepauzeerd|Watchdog is niet gepauzeerd}}",
+          "no": "!{{Watchdog er satt på pause|Watchdog er ikke satt på pause}}"
+        },
+        "hint": {
+          "en": "Checks whether Watchdog as a whole is currently paused by \"Pause Watchdog\" (not a single device's own pause - for that use \"Device is paused\").",
+          "de": "Prüft, ob Watchdog insgesamt gerade durch \"Watchdog pausieren\" pausiert ist (nicht die Pause eines einzelnen Geräts - dafür \"Gerät ist pausiert\").",
+          "sv": "Kontrollerar om Watchdog som helhet just nu är pausad via \"Pausa Watchdog\" (inte en enskild enhets egen paus - använd då \"Enheten är pausad\").",
+          "nl": "Controleert of Watchdog als geheel momenteel gepauzeerd is via \"Watchdog pauzeren\" (niet de pauze van één apparaat - gebruik daarvoor \"Apparaat is gepauzeerd\").",
+          "no": "Sjekker om Watchdog som helhet for øyeblikket er satt på pause via \"Sett Watchdog på pause\" (ikke en enkelt enhets egen pause - bruk \"Enheten er satt på pause\")."
+        },
+        "args": []
       }
     ],
     "actions": [
+      {
+        "id": "pause_all_for",
+        "title": {
+          "en": "Pause Watchdog for a while",
+          "de": "Watchdog für eine Zeit pausieren",
+          "sv": "Pausa Watchdog under en tid",
+          "nl": "Watchdog een tijdje pauzeren",
+          "no": "Sett Watchdog på pause en stund"
+        },
+        "titleFormatted": {
+          "en": "Pause Watchdog for [[amount]] [[unit]]",
+          "de": "Watchdog für [[amount]] [[unit]] pausieren",
+          "sv": "Pausa Watchdog i [[amount]] [[unit]]",
+          "nl": "Pauzeer Watchdog voor [[amount]] [[unit]]",
+          "no": "Sett Watchdog på pause i [[amount]] [[unit]]"
+        },
+        "hint": {
+          "en": "Pauses all monitoring for the given time: no scans, and no Flow triggers, log or timeline entries - the counters on the virtual device show 0. The reporting statistics keep recording. Ends by itself, or earlier with \"Resume Watchdog\".",
+          "de": "Pausiert die gesamte Überwachung für die angegebene Zeit: keine Scans und keine Flow-Trigger, Log- oder Zeitleisten-Einträge - die Zähler im virtuellen Gerät zeigen 0. Die Melde-Statistik wird weiter aufgezeichnet. Endet von selbst oder früher mit \"Watchdog fortsetzen\".",
+          "sv": "Pausar all övervakning under angiven tid: inga skanningar och inga Flow-triggers, logg- eller tidslinjeposter - räknarna på den virtuella enheten visar 0. Rapporteringsstatistiken fortsätter att registreras. Tar slut av sig själv, eller tidigare med \"Återuppta Watchdog\".",
+          "nl": "Pauzeert alle bewaking voor de opgegeven tijd: geen scans en geen Flow-triggers, logboek- of tijdlijnberichten - de tellers op het virtuele apparaat tonen 0. De rapportagestatistieken worden gewoon bijgehouden. Eindigt vanzelf, of eerder met \"Watchdog hervatten\".",
+          "no": "Setter all overvåking på pause i den angitte tiden: ingen skanninger og ingen Flow-triggere, logg- eller tidslinjeoppføringer - tellerne på den virtuelle enheten viser 0. Rapporteringsstatistikken registreres fortsatt. Slutter av seg selv, eller tidligere med \"Gjenoppta Watchdog\"."
+        },
+        "args": [
+          {
+            "name": "amount",
+            "type": "number",
+            "min": 1,
+            "step": 1,
+            "placeholder": {
+              "en": "e.g. 7",
+              "de": "z.B. 7",
+              "sv": "t.ex. 7",
+              "nl": "bijv. 7",
+              "no": "f.eks. 7"
+            }
+          },
+          {
+            "name": "unit",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "minutes",
+                "label": {
+                  "en": "minutes",
+                  "de": "Minuten",
+                  "sv": "minuter",
+                  "nl": "minuten",
+                  "no": "minutter"
+                }
+              },
+              {
+                "id": "hours",
+                "label": {
+                  "en": "hours",
+                  "de": "Stunden",
+                  "sv": "timmar",
+                  "nl": "uren",
+                  "no": "timer"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pause_all_until_time",
+        "title": {
+          "en": "Pause Watchdog until a time of day",
+          "de": "Watchdog bis zu einer Uhrzeit pausieren",
+          "sv": "Pausa Watchdog till ett klockslag",
+          "nl": "Watchdog pauzeren tot een tijdstip",
+          "no": "Sett Watchdog på pause til et klokkeslett"
+        },
+        "titleFormatted": {
+          "en": "Pause Watchdog until [[time]]",
+          "de": "Watchdog bis [[time]] pausieren",
+          "sv": "Pausa Watchdog till [[time]]",
+          "nl": "Pauzeer Watchdog tot [[time]]",
+          "no": "Sett Watchdog på pause til [[time]]"
+        },
+        "hint": {
+          "en": "Pauses all monitoring until the next time the clock reaches the given time (today if it's still ahead, otherwise tomorrow) - e.g. started at 23:00 with \"06:00\" it pauses overnight. Same effect as \"Pause Watchdog for a while\"; ends earlier with \"Resume Watchdog\".",
+          "de": "Pausiert die gesamte Überwachung, bis die Uhr das nächste Mal die angegebene Uhrzeit erreicht (heute, falls sie noch bevorsteht, sonst morgen) - z.B. um 23:00 gestartet mit \"06:00\" pausiert über Nacht. Gleiche Wirkung wie \"Watchdog für eine Zeit pausieren\"; endet früher mit \"Watchdog fortsetzen\".",
+          "sv": "Pausar all övervakning tills klockan nästa gång når angiven tid (idag om den ligger framåt, annars imorgon) - t.ex. startad kl. 23:00 med \"06:00\" pausar den över natten. Samma effekt som \"Pausa Watchdog under en tid\"; avslutas tidigare med \"Återuppta Watchdog\".",
+          "nl": "Pauzeert alle bewaking tot de klok de opgegeven tijd weer bereikt (vandaag als die nog komt, anders morgen) - bijv. om 23:00 gestart met \"06:00\" pauzeert het over de nacht heen. Zelfde effect als \"Watchdog een tijdje pauzeren\"; eerder beëindigen kan met \"Watchdog hervatten\".",
+          "no": "Setter all overvåking på pause til klokken neste gang når det angitte tidspunktet (i dag hvis det ligger foran, ellers i morgen) - f.eks. startet kl. 23:00 med \"06:00\" pauser den over natten. Samme effekt som \"Sett Watchdog på pause en stund\"; avsluttes tidligere med \"Gjenoppta Watchdog\"."
+        },
+        "args": [
+          {
+            "name": "time",
+            "type": "time",
+            "title": {
+              "en": "Until (time of day)",
+              "de": "Bis (Uhrzeit)",
+              "sv": "Till (klockslag)",
+              "nl": "Tot (tijdstip)",
+              "no": "Til (klokkeslett)"
+            }
+          }
+        ]
+      },
       {
         "id": "pause_device",
         "title": {
@@ -1371,6 +1502,30 @@
             }
           }
         ]
+      },
+      {
+        "id": "resume_all",
+        "title": {
+          "en": "Resume Watchdog",
+          "de": "Watchdog fortsetzen",
+          "sv": "Återuppta Watchdog",
+          "nl": "Watchdog hervatten",
+          "no": "Gjenoppta Watchdog"
+        },
+        "titleFormatted": {
+          "en": "Resume Watchdog",
+          "de": "Watchdog fortsetzen",
+          "sv": "Återuppta Watchdog",
+          "nl": "Watchdog hervatten",
+          "no": "Gjenoppta Watchdog"
+        },
+        "hint": {
+          "en": "Ends a \"Pause Watchdog\" early and runs a scan right away. Does nothing if Watchdog isn't paused.",
+          "de": "Beendet eine \"Watchdog pausieren\"-Pause vorzeitig und führt sofort einen Scan aus. Tut nichts, wenn Watchdog nicht pausiert ist.",
+          "sv": "Avslutar en \"Pausa Watchdog\"-paus i förtid och kör en skanning direkt. Gör ingenting om Watchdog inte är pausad.",
+          "nl": "Beëindigt een \"Watchdog pauzeren\"-pauze vroegtijdig en voert direct een scan uit. Doet niets als Watchdog niet gepauzeerd is.",
+          "no": "Avslutter en \"Sett Watchdog på pause\"-pause før tiden og kjører en skanning med en gang. Gjør ingenting hvis Watchdog ikke er satt på pause."
+        }
       },
       {
         "id": "resume_device",

@@ -50,6 +50,8 @@
     "unmonitoredSummary": "__count__ enhet(er) overvåkes ikke",
     "noScanYet": "Ingen skanning kjørt ennå",
     "lastScan": "Siste skanning: __date__",
+    "globalPausedBanner": "Watchdog er satt på pause til __date__ - frem til da overvåkes eller rapporteres ingenting.",
+    "resumeNow": "Gjenoppta nå",
     "empty": "Ingen enheter funnet.",
     "scanFailed": "Skanningen mislyktes: __error__",
     "loadFailed": "Lasting mislyktes: __error__",
@@ -306,6 +308,7 @@
     "timelineBatteryOkAgain": "🟢 __count__ enhet(er) har batteriet tilbake til normalt: __devices__",
     "andMore": "og __count__ til",
     "afterDuration": "__device__ (etter __duration__)",
+    "invalidPause": "Ugyldig pause - oppgi et tall større enn 0 eller et klokkeslett som 06:00.",
     "deviceNotFound": "Enheten ble ikke funnet",
     "noTestableCapability": "Ingen testbar capability (onoff/dim) tilgjengelig",
     "noCurrentValue": "Ingen nåværende verdi tilgjengelig"

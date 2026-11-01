@@ -1,0 +1,25 @@
+{
+  "id": "watchdog_is_paused",
+  "title": {
+    "en": "!{{Watchdog is|Watchdog isn't}} paused",
+    "de": "!{{Watchdog ist pausiert|Watchdog ist nicht pausiert}}",
+    "sv": "!{{Watchdog är pausad|Watchdog är inte pausad}}",
+    "nl": "!{{Watchdog is gepauzeerd|Watchdog is niet gepauzeerd}}",
+    "no": "!{{Watchdog er satt på pause|Watchdog er ikke satt på pause}}"
+  },
+  "titleFormatted": {
+    "en": "!{{Watchdog is|Watchdog isn't}} paused",
+    "de": "!{{Watchdog ist pausiert|Watchdog ist nicht pausiert}}",
+    "sv": "!{{Watchdog är pausad|Watchdog är inte pausad}}",
+    "nl": "!{{Watchdog is gepauzeerd|Watchdog is niet gepauzeerd}}",
+    "no": "!{{Watchdog er satt på pause|Watchdog er ikke satt på pause}}"
+  },
+  "hint": {
+    "en": "Checks whether Watchdog as a whole is currently paused by \"Pause Watchdog\" (not a single device's own pause - for that use \"Device is paused\").",
+    "de": "Prüft, ob Watchdog insgesamt gerade durch \"Watchdog pausieren\" pausiert ist (nicht die Pause eines einzelnen Geräts - dafür \"Gerät ist pausiert\").",
+    "sv": "Kontrollerar om Watchdog som helhet just nu är pausad via \"Pausa Watchdog\" (inte en enskild enhets egen paus - använd då \"Enheten är pausad\").",
+    "nl": "Controleert of Watchdog als geheel momenteel gepauzeerd is via \"Watchdog pauzeren\" (niet de pauze van één apparaat - gebruik daarvoor \"Apparaat is gepauzeerd\").",
+    "no": "Sjekker om Watchdog som helhet for øyeblikket er satt på pause via \"Sett Watchdog på pause\" (ikke en enkelt enhets egen pause - bruk \"Enheten er satt på pause\")."
+  },
+  "args": []
+}

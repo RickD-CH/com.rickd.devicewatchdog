@@ -50,6 +50,8 @@
     "unmonitoredSummary": "__count__ Gerät(e) nicht überwacht",
     "noScanYet": "Noch kein Scan gelaufen",
     "lastScan": "Letzter Scan: __date__",
+    "globalPausedBanner": "Watchdog ist pausiert bis __date__ - bis dahin wird nichts überwacht oder gemeldet.",
+    "resumeNow": "Jetzt fortsetzen",
     "empty": "Keine Geräte gefunden.",
     "scanFailed": "Scan fehlgeschlagen: __error__",
     "loadFailed": "Laden fehlgeschlagen: __error__",
@@ -306,6 +308,7 @@
     "timelineBatteryOkAgain": "🟢 __count__ Gerät(e) haben wieder einen normalen Akkustand: __devices__",
     "andMore": "und __count__ weitere",
     "afterDuration": "__device__ (nach __duration__)",
+    "invalidPause": "Ungültige Pause - eine Zahl größer als 0 oder eine Uhrzeit wie 06:00 angeben.",
     "deviceNotFound": "Gerät nicht gefunden",
     "noTestableCapability": "Keine testbare Capability (onoff/dim) vorhanden",
     "noCurrentValue": "Kein aktueller Wert verfügbar"

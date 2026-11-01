@@ -782,6 +782,22 @@ describe('isRulePaused', () => {
   test('an unparsable pausedUntil is treated as not paused, not thrown', () => {
     assert.equal(scanner.isRulePaused({ pausedUntil: 'not-a-date' }), false);
   });
+
+  describe('with a time of day (YYYY-MM-DDTHH:mm, local time)', () => {
+    const pad = (n) => String(n).padStart(2, '0');
+    const local = (ms) => {
+      const d = new Date(ms);
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
+    test('a time later today is paused', () => {
+      assert.equal(scanner.isRulePaused({ pausedUntil: local(Date.now() + 2 * HOUR) }), true);
+    });
+
+    test('a time that has passed is not paused - unlike a bare date, which lasts through the whole day', () => {
+      assert.equal(scanner.isRulePaused({ pausedUntil: local(Date.now() - 2 * HOUR) }), false);
+    });
+  });
 });
 
 describe('runScan', () => {
@@ -879,6 +895,47 @@ describe('runScan', () => {
     assert.equal(result.all.length, 0);
     assert.equal(result.excluded.length, 1);
     assert.equal(result.excluded[0].reason, 'paused');
+  });
+
+  describe('globalPause (the whole Watchdog paused)', () => {
+    const fresh = () => new Date().toISOString();
+
+    test('excludes every device, including ones without any rule, as "paused"', () => {
+      const devices = {
+        a: device({ id: 'a', capabilitiesObj: { onoff: { value: true, lastUpdated: fresh() } } }),
+        b: device({ id: 'b', capabilitiesObj: { onoff: { value: true, lastUpdated: fresh() } } }),
+      };
+
+      const result = scanner.runScan({
+        devices, zones, rules: [], config, globalPause: true,
+      });
+
+      assert.equal(result.all.length, 0);
+      assert.equal(result.notReporting.length, 0);
+      assert.deepEqual(result.excluded.map((d) => [d.id, d.reason]), [['a', 'paused'], ['b', 'paused']]);
+    });
+
+    test('a device that is excluded outright keeps its "excludeAll" reason', () => {
+      const devices = { a: device({ id: 'a' }) };
+      const rules = [{ id: 'r1', matchType: 'id', matchValue: 'a', excludeAll: true }];
+
+      const result = scanner.runScan({
+        devices, zones, rules, config, globalPause: true,
+      });
+
+      assert.equal(result.excluded[0].reason, 'excludeAll');
+    });
+
+    test('without globalPause everything is scanned as before', () => {
+      const devices = { a: device({ id: 'a', capabilitiesObj: { onoff: { value: true, lastUpdated: fresh() } } }) };
+
+      const result = scanner.runScan({
+        devices, zones, rules: [], config, globalPause: false,
+      });
+
+      assert.equal(result.all.length, 1);
+      assert.equal(result.excluded.length, 0);
+    });
   });
 
   test('a rule with a past pausedUntil no longer excludes the device (self-resolving)', () => {

@@ -1,0 +1,65 @@
+{
+  "id": "pause_all_for",
+  "title": {
+    "en": "Pause Watchdog for a while",
+    "de": "Watchdog für eine Zeit pausieren",
+    "sv": "Pausa Watchdog under en tid",
+    "nl": "Watchdog een tijdje pauzeren",
+    "no": "Sett Watchdog på pause en stund"
+  },
+  "titleFormatted": {
+    "en": "Pause Watchdog for [[amount]] [[unit]]",
+    "de": "Watchdog für [[amount]] [[unit]] pausieren",
+    "sv": "Pausa Watchdog i [[amount]] [[unit]]",
+    "nl": "Pauzeer Watchdog voor [[amount]] [[unit]]",
+    "no": "Sett Watchdog på pause i [[amount]] [[unit]]"
+  },
+  "hint": {
+    "en": "Pauses all monitoring for the given time: no scans, and no Flow triggers, log or timeline entries - the counters on the virtual device show 0. The reporting statistics keep recording. Ends by itself, or earlier with \"Resume Watchdog\".",
+    "de": "Pausiert die gesamte Überwachung für die angegebene Zeit: keine Scans und keine Flow-Trigger, Log- oder Zeitleisten-Einträge - die Zähler im virtuellen Gerät zeigen 0. Die Melde-Statistik wird weiter aufgezeichnet. Endet von selbst oder früher mit \"Watchdog fortsetzen\".",
+    "sv": "Pausar all övervakning under angiven tid: inga skanningar och inga Flow-triggers, logg- eller tidslinjeposter - räknarna på den virtuella enheten visar 0. Rapporteringsstatistiken fortsätter att registreras. Tar slut av sig själv, eller tidigare med \"Återuppta Watchdog\".",
+    "nl": "Pauzeert alle bewaking voor de opgegeven tijd: geen scans en geen Flow-triggers, logboek- of tijdlijnberichten - de tellers op het virtuele apparaat tonen 0. De rapportagestatistieken worden gewoon bijgehouden. Eindigt vanzelf, of eerder met \"Watchdog hervatten\".",
+    "no": "Setter all overvåking på pause i den angitte tiden: ingen skanninger og ingen Flow-triggere, logg- eller tidslinjeoppføringer - tellerne på den virtuelle enheten viser 0. Rapporteringsstatistikken registreres fortsatt. Slutter av seg selv, eller tidligere med \"Gjenoppta Watchdog\"."
+  },
+  "args": [
+    {
+      "name": "amount",
+      "type": "number",
+      "min": 1,
+      "step": 1,
+      "placeholder": {
+        "en": "e.g. 7",
+        "de": "z.B. 7",
+        "sv": "t.ex. 7",
+        "nl": "bijv. 7",
+        "no": "f.eks. 7"
+      }
+    },
+    {
+      "name": "unit",
+      "type": "dropdown",
+      "values": [
+        {
+          "id": "minutes",
+          "label": {
+            "en": "minutes",
+            "de": "Minuten",
+            "sv": "minuter",
+            "nl": "minuten",
+            "no": "minutter"
+          }
+        },
+        {
+          "id": "hours",
+          "label": {
+            "en": "hours",
+            "de": "Stunden",
+            "sv": "timmar",
+            "nl": "uren",
+            "no": "timer"
+          }
+        }
+      ]
+    }
+  ]
+}

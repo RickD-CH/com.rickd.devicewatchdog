@@ -194,6 +194,23 @@ describe('isoDateOrNull', () => {
     assert.equal(rulesLib.isoDateOrNull('not a date'), null);
     assert.equal(rulesLib.isoDateOrNull(''), null);
   });
+
+  test('accepts a date with a time and normalizes it to YYYY-MM-DDTHH:mm', () => {
+    assert.equal(rulesLib.isoDateOrNull('2026-03-15T14:30'), '2026-03-15T14:30');
+    assert.equal(rulesLib.isoDateOrNull('2026-03-15 14:30'), '2026-03-15T14:30');
+    assert.equal(rulesLib.isoDateOrNull('2026-03-15T14:30:45'), '2026-03-15T14:30');
+    assert.equal(rulesLib.isoDateOrNull('2026-03-15T14:30:45.123'), '2026-03-15T14:30');
+  });
+
+  test('rejects an impossible time of day', () => {
+    assert.equal(rulesLib.isoDateOrNull('2026-03-15T25:00'), null);
+    assert.equal(rulesLib.isoDateOrNull('2026-03-15T12:75'), null);
+  });
+
+  test('sanitizeRule keeps a pausedUntil that carries a time', () => {
+    const rule = rulesLib.sanitizeRule({ matchType: 'id', matchValue: 'dev', pausedUntil: '2026-03-15T14:30' });
+    assert.equal(rule.pausedUntil, '2026-03-15T14:30');
+  });
 });
 
 describe('trimmedOrNull', () => {

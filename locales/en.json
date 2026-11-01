@@ -50,6 +50,8 @@
     "unmonitoredSummary": "__count__ device(s) not monitored",
     "noScanYet": "No scan run yet",
     "lastScan": "Last scan: __date__",
+    "globalPausedBanner": "Watchdog is paused until __date__ - nothing is monitored or reported until then.",
+    "resumeNow": "Resume now",
     "empty": "No devices found.",
     "scanFailed": "Scan failed: __error__",
     "loadFailed": "Loading failed: __error__",
@@ -306,6 +308,7 @@
     "timelineBatteryOkAgain": "🟢 __count__ device(s) battery back to normal: __devices__",
     "andMore": "and __count__ more",
     "afterDuration": "__device__ (after __duration__)",
+    "invalidPause": "Invalid pause - use a number greater than 0, or a time like 06:00.",
     "deviceNotFound": "Device not found",
     "noTestableCapability": "No testable capability (onoff/dim) available",
     "noCurrentValue": "No current value available"
