@@ -13,6 +13,11 @@ module.exports = {
     return homey.app.resetSettings();
   },
 
+  async pauseGlobal({ homey, body }) {
+    await homey.app.pauseGlobalFor(body && body.amount, body && body.unit);
+    return homey.app.getConfig();
+  },
+
   async resumeGlobalPause({ homey }) {
     await homey.app.resumeGlobal();
     return homey.app.getConfig();

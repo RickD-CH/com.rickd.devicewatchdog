@@ -74,6 +74,9 @@ function formatNameList(names, homey) {
 // setTimeout can't take more than ~24.8 days - a longer global pause re-arms itself.
 const MAX_TIMEOUT_MS = 2147483647;
 
+// Longest global pause accepted - past this it is a typo, not a pause.
+const MAX_GLOBAL_PAUSE_MS = 365 * 24 * 3600 * 1000;
+
 // The Settings UI's <input min="..."> is a client-side hint only - it doesn't stop a
 // negative/NaN value from being typed or POSTed directly. These guard the numbers that
 // feed threshold math in lib/scanner.js, where e.g. a negative "hours" would make a
@@ -908,7 +911,7 @@ class DeviceWatchdogApp extends Homey.App {
   }
 
   async pauseGlobalUntil(untilMs) {
-    if (!(Number.isFinite(untilMs) && untilMs > Date.now())) {
+    if (!(Number.isFinite(untilMs) && untilMs > Date.now() && untilMs - Date.now() <= MAX_GLOBAL_PAUSE_MS)) {
       throw new Error(this.homey.__('backend.invalidPause'));
     }
     await this._setGlobalPause(untilMs);

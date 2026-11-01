@@ -1,6 +1,6 @@
 {
   "id": "com.rickd.devicewatchdog",
-  "version": "1.9.53",
+  "version": "1.9.54",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -121,6 +121,10 @@
     "resetSettings": {
       "method": "post",
       "path": "/settings/reset"
+    },
+    "pauseGlobal": {
+      "method": "post",
+      "path": "/pause"
     },
     "resumeGlobalPause": {
       "method": "post",

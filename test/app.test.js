@@ -267,6 +267,15 @@ describe('global pause', () => {
     assert.deepEqual(calls.scans, ['pause']);
   });
 
+  test('a pause longer than a year is rejected as a typo', async () => {
+    const { app } = makeApp();
+    await app.pauseGlobalFor(364, 'hours');
+    await app.resumeGlobal();
+    await assert.rejects(() => app.pauseGlobalFor(366 * 24, 'hours'), /Invalid pause/);
+    await assert.rejects(() => app.pauseGlobalFor(1e12, 'hours'), /Invalid pause/);
+    assert.equal(app.config.globalPausedUntilMs, null);
+  });
+
   test('pauseGlobalFor in minutes', async () => {
     const { app, nowMs } = makeApp();
     const before = nowMs();

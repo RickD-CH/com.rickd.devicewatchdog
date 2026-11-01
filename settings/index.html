@@ -206,6 +206,10 @@
        landed in which row every time. A fixed column count can't reshuffle - tiles just
        get narrower or wider, never reordered. */
     .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px; margin-bottom: 14px; }
+    .pause-all-block { margin-bottom: 14px; }
+    .pause-all-block summary { cursor: pointer; font-size: 13px; color: var(--color-muted); }
+    .pause-all-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0 4px; }
+    .pause-all-row input[type=number] { width: 80px; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; }
     .global-pause-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 14px; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-bg-alt); box-shadow: inset 3px 0 0 var(--color-warn); }
     .stat {
       border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 10px; min-width: 0;
@@ -466,6 +470,19 @@
       <span id="global-pause-text"></span>
       <button class="btn small" id="btn-resume-global">Jetzt fortsetzen</button>
     </div>
+
+    <details class="pause-all-block" id="global-pause-controls">
+      <summary id="global-pause-summary">Ganzen Watchdog pausieren…</summary>
+      <div class="pause-all-row">
+        <input type="number" id="pause-all-amount" min="1" step="1" value="1" />
+        <select class="select-input" id="pause-all-unit">
+          <option value="minutes" id="opt-pause-minutes">Minuten</option>
+          <option value="hours" id="opt-pause-hours" selected>Stunden</option>
+        </select>
+        <button class="btn small primary" id="btn-pause-all">Pausieren</button>
+      </div>
+      <p class="hint" id="hint-pause-all"></p>
+    </details>
 
     <div class="stat-grid" id="stat-grid"></div>
 
@@ -810,6 +827,11 @@
         document.getElementById('btn-clear-search').title = Homey.__('devices.clearSearch');
         document.getElementById('btn-run-scan').textContent = Homey.__('devices.scanNow');
         document.getElementById('btn-resume-global').textContent = Homey.__('devices.resumeNow');
+        document.getElementById('global-pause-summary').textContent = Homey.__('devices.pauseAllSummary');
+        document.getElementById('hint-pause-all').textContent = Homey.__('devices.pauseAllHint');
+        document.getElementById('btn-pause-all').textContent = Homey.__('devices.pauseAllButton');
+        document.getElementById('opt-pause-minutes').textContent = Homey.__('units.minutes');
+        document.getElementById('opt-pause-hours').textContent = Homey.__('units.hours');
         document.getElementById('device-search').placeholder = Homey.__('devices.searchPlaceholder');
         document.getElementById('opt-sort-priority').textContent = Homey.__('devices.sortPriority');
         document.getElementById('opt-sort-name').textContent = Homey.__('devices.sortName');
@@ -2134,14 +2156,17 @@
         var globalPausedUntil = state.config && typeof state.config.globalPausedUntilMs === 'number'
           ? state.config.globalPausedUntilMs : null;
         var pauseBanner = document.getElementById('global-pause-banner');
+        var pauseControls = document.getElementById('global-pause-controls');
         if (globalPausedUntil && globalPausedUntil > Date.now()) {
           var pauseEnd = new Date(globalPausedUntil);
           document.getElementById('global-pause-text').textContent = Homey.__('devices.globalPausedBanner', {
             date: pauseEnd.toLocaleDateString() + ' ' + pauseEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           });
           pauseBanner.style.display = 'flex';
+          pauseControls.style.display = 'none';
         } else {
           pauseBanner.style.display = 'none';
+          pauseControls.style.display = '';
         }
 
         var grid = document.getElementById('stat-grid');
@@ -3092,6 +3117,29 @@
           if (detailsEl) detailsEl.open = true;
         }
         renderDevices();
+      });
+
+      document.getElementById('btn-pause-all').addEventListener('click', function () {
+        var btn = document.getElementById('btn-pause-all');
+        btn.disabled = true;
+        // The server runs a scan as part of pausing, so the status pulled afterwards is already fresh.
+        apiCall('POST', '/pause', {
+          amount: Number(document.getElementById('pause-all-amount').value),
+          unit: document.getElementById('pause-all-unit').value,
+        }).then(function (cfg) {
+          state.config.globalPausedUntilMs = cfg.config.globalPausedUntilMs;
+          document.getElementById('global-pause-controls').open = false;
+          return Promise.all([apiCall('GET', '/status'), apiCall('GET', '/devices/raw'), apiCall('GET', '/devices/unavailable')]);
+        }).then(function (results) {
+          state.lastScan = results[0].lastScan;
+          state.devices = results[1];
+          state.unavailableIds = results[2].ids;
+          renderDevices();
+        }).catch(function (err) {
+          Homey.alert(err && err.message ? err.message : String(err));
+        }).finally(function () {
+          btn.disabled = false;
+        });
       });
 
       document.getElementById('btn-resume-global').addEventListener('click', function () {
