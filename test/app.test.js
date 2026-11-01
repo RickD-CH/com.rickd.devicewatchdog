@@ -305,6 +305,49 @@ describe('global pause', () => {
     assert.equal(hourInZurich, '06:00');
   });
 
+  describe('pauseGlobalUntilDateTime (the picker in the Devices tab)', () => {
+    // The wall clock of Zurich (the stubbed Homey zone), `offsetMs` from now, as YYYY-MM-DDTHH:mm
+    const zurichWallClock = (offsetMs) => {
+      const parts = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+      }).formatToParts(new Date(BASE + offsetMs));
+      const get = (type) => parts.find((p) => p.type === type).value;
+      return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
+    };
+
+    test('pauses until that wall-clock time on the Homey clock (within the minute it is given in)', async () => {
+      const { app, nowMs } = makeApp();
+      await app.pauseGlobalUntilDateTime(zurichWallClock(2 * HOUR));
+      const until = app.config.globalPausedUntilMs;
+      assert.ok(Math.abs(until - (nowMs() + 2 * HOUR)) <= MINUTE, `${until - nowMs()} ms from now`);
+      assert.equal(app.isGloballyPaused(), true);
+    });
+
+    test('a bare date lasts through the end of that day', async () => {
+      const { app } = makeApp();
+      const tomorrow = zurichWallClock(24 * HOUR).slice(0, 10);
+      await app.pauseGlobalUntilDateTime(tomorrow);
+      const endOfDay = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Europe/Zurich', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+      }).format(new Date(app.config.globalPausedUntilMs));
+      assert.equal(endOfDay, '23:59:59');
+    });
+
+    test('a time in the past, nonsense and an empty value are rejected', async () => {
+      const { app, calls } = makeApp();
+      for (const bad of [zurichWallClock(-HOUR), 'nonsense', '', null, '2026-13-45T10:00']) {
+        await assert.rejects(() => app.pauseGlobalUntilDateTime(bad), /Invalid pause/, String(bad));
+      }
+      assert.equal(app.config.globalPausedUntilMs, null);
+      assert.deepEqual(calls.scans, []);
+    });
+
+    test('more than a year ahead is rejected as a typo', async () => {
+      const { app } = makeApp();
+      await assert.rejects(() => app.pauseGlobalUntilDateTime(zurichWallClock(400 * 24 * HOUR)), /Invalid pause/);
+    });
+  });
+
   test('pauseGlobalUntilTime rejects something that is not a time', async () => {
     const { app } = makeApp();
     await assert.rejects(() => app.pauseGlobalUntilTime('later'), /Invalid pause/);

@@ -13,8 +13,13 @@ module.exports = {
     return homey.app.resetSettings();
   },
 
+  // { until: "YYYY-MM-DDTHH:mm" } (the Devices tab's picker) or { amount, unit: "minutes"|"hours" }
   async pauseGlobal({ homey, body }) {
-    await homey.app.pauseGlobalFor(body && body.amount, body && body.unit);
+    if (body && body.until !== undefined) {
+      await homey.app.pauseGlobalUntilDateTime(body.until);
+    } else {
+      await homey.app.pauseGlobalFor(body && body.amount, body && body.unit);
+    }
     return homey.app.getConfig();
   },
 

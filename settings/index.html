@@ -209,7 +209,7 @@
     .pause-all-block { margin-bottom: 14px; }
     .pause-all-block summary { cursor: pointer; font-size: 13px; color: var(--color-muted); }
     .pause-all-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0 4px; }
-    .pause-all-row input[type=number] { width: 80px; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; }
+    .pause-all-row label { font-size: 13px; }
     .global-pause-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 14px; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-bg-alt); box-shadow: inset 3px 0 0 var(--color-warn); }
     .stat {
       border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 10px; min-width: 0;
@@ -474,11 +474,8 @@
     <details class="pause-all-block" id="global-pause-controls">
       <summary id="global-pause-summary">Ganzen Watchdog pausieren…</summary>
       <div class="pause-all-row">
-        <input type="number" id="pause-all-amount" min="1" step="1" value="1" />
-        <select class="select-input" id="pause-all-unit">
-          <option value="minutes" id="opt-pause-minutes">Minuten</option>
-          <option value="hours" id="opt-pause-hours" selected>Stunden</option>
-        </select>
+        <label for="pause-all-until" id="lbl-pause-all-until">Bis</label>
+        <input type="datetime-local" id="pause-all-until" />
         <button class="btn small primary" id="btn-pause-all">Pausieren</button>
       </div>
       <p class="hint" id="hint-pause-all"></p>
@@ -830,8 +827,7 @@
         document.getElementById('global-pause-summary').textContent = Homey.__('devices.pauseAllSummary');
         document.getElementById('hint-pause-all').textContent = Homey.__('devices.pauseAllHint');
         document.getElementById('btn-pause-all').textContent = Homey.__('devices.pauseAllButton');
-        document.getElementById('opt-pause-minutes').textContent = Homey.__('units.minutes');
-        document.getElementById('opt-pause-hours').textContent = Homey.__('units.hours');
+        document.getElementById('lbl-pause-all-until').textContent = Homey.__('devices.pauseAllUntil');
         document.getElementById('device-search').placeholder = Homey.__('devices.searchPlaceholder');
         document.getElementById('opt-sort-priority').textContent = Homey.__('devices.sortPriority');
         document.getElementById('opt-sort-name').textContent = Homey.__('devices.sortName');
@@ -965,6 +961,13 @@
       function pauseInputValue(pausedUntil) {
         if (!pausedUntil) return '';
         return String(pausedUntil).length === 10 ? pausedUntil + 'T23:59' : pausedUntil;
+      }
+
+      // "YYYY-MM-DDTHH:mm" in the browser's own zone - the value format of <input type="datetime-local">.
+      function localDateTimeValue(ms) {
+        var d = new Date(ms);
+        function pad(n) { return (n < 10 ? '0' : '') + n; }
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
       }
 
       function formatPauseEnd(pausedUntil) {
@@ -2167,6 +2170,11 @@
         } else {
           pauseBanner.style.display = 'none';
           pauseControls.style.display = '';
+          // Suggest "an hour from now" unless the user already picked something still ahead.
+          var pauseUntilInput = document.getElementById('pause-all-until');
+          if (!pauseUntilInput.value || new Date(pauseUntilInput.value).getTime() <= Date.now()) {
+            pauseUntilInput.value = localDateTimeValue(Date.now() + 3600 * 1000);
+          }
         }
 
         var grid = document.getElementById('stat-grid');
@@ -3124,8 +3132,7 @@
         btn.disabled = true;
         // The server runs a scan as part of pausing, so the status pulled afterwards is already fresh.
         apiCall('POST', '/pause', {
-          amount: Number(document.getElementById('pause-all-amount').value),
-          unit: document.getElementById('pause-all-unit').value,
+          until: document.getElementById('pause-all-until').value,
         }).then(function (cfg) {
           state.config.globalPausedUntilMs = cfg.config.globalPausedUntilMs;
           document.getElementById('global-pause-controls').open = false;

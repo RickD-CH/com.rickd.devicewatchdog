@@ -5,7 +5,7 @@ const { HomeyAPI } = require('homey-api');
 const { DEFAULT_CONFIG, DEFAULT_RULES } = require('./lib/defaults');
 const scanner = require('./lib/scanner');
 const rulesLib = require('./lib/rules');
-const { formatDuration, msUntilNextTimeOfDay } = require('./lib/time');
+const { formatDuration, msUntilNextTimeOfDay, wallClockToMs } = require('./lib/time');
 
 const SETTINGS_KEY_CONFIG = 'config';
 const SETTINGS_KEY_RULES = 'rules';
@@ -947,6 +947,18 @@ class DeviceWatchdogApp extends Homey.App {
     const count = Number(amount);
     if (!(Number.isFinite(count) && count > 0)) throw new Error(this.homey.__('backend.invalidPause'));
     await this.pauseGlobalUntil(Date.now() + count * (unit === 'hours' ? 3600 * 1000 : 60 * 1000));
+  }
+
+  // "Until 2026-11-05T06:00" (the picker in the Devices tab): a wall-clock date and time on the
+  // Homey's own clock. A bare date means through the end of that day, like a device pause.
+  async pauseGlobalUntilDateTime(dateTime) {
+    const normalized = rulesLib.isoDateOrNull(dateTime);
+    if (!normalized) throw new Error(this.homey.__('backend.invalidPause'));
+    const ms = normalized.includes('T')
+      ? wallClockToMs(normalized, this._timeZone())
+      : wallClockToMs(`${normalized}T23:59`, this._timeZone()) + 59999;
+    if (Number.isNaN(ms)) throw new Error(this.homey.__('backend.invalidPause'));
+    await this.pauseGlobalUntil(ms);
   }
 
   // "Until 06:00" = the next time that clock reading comes round on the Homey's own clock.

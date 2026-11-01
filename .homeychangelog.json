@@ -1,4 +1,11 @@
 {
+  "1.9.56": {
+    "en": "• \"Pause the whole Watchdog…\" in the Devices tab now uses a date and time picker (\"Until\") instead of an amount and unit - so you can pause until a specific moment, e.g. tomorrow 06:00. It suggests one hour from now",
+    "de": "• \"Ganzen Watchdog pausieren…\" im Geräte-Tab hat jetzt eine Datums- und Zeitwahl (\"Bis\") statt Zahl und Einheit - so lässt sich bis zu einem bestimmten Zeitpunkt pausieren, z.B. morgen 06:00. Vorgeschlagen wird eine Stunde ab jetzt",
+    "sv": "• \"Pausa hela Watchdog…\" i fliken Enheter har nu en datum- och tidsväljare (\"Till\") i stället för tal och enhet - så du kan pausa till en viss tidpunkt, t.ex. imorgon 06:00. Förslaget är en timme framåt",
+    "nl": "• \"Hele Watchdog pauzeren…\" in het tabblad Apparaten heeft nu een datum- en tijdkiezer (\"Tot\") in plaats van aantal en eenheid - zo kun je pauzeren tot een bepaald moment, bijv. morgen 06:00. Voorgesteld wordt een uur vanaf nu",
+    "no": "• \"Sett hele Watchdog på pause…\" i Enheter-fanen har nå en dato- og tidsvelger (\"Til\") i stedet for tall og enhet - slik kan du sette på pause til et bestemt tidspunkt, f.eks. i morgen 06:00. Forslaget er en time fra nå"
+  },
   "1.9.55": {
     "en": "• New Flow action \"Pause device until date and time\" (date picker plus time picker). The text variant of the pause action now says on the card that it also accepts \"YYYY-MM-DD HH:mm\"\n• Fixed: a device pause with a time of day ended at the wrong moment - the time was read as UTC instead of in your Homey's time zone (in Central Europe, 1-2 hours late). Pauses that only have a date now also end at the end of that day in your Homey's time zone",
     "de": "• Neue Flow-Aktion \"Gerät bis Datum und Uhrzeit pausieren\" (Datums- und Zeitwahl). Die Text-Variante der Pause-Aktion nennt jetzt auf der Karte, dass sie auch \"YYYY-MM-DD HH:mm\" akzeptiert\n• Fehlerbehebung: Eine Geräte-Pause mit Uhrzeit endete zur falschen Zeit - die Uhrzeit wurde als UTC statt in der Zeitzone deines Homey gelesen (in Mitteleuropa 1-2 Stunden zu spät). Auch Pausen nur mit Datum enden jetzt am Tagesende in der Zeitzone deines Homey",

@@ -53,6 +53,7 @@
     "globalPausedBanner": "Watchdog ist pausiert bis __date__ - bis dahin wird nichts überwacht oder gemeldet.",
     "resumeNow": "Jetzt fortsetzen",
     "pauseAllSummary": "Ganzen Watchdog pausieren…",
+    "pauseAllUntil": "Bis",
     "pauseAllHint": "Während der Pause wird nichts gescannt oder gemeldet; die Melde-Statistik wird weiter aufgezeichnet. Endet von selbst oder mit \"Jetzt fortsetzen\".",
     "pauseAllButton": "Pausieren",
     "empty": "Keine Geräte gefunden.",

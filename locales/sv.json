@@ -53,6 +53,7 @@
     "globalPausedBanner": "Watchdog är pausad till __date__ - fram till dess övervakas och rapporteras ingenting.",
     "resumeNow": "Återuppta nu",
     "pauseAllSummary": "Pausa hela Watchdog…",
+    "pauseAllUntil": "Till",
     "pauseAllHint": "Under pausen skannas och rapporteras ingenting; rapporteringsstatistiken fortsätter att registreras. Tar slut av sig själv, eller med \"Återuppta nu\".",
     "pauseAllButton": "Pausa",
     "empty": "Inga enheter hittades.",

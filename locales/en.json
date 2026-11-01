@@ -53,6 +53,7 @@
     "globalPausedBanner": "Watchdog is paused until __date__ - nothing is monitored or reported until then.",
     "resumeNow": "Resume now",
     "pauseAllSummary": "Pause the whole Watchdog…",
+    "pauseAllUntil": "Until",
     "pauseAllHint": "Nothing is scanned or reported while paused; the reporting statistics keep recording. Ends by itself, or with \"Resume now\".",
     "pauseAllButton": "Pause",
     "empty": "No devices found.",

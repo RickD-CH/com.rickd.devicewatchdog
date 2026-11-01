@@ -32,6 +32,25 @@ describe('pause endpoints', () => {
     assert.equal(result.config.globalPausedUntilMs, 123);
   });
 
+  test('POST /pause with "until" (the Devices tab picker) pauses until that date and time', async () => {
+    const { homey, calls } = fakeHomey();
+    homey.app.pauseGlobalUntilDateTime = async (until) => {
+      calls.push(['pauseGlobalUntilDateTime', until]);
+    };
+    const result = await api.pauseGlobal({ homey, body: { until: '2026-11-05T06:00' } });
+    assert.deepEqual(calls, [['pauseGlobalUntilDateTime', '2026-11-05T06:00']]);
+    assert.equal(result.config.globalPausedUntilMs, 123);
+  });
+
+  test('POST /pause with an empty "until" is still handed to the app (which rejects it), not treated as a duration', async () => {
+    const { homey, calls } = fakeHomey();
+    homey.app.pauseGlobalUntilDateTime = async (until) => {
+      calls.push(['pauseGlobalUntilDateTime', until]);
+    };
+    await api.pauseGlobal({ homey, body: { until: '' } });
+    assert.deepEqual(calls, [['pauseGlobalUntilDateTime', '']]);
+  });
+
   test('POST /pause without a body is passed on as "nothing" and left to the app to reject', async () => {
     const { homey, calls } = fakeHomey();
     await api.pauseGlobal({ homey, body: undefined });
