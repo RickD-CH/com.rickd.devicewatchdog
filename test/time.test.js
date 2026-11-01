@@ -3,7 +3,7 @@
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
 
-const { formatDuration, msUntilNextTimeOfDay } = require('../lib/time');
+const { formatDuration, msUntilNextTimeOfDay, wallClockToMs } = require('../lib/time');
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
@@ -31,6 +31,40 @@ describe('formatDuration', () => {
   test('days, with the leftover hours', () => {
     assert.equal(formatDuration(24 * HOUR), '1 d');
     assert.equal(formatDuration(51 * HOUR), '2 d 3 h');
+  });
+});
+
+describe('wallClockToMs', () => {
+  test('resolves a wall-clock time against the given zone (winter: Zurich is UTC+1)', () => {
+    assert.equal(wallClockToMs('2026-11-01T12:00', 'Europe/Zurich'), Date.UTC(2026, 10, 1, 11, 0));
+  });
+
+  test('and in summer (Zurich is UTC+2)', () => {
+    assert.equal(wallClockToMs('2026-07-01T12:00', 'Europe/Zurich'), Date.UTC(2026, 6, 1, 10, 0));
+  });
+
+  test('west of UTC (New York after daylight saving ended: UTC-5)', () => {
+    assert.equal(wallClockToMs('2026-11-01T12:00', 'America/New_York'), Date.UTC(2026, 10, 1, 17, 0));
+  });
+
+  test('UTC itself is the identity', () => {
+    assert.equal(wallClockToMs('2026-11-01T12:34', 'UTC'), Date.UTC(2026, 10, 1, 12, 34));
+  });
+
+  test('is the inverse of what the zone shows for an instant', () => {
+    const instant = Date.UTC(2026, 2, 15, 8, 45);
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(new Date(instant));
+    const get = (type) => parts.find((p) => p.type === type).value;
+    const wall = `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
+    assert.equal(wallClockToMs(wall, 'Europe/Zurich'), instant);
+  });
+
+  test('NaN for anything that is not YYYY-MM-DDTHH:mm', () => {
+    for (const bad of ['', 'nonsense', '2026-11-01', '2026-11-01 12:00', '2026-13-45T12:00']) {
+      assert.ok(Number.isNaN(wallClockToMs(bad, 'Europe/Zurich')), bad);
+    }
   });
 });
 

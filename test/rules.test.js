@@ -213,6 +213,32 @@ describe('isoDateOrNull', () => {
   });
 });
 
+describe('combineDateAndTime', () => {
+  test('joins the native date (dd-mm-yyyy) and time (HH:mm) arguments', () => {
+    assert.equal(rulesLib.combineDateAndTime('15-03-2026', '14:30'), '2026-03-15T14:30');
+  });
+
+  test('accepts an ISO date and pads a single-digit hour', () => {
+    assert.equal(rulesLib.combineDateAndTime('2026-03-15', '7:05'), '2026-03-15T07:05');
+  });
+
+  test('without a usable time it falls back to the bare date (paused through that day)', () => {
+    for (const time of ['', null, undefined, 'later', '25:00']) {
+      assert.equal(rulesLib.combineDateAndTime('15-03-2026', time), '2026-03-15', String(time));
+    }
+  });
+
+  test('an unusable date means no pause at all', () => {
+    assert.equal(rulesLib.combineDateAndTime('nonsense', '14:30'), null);
+    assert.equal(rulesLib.combineDateAndTime('', '14:30'), null);
+    assert.equal(rulesLib.combineDateAndTime(undefined, '14:30'), null);
+  });
+
+  test('a date that already carries a time keeps only its date part', () => {
+    assert.equal(rulesLib.combineDateAndTime('2026-03-15T09:00', '14:30'), '2026-03-15T14:30');
+  });
+});
+
 describe('trimmedOrNull', () => {
   test('trims surrounding whitespace', () => {
     assert.equal(rulesLib.trimmedOrNull('  4x AA  '), '4x AA');

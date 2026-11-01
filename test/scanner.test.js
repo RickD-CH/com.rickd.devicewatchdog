@@ -783,6 +783,52 @@ describe('isRulePaused', () => {
     assert.equal(scanner.isRulePaused({ pausedUntil: 'not-a-date' }), false);
   });
 
+  describe('in the Homey\'s time zone (the app process itself runs in UTC)', () => {
+    // The wall clock of Zurich, `offsetMs` from now, as YYYY-MM-DDTHH:mm
+    const zurichWallClock = (offsetMs) => {
+      const parts = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+      }).formatToParts(new Date(Date.now() + offsetMs));
+      const get = (type) => parts.find((p) => p.type === type).value;
+      return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
+    };
+
+    test('a Zurich wall-clock time half an hour ago has expired', () => {
+      assert.equal(scanner.isRulePaused({ pausedUntil: zurichWallClock(-30 * 60 * 1000) }, 'Europe/Zurich'), false);
+    });
+
+    test('a Zurich wall-clock time half an hour ahead is still paused', () => {
+      assert.equal(scanner.isRulePaused({ pausedUntil: zurichWallClock(30 * 60 * 1000) }, 'Europe/Zurich'), true);
+    });
+
+    test('regression: read as UTC, the same "half an hour ago" stays paused for another hour or two', () => {
+      // This is what a UTC process used to do with a time the user typed in Zurich time.
+      assert.equal(scanner.isRulePaused({ pausedUntil: zurichWallClock(-30 * 60 * 1000) }, 'UTC'), true);
+    });
+
+    test('a bare date lasts until the end of that day in the given zone', () => {
+      const zurichToday = zurichWallClock(0).slice(0, 10);
+      assert.equal(scanner.isRulePaused({ pausedUntil: zurichToday }, 'Europe/Zurich'), true);
+      const zurichYesterday = zurichWallClock(-36 * HOUR).slice(0, 10);
+      assert.equal(scanner.isRulePaused({ pausedUntil: zurichYesterday }, 'Europe/Zurich'), false);
+    });
+
+    test('runScan honours it too', () => {
+      const devices = {
+        dev: device({ id: 'dev', capabilitiesObj: { onoff: { value: true, lastUpdated: new Date().toISOString() } } }),
+      };
+      const run = (pausedUntil, timeZone) => scanner.runScan({
+        devices,
+        zones: {},
+        rules: [{ id: 'r', matchType: 'id', matchValue: 'dev', pausedUntil }],
+        config: { notReportingThresholdHours: 24, batteryThresholdPercent: 30 },
+        timeZone,
+      });
+      assert.equal(run(zurichWallClock(-30 * 60 * 1000), 'Europe/Zurich').excluded.length, 0);
+      assert.equal(run(zurichWallClock(30 * 60 * 1000), 'Europe/Zurich').excluded.length, 1);
+    });
+  });
+
   describe('with a time of day (YYYY-MM-DDTHH:mm, local time)', () => {
     const pad = (n) => String(n).padStart(2, '0');
     const local = (ms) => {

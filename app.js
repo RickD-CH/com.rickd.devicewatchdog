@@ -337,6 +337,18 @@ class DeviceWatchdogApp extends Homey.App {
       })
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
 
+    // Native date picker + native time picker (Homey's date argument alone can't carry a time).
+    this.homey.flow.getActionCard('pause_device_datetime')
+      .registerRunListener(async (args) => {
+        await this.pauseDevice(
+          args.device.id,
+          rulesLib.combineDateAndTime(args.date, args.time),
+          { rescanNow: !!args.rescanNow },
+        );
+        return true;
+      })
+      .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
+
     this.homey.flow.getActionCard('resume_device')
       .registerRunListener(async (args) => {
         await this.pauseDevice(args.device.id, null);
@@ -392,7 +404,7 @@ class DeviceWatchdogApp extends Homey.App {
     this.homey.flow.getConditionCard('device_is_paused')
       .registerRunListener(async (args) => {
         const { rule } = scanner.findRuleIndexed({ id: args.device.id }, this._ruleIndex);
-        return scanner.isRulePaused(rule);
+        return scanner.isRulePaused(rule, this._timeZone());
       })
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
 
@@ -765,7 +777,7 @@ class DeviceWatchdogApp extends Homey.App {
   // unavailable" toggle.
   _isMonitored(deviceId) {
     const { rule } = scanner.findRuleIndexed({ id: deviceId }, this._ruleIndex);
-    return !rule?.excludeAll && !scanner.isRulePaused(rule) && !this.isGloballyPaused();
+    return !rule?.excludeAll && !scanner.isRulePaused(rule, this._timeZone()) && !this.isGloballyPaused();
   }
 
   // A device with monitoring off entirely (excludeAll) or currently paused should stay
@@ -776,7 +788,7 @@ class DeviceWatchdogApp extends Homey.App {
   // Flow usage (see _isMonitored).
   _isExcludedFromUnavailable(deviceId) {
     const { rule } = scanner.findRuleIndexed({ id: deviceId }, this._ruleIndex);
-    return !!rule?.excludeAll || !!rule?.excludeFromUnavailable || scanner.isRulePaused(rule)
+    return !!rule?.excludeAll || !!rule?.excludeFromUnavailable || scanner.isRulePaused(rule, this._timeZone())
       || this.isGloballyPaused();
   }
 
@@ -898,6 +910,20 @@ class DeviceWatchdogApp extends Homey.App {
     return this._startupGraceTimer !== null;
   }
 
+  // The Homey's own time zone (IANA name), or undefined to fall back to the process's zone. The
+  // app process runs in UTC (confirmed on a Homey Pro), so a wall-clock time the user entered
+  // ("paused until 14:30") must be resolved against this zone, never the process's.
+  _timeZone() {
+    try {
+      const zone = this.homey.clock.getTimezone();
+      // eslint-disable-next-line no-new
+      new Intl.DateTimeFormat('en-GB', { timeZone: zone });
+      return zone || undefined;
+    } catch (err) {
+      return undefined;
+    }
+  }
+
   // ---------------------------------------------------------------------
   // Global pause ("Pause Watchdog" Flow actions): every device behaves like a paused one -
   // no scan results, no triggers/log/timeline, counters at 0 - until the time is up or
@@ -925,13 +951,7 @@ class DeviceWatchdogApp extends Homey.App {
 
   // "Until 06:00" = the next time that clock reading comes round on the Homey's own clock.
   async pauseGlobalUntilTime(time) {
-    let timeZone;
-    try {
-      timeZone = this.homey.clock.getTimezone();
-    } catch (err) {
-      timeZone = undefined;
-    }
-    const ms = msUntilNextTimeOfDay(time, new Date(Date.now()), timeZone);
+    const ms = msUntilNextTimeOfDay(time, new Date(Date.now()), this._timeZone());
     if (ms === null) throw new Error(this.homey.__('backend.invalidPause'));
     await this.pauseGlobalUntil(Date.now() + ms);
   }
@@ -1554,7 +1574,7 @@ class DeviceWatchdogApp extends Homey.App {
     }
 
     const result = scanner.runScan({
-      devices, zones, rules: this.rules, config: this.config, globalPause: this.isGloballyPaused(),
+      devices, zones, rules: this.rules, config: this.config, globalPause: this.isGloballyPaused(), timeZone: this._timeZone(),
     });
 
     // Opt-in "test before you alarm": for devices that would otherwise be newly/still

@@ -432,6 +432,59 @@ describe('global pause', () => {
   });
 });
 
+describe('a device\'s own pause', () => {
+  const zurichWallClock = (offsetMs) => {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(new Date(Date.now() + offsetMs));
+    const get = (type) => parts.find((p) => p.type === type).value;
+    return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
+  };
+  const withRule = (app, pausedUntil) => {
+    app.rules = [{
+      id: 'r1', matchType: 'id', matchValue: 'dev', pausedUntil,
+    }];
+    app._ruleIndex = scanner.buildRuleIndex(app.rules);
+  };
+
+  test('a time is read on the Homey\'s clock: half an hour ago (Zurich) is over, half an hour ahead still pauses', () => {
+    const { app } = makeApp();
+    withRule(app, zurichWallClock(-30 * MINUTE));
+    assert.equal(app._isMonitored('dev'), true, 'a UTC process used to keep this paused for another hour or two');
+    assert.equal(app._isExcludedFromUnavailable('dev'), false);
+
+    withRule(app, zurichWallClock(30 * MINUTE));
+    assert.equal(app._isMonitored('dev'), false);
+    assert.equal(app._isExcludedFromUnavailable('dev'), true);
+  });
+
+  test('without a usable Homey time zone the process zone is used instead of crashing', () => {
+    const { app } = makeApp();
+    app.homey.clock = undefined;
+    assert.equal(app._timeZone(), undefined);
+    app.homey.clock = { getTimezone: () => 'Not/AZone' };
+    assert.equal(app._timeZone(), undefined);
+    withRule(app, '2000-01-01T00:00');
+    assert.equal(app._isMonitored('dev'), true);
+  });
+
+  test('pauseDevice stores whatever pausedUntil it is given on the device\'s rule', async () => {
+    const { app } = makeApp();
+    app._ensureApi = async () => {};
+    app.api = { devices: { getDevice: async () => ({ name: 'Plug' }) } };
+    let saved;
+    app.saveConfig = async ({ rules }) => {
+      saved = rules;
+    };
+
+    await app.pauseDevice('dev', '2026-11-05T14:30');
+
+    assert.equal(saved.length, 1);
+    assert.equal(saved[0].matchValue, 'dev');
+    assert.equal(saved[0].pausedUntil, '2026-11-05T14:30');
+  });
+});
+
 describe('flagged state across a pause (_fireEdgeTriggers)', () => {
   const entry = (id, name) => ({
     id, name, zone: null, lastUpdated: '2026-01-01 10:00', battery: null, status: 'NOK',
