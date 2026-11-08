@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.rickd.devicewatchdog",
-  "version": "1.9.56",
+  "version": "1.9.57",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -982,6 +982,217 @@
               "sv": "Ytterdörrslås, Trädgårdssensor",
               "nl": "Voordeurslot, Tuinsensor",
               "no": "Inngangsdørlås, Hagesensor"
+            }
+          }
+        ]
+      },
+      {
+        "id": "value_unchanged",
+        "title": {
+          "en": "A value hasn't changed for a while",
+          "de": "Ein Wert hat sich längere Zeit nicht geändert",
+          "sv": "Ett värde har inte ändrats på ett tag",
+          "nl": "Een waarde is een tijd niet veranderd",
+          "no": "En verdi har ikke endret seg på en stund"
+        },
+        "titleFormatted": {
+          "en": "Value [[capability]] of [[device]] hasn't changed for [[amount]] [[unit]]",
+          "de": "Wert [[capability]] von [[device]] hat sich [[amount]] [[unit]] lang nicht geändert",
+          "sv": "Värdet [[capability]] för [[device]] har inte ändrats på [[amount]] [[unit]]",
+          "nl": "Waarde [[capability]] van [[device]] is [[amount]] [[unit]] niet veranderd",
+          "no": "Verdien [[capability]] for [[device]] har ikke endret seg på [[amount]] [[unit]]"
+        },
+        "hint": {
+          "en": "Fires once when the chosen value of a device has not changed for the given time - for devices that are still reachable but whose readings freeze (a weather station with a low battery, a meter reader that was moved). It uses the \"last changed\" time Homey already keeps for every value, so nothing is recorded. When the value changes again, the Flow is armed again. Not meant for values that stay constant on purpose (e.g. 0 W). Stays silent while the device or the whole Watchdog is paused.",
+          "de": "Löst einmal aus, wenn sich der gewählte Wert eines Geräts für die angegebene Zeit nicht geändert hat - für Geräte, die noch erreichbar sind, deren Messwerte aber einfrieren (eine Wetterstation mit leerem Akku, ein verrutschter Zählerauslesekopf). Verwendet die \"zuletzt geändert\"-Zeit, die Homey ohnehin für jeden Wert führt, es wird also nichts aufgezeichnet. Ändert sich der Wert wieder, ist der Flow erneut scharf. Nicht gedacht für Werte, die absichtlich konstant bleiben (z.B. 0 W). Bleibt still, solange das Gerät oder der ganze Watchdog pausiert ist.",
+          "sv": "Utlöses en gång när det valda värdet för en enhet inte har ändrats under angiven tid - för enheter som fortfarande är nåbara men vars mätvärden fryser (en väderstation med svagt batteri, en elmätaravläsare som flyttats). Använder tiden för \"senast ändrad\" som Homey redan håller för varje värde, så ingenting registreras. När värdet ändras igen är flödet beredd på nytt. Inte avsett för värden som med avsikt är konstanta (t.ex. 0 W). Förblir tyst medan enheten eller hela Watchdog är pausad.",
+          "nl": "Wordt één keer geactiveerd wanneer de gekozen waarde van een apparaat gedurende de opgegeven tijd niet is veranderd - voor apparaten die nog bereikbaar zijn maar waarvan de metingen vastlopen (een weerstation met een lege batterij, een verschoven meterlezer). Gebruikt de tijd van \"laatst gewijzigd\" die Homey al voor elke waarde bijhoudt, dus er wordt niets opgeslagen. Verandert de waarde weer, dan staat de Flow opnieuw klaar. Niet bedoeld voor waarden die bewust constant blijven (bijv. 0 W). Blijft stil zolang het apparaat of de hele Watchdog gepauzeerd is.",
+          "no": "Utløses én gang når den valgte verdien til en enhet ikke har endret seg i den angitte tiden - for enheter som fortsatt er nåbare, men der målingene fryser (en værstasjon med svakt batteri, en måleravleser som er flyttet). Bruker tidspunktet for \"sist endret\" som Homey allerede holder for hver verdi, så ingenting lagres. Når verdien endres igjen, er flowen klar på nytt. Ikke ment for verdier som med vilje er konstante (f.eks. 0 W). Er stille mens enheten eller hele Watchdog er satt på pause."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "autocomplete",
+            "title": {
+              "en": "Device",
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
+            },
+            "placeholder": {
+              "en": "Choose a device",
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
+            }
+          },
+          {
+            "name": "capability",
+            "type": "autocomplete",
+            "title": {
+              "en": "Value",
+              "de": "Wert",
+              "sv": "Värde",
+              "nl": "Waarde",
+              "no": "Verdi"
+            },
+            "placeholder": {
+              "en": "Choose a value",
+              "de": "Wert wählen",
+              "sv": "Välj ett värde",
+              "nl": "Kies een waarde",
+              "no": "Velg en verdi"
+            }
+          },
+          {
+            "name": "amount",
+            "type": "number",
+            "min": 1,
+            "step": 1,
+            "placeholder": {
+              "en": "e.g. 15",
+              "de": "z.B. 15",
+              "sv": "t.ex. 15",
+              "nl": "bijv. 15",
+              "no": "f.eks. 15"
+            }
+          },
+          {
+            "name": "unit",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "minutes",
+                "label": {
+                  "en": "minutes",
+                  "de": "Minuten",
+                  "sv": "minuter",
+                  "nl": "minuten",
+                  "no": "minutter"
+                }
+              },
+              {
+                "id": "hours",
+                "label": {
+                  "en": "hours",
+                  "de": "Stunden",
+                  "sv": "timmar",
+                  "nl": "uren",
+                  "no": "timer"
+                }
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "name": "device",
+            "type": "string",
+            "title": {
+              "en": "Device",
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
+            },
+            "example": {
+              "en": "Weather station",
+              "de": "Wetterstation",
+              "sv": "Väderstation",
+              "nl": "Weerstation",
+              "no": "Værstasjon"
+            }
+          },
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone",
+              "de": "Zone",
+              "sv": "Zon",
+              "nl": "Zone",
+              "no": "Sone"
+            },
+            "example": {
+              "en": "Garden",
+              "de": "Garten",
+              "sv": "Trädgård",
+              "nl": "Tuin",
+              "no": "Hage"
+            }
+          },
+          {
+            "name": "capability",
+            "type": "string",
+            "title": {
+              "en": "Value",
+              "de": "Wert",
+              "sv": "Värde",
+              "nl": "Waarde",
+              "no": "Verdi"
+            },
+            "example": {
+              "en": "Temperature",
+              "de": "Temperatur",
+              "sv": "Temperatur",
+              "nl": "Temperatuur",
+              "no": "Temperatur"
+            }
+          },
+          {
+            "name": "value",
+            "type": "string",
+            "title": {
+              "en": "Current value",
+              "de": "Aktueller Wert",
+              "sv": "Aktuellt värde",
+              "nl": "Huidige waarde",
+              "no": "Nåværende verdi"
+            },
+            "example": {
+              "en": "21.5 °C",
+              "de": "21.5 °C",
+              "sv": "21.5 °C",
+              "nl": "21.5 °C",
+              "no": "21.5 °C"
+            }
+          },
+          {
+            "name": "unchanged_for",
+            "type": "string",
+            "title": {
+              "en": "Unchanged for",
+              "de": "Unverändert seit",
+              "sv": "Oförändrat i",
+              "nl": "Ongewijzigd gedurende",
+              "no": "Uendret i"
+            },
+            "example": {
+              "en": "15 min",
+              "de": "15 min",
+              "sv": "15 min",
+              "nl": "15 min",
+              "no": "15 min"
+            }
+          },
+          {
+            "name": "last_changed",
+            "type": "string",
+            "title": {
+              "en": "Last changed",
+              "de": "Zuletzt geändert",
+              "sv": "Senast ändrad",
+              "nl": "Laatst gewijzigd",
+              "no": "Sist endret"
+            },
+            "example": {
+              "en": "2026-11-08 14:30",
+              "de": "2026-11-08 14:30",
+              "sv": "2026-11-08 14:30",
+              "nl": "2026-11-08 14:30",
+              "no": "2026-11-08 14:30"
             }
           }
         ]

@@ -5,7 +5,10 @@ const { HomeyAPI } = require('homey-api');
 const { DEFAULT_CONFIG, DEFAULT_RULES } = require('./lib/defaults');
 const scanner = require('./lib/scanner');
 const rulesLib = require('./lib/rules');
-const { formatDuration, msUntilNextTimeOfDay, wallClockToMs } = require('./lib/time');
+const {
+  formatDuration, msUntilNextTimeOfDay, wallClockToMs, formatWallClock,
+} = require('./lib/time');
+const watch = require('./lib/watch');
 
 const SETTINGS_KEY_CONFIG = 'config';
 const SETTINGS_KEY_RULES = 'rules';
@@ -73,6 +76,17 @@ function formatNameList(names, homey) {
 
 // setTimeout can't take more than ~24.8 days - a longer global pause re-arms itself.
 const MAX_TIMEOUT_MS = 2147483647;
+
+// "Value hasn't changed for N minutes" trigger: which freeze has already been announced
+// (watch key -> the value's last-changed time), so a restart doesn't announce it again.
+const SETTINGS_KEY_VALUE_WATCH_FIRED = 'valueWatchFired';
+// Flows are re-read this often as a safety net (the card's own "update" event is the fast path).
+const VALUE_WATCH_RESYNC_MS = 5 * 60 * 1000;
+// Look again after this long when a device couldn't be read, or is paused/excluded.
+const VALUE_WATCH_RETRY_MS = 10 * 60 * 1000;
+const VALUE_WATCH_PAUSED_RETRY_MS = 60 * 1000;
+// Frozen and already announced: look again at most this rarely (a missed realtime event is the only reason to).
+const VALUE_WATCH_MIN_RECHECK_MS = 5 * 60 * 1000;
 
 // Longest global pause accepted - past this it is a typo, not a pause.
 const MAX_GLOBAL_PAUSE_MS = 365 * 24 * 3600 * 1000;
@@ -214,6 +228,9 @@ class DeviceWatchdogApp extends Homey.App {
     this._intervalTimer = null;
     this._startupGraceTimer = null;
     this._globalPauseTimer = null;
+    // key -> { key, deviceId, capabilityId, durationMs, timer, lastChangedMs } - see _syncValueWatchers
+    this._valueWatchers = new Map();
+    this._valueWatchFired = this.homey.settings.get(SETTINGS_KEY_VALUE_WATCH_FIRED) || {};
     this._scanPromise = null;
     this._unavailableBatch = new Set();
     this._unavailableBatchTimer = null;
@@ -241,6 +258,11 @@ class DeviceWatchdogApp extends Homey.App {
 
     this._scheduleInterval({ runImmediately: true });
     this._scheduleGlobalPauseEnd();
+
+    this._syncValueWatchers().catch((err) => this.error('Wert-Überwachung konnte nicht starten:', err));
+    this.homey.setInterval(() => {
+      this._syncValueWatchers().catch((err) => this.error('Wert-Überwachung: Abgleich fehlgeschlagen:', err));
+    }, VALUE_WATCH_RESYNC_MS);
 
     // Independent safety net for the realtime socket: runs regardless of whether the
     // interval scan is enabled, so "unavailable" tracking stays correct even with
@@ -374,6 +396,15 @@ class DeviceWatchdogApp extends Homey.App {
       });
     this.homey.flow.getConditionCard('watchdog_is_paused')
       .registerRunListener(async () => this.isGloballyPaused());
+
+    // "Value of [value] of [device] hasn't changed for N minutes" - fired by the value watchers.
+    this._triggerValueUnchanged = this.homey.flow.getTriggerCard('value_unchanged')
+      .registerRunListener(async (args, state) => watch.watchMatches(args, state))
+      .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this))
+      .registerArgumentAutocompleteListener('capability', this._capabilityAutocomplete.bind(this));
+    this._triggerValueUnchanged.on('update', () => {
+      this._syncValueWatchers().catch((err) => this.error('Wert-Überwachung: Abgleich fehlgeschlagen:', err));
+    });
 
     // Summary triggers: fire once per batch (scan, or realtime debounce window) with
     // every newly-affected device bundled into count/devices tokens, so a Flow doesn't
@@ -583,6 +614,7 @@ class DeviceWatchdogApp extends Homey.App {
     }
 
     this._recordUpdateStat(device);
+    this._onWatchedDeviceUpdate(device);
   }
 
   // Appends this device's freshest capability timestamp to its rolling update-stats window,
@@ -855,6 +887,138 @@ class DeviceWatchdogApp extends Homey.App {
 
       this._notifyTimeline(this.homey.__('backend.timelineAvailableAgain', { count: names.length, devices: timelineList }), 'unavailable');
     }, 3000);
+  }
+
+  // ---------------------------------------------------------------------
+  // "Value hasn't changed for N minutes" trigger (value_unchanged). One watcher per distinct
+  // (device, value, duration) that a Flow uses. A watcher never polls: it sleeps until "last
+  // changed + duration", only then looks at the device once, and a realtime change restarts the
+  // window. Nothing is recorded - the "last changed" time is the one Homey already keeps per value.
+  // ---------------------------------------------------------------------
+
+  _language() {
+    try {
+      return this.homey.i18n.getLanguage() || 'en';
+    } catch (err) {
+      return 'en';
+    }
+  }
+
+  async _capabilityAutocomplete(query, args) {
+    const deviceId = args && args.device && args.device.id;
+    if (!deviceId) return [];
+    await this._ensureApi();
+    const device = await this.api.devices.getDevice({ id: deviceId });
+    return watch.capabilityChoices(device, query, this._language());
+  }
+
+  async _syncValueWatchers() {
+    const desired = watch.desiredWatches(await this._triggerValueUnchanged.getArgumentValues());
+
+    for (const [key, watcher] of this._valueWatchers) {
+      if (desired.has(key)) continue;
+      this._clearValueWatcherTimer(watcher);
+      this._valueWatchers.delete(key);
+    }
+    for (const [key, spec] of desired) {
+      if (this._valueWatchers.has(key)) continue;
+      const watcher = {
+        key, ...spec, timer: null, lastChangedMs: null,
+      };
+      this._valueWatchers.set(key, watcher);
+      await this._checkValueWatcher(watcher);
+    }
+
+    // Forget the "already announced" marks of watches no Flow uses any more.
+    let pruned = false;
+    for (const key of Object.keys(this._valueWatchFired)) {
+      if (desired.has(key)) continue;
+      delete this._valueWatchFired[key];
+      pruned = true;
+    }
+    if (pruned) this.homey.settings.set(SETTINGS_KEY_VALUE_WATCH_FIRED, this._valueWatchFired);
+  }
+
+  _clearValueWatcherTimer(watcher) {
+    if (!watcher.timer) return;
+    this.homey.clearTimeout(watcher.timer);
+    watcher.timer = null;
+  }
+
+  _scheduleValueWatcher(watcher, delayMs) {
+    this._clearValueWatcherTimer(watcher);
+    watcher.timer = this.homey.setTimeout(() => {
+      watcher.timer = null;
+      this._checkValueWatcher(watcher).catch((err) => this.error('Wert-Überwachung fehlgeschlagen:', err));
+    }, Math.max(0, Math.min(delayMs, MAX_TIMEOUT_MS)));
+  }
+
+  async _checkValueWatcher(watcher) {
+    if (this._valueWatchers.get(watcher.key) !== watcher) return; // its Flow was removed meanwhile
+
+    let device;
+    try {
+      await this._ensureApi();
+      device = await this.api.devices.getDevice({ id: watcher.deviceId });
+    } catch (err) {
+      this.log(`Wert-Überwachung: Gerät ${watcher.deviceId} nicht lesbar (${err.message})`);
+      this._scheduleValueWatcher(watcher, VALUE_WATCH_RETRY_MS);
+      return;
+    }
+
+    const lastChangedMs = watch.capabilityLastUpdatedMs(device, watcher.capabilityId);
+    if (lastChangedMs === null) {
+      this._scheduleValueWatcher(watcher, VALUE_WATCH_RETRY_MS);
+      return;
+    }
+    watcher.lastChangedMs = lastChangedMs;
+
+    const dueIn = lastChangedMs + watcher.durationMs - Date.now();
+    if (dueIn > 0) {
+      this._scheduleValueWatcher(watcher, dueIn); // still inside the window
+      return;
+    }
+
+    // Unchanged for the whole duration.
+    const recheckIn = Math.max(watcher.durationMs, VALUE_WATCH_MIN_RECHECK_MS);
+    if (this._valueWatchFired[watcher.key] === lastChangedMs) {
+      this._scheduleValueWatcher(watcher, recheckIn); // this freeze was announced already
+      return;
+    }
+    if (!this._isMonitored(watcher.deviceId)) {
+      this._scheduleValueWatcher(watcher, VALUE_WATCH_PAUSED_RETRY_MS); // paused/excluded: silent, look again soon
+      return;
+    }
+
+    const capability = device.capabilitiesObj[watcher.capabilityId];
+    const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
+    try {
+      await this._triggerValueUnchanged.trigger({
+        device: device.name || '',
+        zone: zoneName,
+        capability: watch.capabilityTitle(capability, watcher.capabilityId, this._language()),
+        value: watch.formatCapabilityValue(capability),
+        unchanged_for: formatDuration(Date.now() - lastChangedMs),
+        last_changed: formatWallClock(lastChangedMs, this._timeZone()),
+      }, { deviceId: watcher.deviceId, capabilityId: watcher.capabilityId, durationMs: watcher.durationMs });
+      this._valueWatchFired[watcher.key] = lastChangedMs;
+      this.homey.settings.set(SETTINGS_KEY_VALUE_WATCH_FIRED, this._valueWatchFired);
+    } catch (err) {
+      this.error('Trigger value_unchanged fehlgeschlagen:', err);
+    }
+    this._scheduleValueWatcher(watcher, recheckIn);
+  }
+
+  // A realtime update: if a watched value changed, the freeze (if any) is over - start the window again.
+  _onWatchedDeviceUpdate(device) {
+    if (!this._valueWatchers.size) return;
+    for (const watcher of this._valueWatchers.values()) {
+      if (watcher.deviceId !== device.id) continue;
+      const lastChangedMs = watch.capabilityLastUpdatedMs(device, watcher.capabilityId);
+      if (lastChangedMs === null || lastChangedMs === watcher.lastChangedMs) continue;
+      watcher.lastChangedMs = lastChangedMs;
+      this._scheduleValueWatcher(watcher, lastChangedMs + watcher.durationMs - Date.now());
+    }
   }
 
   // ---------------------------------------------------------------------

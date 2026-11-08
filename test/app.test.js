@@ -93,6 +93,8 @@ function makeApp(configOverrides = {}) {
   app._availableAgainBatch = new Map();
   app._availableAgainBatchTimer = null;
   app._unavailableStartedAt = new Map();
+  app._valueWatchers = new Map();
+  app._valueWatchFired = {};
   app.problemSince = { unavailable: {}, notReporting: {}, lowBattery: {} };
   app.flagState = { notReporting: [], lowBattery: [], lowBatteryConfirmed: [] };
   app._recordEvent = (type, data) => calls.events.push([type, data && data.device]);
@@ -525,6 +527,231 @@ describe('a device\'s own pause', () => {
     assert.equal(saved.length, 1);
     assert.equal(saved[0].matchValue, 'dev');
     assert.equal(saved[0].pausedUntil, '2026-11-05T14:30');
+  });
+});
+
+describe('"value hasn\'t changed" trigger (value watchers)', () => {
+  const FIFTEEN = 15 * MINUTE;
+
+  // A weather station whose temperature last changed `agoMs` before the fake "now" (BASE).
+  const weatherStation = (agoMs, extra = {}) => ({
+    id: 'ws',
+    name: 'Weather station',
+    zone: 'z1',
+    capabilitiesObj: {
+      measure_temperature: {
+        title: 'Temperature', value: 21.5, units: '°C', lastUpdated: new Date(BASE - agoMs).toISOString(),
+      },
+    },
+    ...extra,
+  });
+
+  function makeWatchApp({ agoMs = 5 * MINUTE, flows } = {}) {
+    const ctx = makeApp();
+    const fired = [];
+    ctx.devices = { ws: weatherStation(agoMs) };
+    ctx.flows = flows || [{
+      device: { id: 'ws', name: 'Weather station' }, capability: { id: 'measure_temperature' }, amount: 15, unit: 'minutes',
+    }];
+    ctx.fired = fired;
+    ctx.app._zoneMap = { z1: 'Garden' };
+    ctx.app._ensureApi = async () => {};
+    ctx.app.api = {
+      devices: {
+        getDevice: async ({ id }) => {
+          if (!ctx.devices[id]) throw new Error('gone');
+          return ctx.devices[id];
+        },
+      },
+    };
+    ctx.app._triggerValueUnchanged = {
+      getArgumentValues: async () => ctx.flows,
+      trigger: async (tokens, state) => {
+        fired.push({ tokens, state });
+      },
+    };
+    ctx.key = `ws|measure_temperature|${FIFTEEN}`;
+    // Homey's realtime event for "the temperature changed now"
+    ctx.changeValue = (value = 22) => {
+      const now = ctx.nowMs();
+      ctx.devices.ws = weatherStation(0);
+      ctx.devices.ws.capabilitiesObj.measure_temperature.value = value;
+      ctx.devices.ws.capabilitiesObj.measure_temperature.lastUpdated = new Date(now).toISOString();
+      ctx.app._onWatchedDeviceUpdate(ctx.devices.ws);
+    };
+    ctx.tick = async (ms, steps = 1) => {
+      for (let i = 0; i < steps; i += 1) {
+        ctx.advance(ms / steps);
+        await flush();
+        await flush();
+      }
+    };
+    return ctx;
+  }
+
+  test('fires once when the value has been frozen for the whole duration, with useful tokens', async () => {
+    const ctx = makeWatchApp({ agoMs: 5 * MINUTE });
+    await ctx.app._syncValueWatchers();
+    assert.equal(ctx.fired.length, 0, 'not frozen long enough yet');
+
+    await ctx.tick(10 * MINUTE + SECOND);
+    assert.equal(ctx.fired.length, 1);
+    const { tokens, state } = ctx.fired[0];
+    assert.deepEqual(state, { deviceId: 'ws', capabilityId: 'measure_temperature', durationMs: FIFTEEN });
+    assert.equal(tokens.device, 'Weather station');
+    assert.equal(tokens.zone, 'Garden');
+    assert.equal(tokens.capability, 'Temperature');
+    assert.equal(tokens.value, '21.5 °C');
+    assert.equal(tokens.unchanged_for, '15 min');
+    assert.match(tokens.last_changed, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
+  });
+
+  test('announces a freeze only once, however long it lasts', async () => {
+    const ctx = makeWatchApp({ agoMs: 5 * MINUTE });
+    await ctx.app._syncValueWatchers();
+    await ctx.tick(3 * HOUR, 36);
+    assert.equal(ctx.fired.length, 1);
+  });
+
+  test('a value that changes before the window is over never fires', async () => {
+    const ctx = makeWatchApp({ agoMs: 5 * MINUTE });
+    await ctx.app._syncValueWatchers();
+    await ctx.tick(4 * MINUTE);
+    ctx.changeValue();
+    await ctx.tick(11 * MINUTE); // the original deadline has passed, the new one has not
+    assert.equal(ctx.fired.length, 0);
+    await ctx.tick(5 * MINUTE);
+    assert.equal(ctx.fired.length, 1, 'frozen for 15 minutes after the last change');
+  });
+
+  test('after the value changes again, the next freeze is announced again', async () => {
+    const ctx = makeWatchApp({ agoMs: 20 * MINUTE });
+    await ctx.app._syncValueWatchers();
+    await flush();
+    assert.equal(ctx.fired.length, 1, 'already frozen when the Flow was saved');
+
+    ctx.changeValue();
+    await ctx.tick(16 * MINUTE, 2);
+    assert.equal(ctx.fired.length, 2);
+  });
+
+  test('a restart does not announce the same freeze again', async () => {
+    const ctx = makeWatchApp({ agoMs: 20 * MINUTE });
+    ctx.app._valueWatchFired[ctx.key] = BASE - 20 * MINUTE;
+    await ctx.app._syncValueWatchers();
+    await flush();
+    assert.equal(ctx.fired.length, 0);
+  });
+
+  test('the announced freeze is remembered across restarts (persisted)', async () => {
+    const ctx = makeWatchApp({ agoMs: 20 * MINUTE });
+    await ctx.app._syncValueWatchers();
+    await flush();
+    const saved = ctx.calls.settings.filter(([key]) => key === 'valueWatchFired').pop();
+    assert.deepEqual(saved[1], { [ctx.key]: BASE - 20 * MINUTE });
+  });
+
+  test('stays silent while Watchdog is paused, then announces a freeze that is still there', async () => {
+    const ctx = makeWatchApp({ agoMs: 20 * MINUTE });
+    ctx.app.config.globalPausedUntilMs = BASE + 10 * MINUTE;
+    await ctx.app._syncValueWatchers();
+    await ctx.tick(9 * MINUTE, 9);
+    assert.equal(ctx.fired.length, 0);
+    await ctx.tick(3 * MINUTE, 3);
+    assert.equal(ctx.fired.length, 1);
+  });
+
+  test('a device that is excluded stays silent too', async () => {
+    const ctx = makeWatchApp({ agoMs: 20 * MINUTE });
+    ctx.app.rules = [{
+      id: 'r', matchType: 'id', matchValue: 'ws', excludeAll: true,
+    }];
+    ctx.app._ruleIndex = scanner.buildRuleIndex(ctx.app.rules);
+    await ctx.app._syncValueWatchers();
+    await ctx.tick(30 * MINUTE, 30);
+    assert.equal(ctx.fired.length, 0);
+  });
+
+  test('removing the Flow disarms the watcher and forgets its mark', async () => {
+    const ctx = makeWatchApp({ agoMs: 5 * MINUTE });
+    await ctx.app._syncValueWatchers();
+    assert.equal(ctx.app._valueWatchers.size, 1);
+    ctx.app._valueWatchFired[ctx.key] = 1;
+
+    ctx.flows = [];
+    await ctx.app._syncValueWatchers();
+    assert.equal(ctx.app._valueWatchers.size, 0);
+    assert.deepEqual(ctx.app._valueWatchFired, {});
+    await ctx.tick(30 * MINUTE, 6);
+    assert.equal(ctx.fired.length, 0);
+  });
+
+  test('two Flows with the same device, value and duration share one watcher and one trigger', async () => {
+    const flow = {
+      device: { id: 'ws' }, capability: { id: 'measure_temperature' }, amount: 15, unit: 'minutes',
+    };
+    const ctx = makeWatchApp({ agoMs: 20 * MINUTE, flows: [flow, { ...flow }] });
+    await ctx.app._syncValueWatchers();
+    await flush();
+    assert.equal(ctx.app._valueWatchers.size, 1);
+    assert.equal(ctx.fired.length, 1);
+  });
+
+  test('a different duration on the same value is a separate watch', async () => {
+    const ctx = makeWatchApp({
+      agoMs: 20 * MINUTE,
+      flows: [
+        {
+          device: { id: 'ws' }, capability: { id: 'measure_temperature' }, amount: 15, unit: 'minutes',
+        },
+        {
+          device: { id: 'ws' }, capability: { id: 'measure_temperature' }, amount: 1, unit: 'hours',
+        },
+      ],
+    });
+    await ctx.app._syncValueWatchers();
+    await flush();
+    assert.equal(ctx.app._valueWatchers.size, 2);
+    assert.equal(ctx.fired.length, 1, 'only the 15 minute one is frozen long enough');
+    await ctx.tick(45 * MINUTE, 3);
+    assert.equal(ctx.fired.length, 2);
+  });
+
+  test('a device or value that cannot be read never fires, it is retried later', async () => {
+    const ctx = makeWatchApp({ agoMs: 20 * MINUTE });
+    delete ctx.devices.ws;
+    await ctx.app._syncValueWatchers();
+    await ctx.tick(30 * MINUTE, 3);
+    assert.equal(ctx.fired.length, 0);
+    assert.equal(ctx.app._valueWatchers.size, 1, 'the watcher is kept and keeps retrying');
+
+    ctx.devices.ws = weatherStation(20 * MINUTE);
+    await ctx.tick(15 * MINUTE, 2);
+    assert.equal(ctx.fired.length, 1);
+  });
+
+  test('a Flow without a value picked yet is ignored', async () => {
+    const ctx = makeWatchApp({ flows: [{ device: { id: 'ws' }, amount: 15, unit: 'minutes' }] });
+    await ctx.app._syncValueWatchers();
+    assert.equal(ctx.app._valueWatchers.size, 0);
+  });
+
+  test('realtime updates of other devices or other values do not disturb a watcher', async () => {
+    const ctx = makeWatchApp({ agoMs: 5 * MINUTE });
+    await ctx.app._syncValueWatchers();
+    const before = ctx.timers.filter((t) => !t.cancelled && !t.done).length;
+    ctx.app._onWatchedDeviceUpdate({ id: 'other', capabilitiesObj: { measure_temperature: { lastUpdated: new Date(BASE).toISOString() } } });
+    ctx.app._onWatchedDeviceUpdate(weatherStation(5 * MINUTE)); // same last-changed time
+    assert.equal(ctx.timers.filter((t) => !t.cancelled && !t.done).length, before);
+    await ctx.tick(11 * MINUTE);
+    assert.equal(ctx.fired.length, 1);
+  });
+
+  test('autocomplete offers the values of the chosen device', async () => {
+    const ctx = makeWatchApp();
+    const choices = await ctx.app._capabilityAutocomplete('', { device: { id: 'ws' } });
+    assert.deepEqual(choices.map((c) => c.id), ['measure_temperature']);
+    assert.deepEqual(await ctx.app._capabilityAutocomplete('', {}), []);
   });
 });
 
