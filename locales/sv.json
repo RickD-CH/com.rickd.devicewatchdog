@@ -52,6 +52,8 @@
     "lastScan": "Senaste skanning: __date__",
     "globalPausedBanner": "Watchdog är pausad till __date__ - fram till dess övervakas och rapporteras ingenting.",
     "resumeNow": "Återuppta nu",
+    "searchLimited": "Sökningen letar bara i ”__filter__” - filtret ovan är aktivt.",
+    "searchAll": "Sök bland alla enheter",
     "pauseAllSummary": "Pausa hela Watchdog…",
     "pauseAllUntil": "Till",
     "pauseAllHint": "Under pausen skannas och rapporteras ingenting; rapporteringsstatistiken fortsätter att registreras. Tar slut av sig själv, eller med \"Återuppta nu\".",

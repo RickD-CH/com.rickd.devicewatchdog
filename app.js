@@ -82,9 +82,10 @@ const MAX_TIMEOUT_MS = 2147483647;
 const SETTINGS_KEY_VALUE_WATCH_FIRED = 'valueWatchFired';
 // Flows are re-read this often as a safety net (the card's own "update" event is the fast path).
 const VALUE_WATCH_RESYNC_MS = 5 * 60 * 1000;
-// Look again after this long when a device couldn't be read, or is paused/excluded.
+// Look again after this long when a device couldn't be read.
 const VALUE_WATCH_RETRY_MS = 10 * 60 * 1000;
-const VALUE_WATCH_PAUSED_RETRY_MS = 60 * 1000;
+// ... or is paused/excluded (silent meanwhile; a pause can last months, so don't poll every minute).
+const VALUE_WATCH_PAUSED_RETRY_MS = 5 * 60 * 1000;
 // Frozen and already announced: look again at most this rarely (a missed realtime event is the only reason to).
 const VALUE_WATCH_MIN_RECHECK_MS = 5 * 60 * 1000;
 
@@ -908,7 +909,7 @@ class DeviceWatchdogApp extends Homey.App {
     const deviceId = args && args.device && args.device.id;
     if (!deviceId) return [];
     await this._ensureApi();
-    const device = await this.api.devices.getDevice({ id: deviceId });
+    const device = await this.api.devices.getDevice({ id: deviceId, $cache: false });
     return watch.capabilityChoices(device, query, this._language());
   }
 
@@ -919,6 +920,7 @@ class DeviceWatchdogApp extends Homey.App {
       if (desired.has(key)) continue;
       this._clearValueWatcherTimer(watcher);
       this._valueWatchers.delete(key);
+      this.log(`Wert-Überwachung beendet: ${watcher.deviceId} / ${watcher.capabilityId} / ${Math.round(watcher.durationMs / 60000)} min`);
     }
     for (const [key, spec] of desired) {
       if (this._valueWatchers.has(key)) continue;
@@ -926,6 +928,7 @@ class DeviceWatchdogApp extends Homey.App {
         key, ...spec, timer: null, lastChangedMs: null,
       };
       this._valueWatchers.set(key, watcher);
+      this.log(`Wert-Überwachung gestartet: ${spec.deviceId} / ${spec.capabilityId} / ${Math.round(spec.durationMs / 60000)} min`);
       await this._checkValueWatcher(watcher);
     }
 
@@ -959,7 +962,11 @@ class DeviceWatchdogApp extends Homey.App {
     let device;
     try {
       await this._ensureApi();
-      device = await this.api.devices.getDevice({ id: watcher.deviceId });
+      // $cache: false - essential. Once realtime-connected, getDevice() returns homey-api's
+      // in-memory copy, whose capability timestamps are only refreshed by the periodic scan
+      // (found live: "last changed" up to a whole scan interval old). With a 15 minute window
+      // and a 60 minute scan that announced "frozen" for values that were changing all the time.
+      device = await this.api.devices.getDevice({ id: watcher.deviceId, $cache: false });
     } catch (err) {
       this.log(`Wert-Überwachung: Gerät ${watcher.deviceId} nicht lesbar (${err.message})`);
       this._scheduleValueWatcher(watcher, VALUE_WATCH_RETRY_MS);
@@ -992,6 +999,10 @@ class DeviceWatchdogApp extends Homey.App {
 
     const capability = device.capabilitiesObj[watcher.capabilityId];
     const zoneName = device.zone ? (this._zoneMap[device.zone] || '') : '';
+    // Logged on purpose: a diagnostic report is the only thing a user can send back, and it
+    // should show exactly which value the trigger judged as frozen, and since when.
+    this.log(`Wert-Überwachung löst aus: ${device.name || watcher.deviceId} / ${watcher.capabilityId} = ${watch.formatCapabilityValue(capability)}, `
+      + `unverändert seit ${formatWallClock(lastChangedMs, this._timeZone())} (${formatDuration(Date.now() - lastChangedMs)}), Fenster ${Math.round(watcher.durationMs / 60000)} min`);
     try {
       await this._triggerValueUnchanged.trigger({
         device: device.name || '',
@@ -1010,12 +1021,14 @@ class DeviceWatchdogApp extends Homey.App {
   }
 
   // A realtime update: if a watched value changed, the freeze (if any) is over - start the window again.
+  // Only a *newer* timestamp counts: the event's copy of the device can lag behind (see the
+  // $cache note in _checkValueWatcher) and must never pull the deadline forward.
   _onWatchedDeviceUpdate(device) {
     if (!this._valueWatchers.size) return;
     for (const watcher of this._valueWatchers.values()) {
       if (watcher.deviceId !== device.id) continue;
       const lastChangedMs = watch.capabilityLastUpdatedMs(device, watcher.capabilityId);
-      if (lastChangedMs === null || lastChangedMs === watcher.lastChangedMs) continue;
+      if (lastChangedMs === null || lastChangedMs <= (watcher.lastChangedMs || 0)) continue;
       watcher.lastChangedMs = lastChangedMs;
       this._scheduleValueWatcher(watcher, lastChangedMs + watcher.durationMs - Date.now());
     }

@@ -52,6 +52,8 @@
     "lastScan": "Last scan: __date__",
     "globalPausedBanner": "Watchdog is paused until __date__ - nothing is monitored or reported until then.",
     "resumeNow": "Resume now",
+    "searchLimited": "The search only looks inside “__filter__” - the filter above is active.",
+    "searchAll": "Search all devices",
     "pauseAllSummary": "Pause the whole Watchdog…",
     "pauseAllUntil": "Until",
     "pauseAllHint": "Nothing is scanned or reported while paused; the reporting statistics keep recording. Ends by itself, or with \"Resume now\".",

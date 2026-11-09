@@ -556,10 +556,14 @@ describe('"value hasn\'t changed" trigger (value watchers)', () => {
     ctx.fired = fired;
     ctx.app._zoneMap = { z1: 'Garden' };
     ctx.app._ensureApi = async () => {};
+    // What homey-api's in-memory cache would hand out: a copy that is only refreshed by the
+    // periodic scan. getDevice() returns it unless the caller passes `$cache: false`.
+    ctx.cachedCopies = {};
     ctx.app.api = {
       devices: {
-        getDevice: async ({ id }) => {
+        getDevice: async ({ id, $cache }) => {
           if (!ctx.devices[id]) throw new Error('gone');
+          if ($cache !== false && ctx.cachedCopies[id]) return ctx.cachedCopies[id];
           return ctx.devices[id];
         },
       },
@@ -604,6 +608,19 @@ describe('"value hasn\'t changed" trigger (value watchers)', () => {
     assert.equal(tokens.value, '21.5 °C');
     assert.equal(tokens.unchanged_for, '15 min');
     assert.match(tokens.last_changed, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
+  });
+
+  test('logs which value it judged frozen, since when and for how long (diagnostic reports)', async () => {
+    const ctx = makeWatchApp({ agoMs: 20 * MINUTE });
+    const lines = [];
+    ctx.app.log = (...args) => lines.push(args.join(' '));
+    await ctx.app._syncValueWatchers();
+    await flush();
+    assert.ok(lines.some((l) => l.startsWith('Wert-Überwachung gestartet: ws / measure_temperature / 15 min')), lines.join('\n'));
+    const fired = lines.find((l) => l.startsWith('Wert-Überwachung löst aus'));
+    assert.ok(fired, lines.join('\n'));
+    assert.match(fired, /Weather station \/ measure_temperature = 21\.5 °C/);
+    assert.match(fired, /unverändert seit \d{4}-\d{2}-\d{2} \d{2}:\d{2} \(20 min\), Fenster 15 min/);
   });
 
   test('announces a freeze only once, however long it lasts', async () => {
@@ -657,8 +674,49 @@ describe('"value hasn\'t changed" trigger (value watchers)', () => {
     await ctx.app._syncValueWatchers();
     await ctx.tick(9 * MINUTE, 9);
     assert.equal(ctx.fired.length, 0);
-    await ctx.tick(3 * MINUTE, 3);
+    await ctx.tick(7 * MINUTE, 7); // it looks again every 5 minutes while paused
     assert.equal(ctx.fired.length, 1);
+  });
+
+  test('a paused device is only looked at every few minutes, not every minute', async () => {
+    const ctx = makeWatchApp({ agoMs: 20 * MINUTE });
+    ctx.app.config.globalPausedUntilMs = BASE + 6 * HOUR;
+    let reads = 0;
+    const read = ctx.app.api.devices.getDevice;
+    ctx.app.api.devices.getDevice = async (opts) => {
+      reads += 1;
+      return read(opts);
+    };
+    await ctx.app._syncValueWatchers();
+    await ctx.tick(HOUR, 60);
+    assert.ok(reads <= 14, `expected about one read per 5 minutes, got ${reads}`);
+  });
+
+  // Regression (found live on the first test build): once realtime-connected, getDevice()
+  // hands out homey-api's cached copy, whose "last changed" times only move when a scan runs.
+  // With a 15 minute window and a 60 minute scan that reported values changing every few
+  // seconds as "frozen".
+  test('never trusts the cached copy of a device - a value that is changing is not "frozen"', async () => {
+    const ctx = makeWatchApp({ agoMs: 30 * SECOND });
+    ctx.cachedCopies.ws = weatherStation(45 * MINUTE); // what the stale cache still says
+    await ctx.app._syncValueWatchers();
+    await flush();
+    assert.equal(ctx.fired.length, 0, 'the fresh read shows a change 30 s ago');
+    await ctx.tick(14 * MINUTE, 14);
+    assert.equal(ctx.fired.length, 0, 'still inside the window that started with the last real change');
+    await ctx.tick(2 * MINUTE, 2);
+    assert.equal(ctx.fired.length, 1, 'frozen for real once the whole window has passed');
+  });
+
+  test('a stale realtime copy of the device never pulls the deadline forward', async () => {
+    const ctx = makeWatchApp({ agoMs: 2 * MINUTE });
+    await ctx.app._syncValueWatchers();
+    const watcher = ctx.app._valueWatchers.get(ctx.key);
+    const before = watcher.lastChangedMs;
+    ctx.app._onWatchedDeviceUpdate(weatherStation(40 * MINUTE)); // an old snapshot of the same device
+    assert.equal(watcher.lastChangedMs, before);
+    await ctx.tick(10 * MINUTE, 10);
+    assert.equal(ctx.fired.length, 0, 'still inside the 15 minute window after the last real change');
   });
 
   test('a device that is excluded stays silent too', async () => {

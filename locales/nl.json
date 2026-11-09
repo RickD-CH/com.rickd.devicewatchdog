@@ -52,6 +52,8 @@
     "lastScan": "Laatste scan: __date__",
     "globalPausedBanner": "Watchdog is gepauzeerd tot __date__ - tot die tijd wordt niets bewaakt of gemeld.",
     "resumeNow": "Nu hervatten",
+    "searchLimited": "Zoeken zoekt alleen in „__filter__” - het filter hierboven is actief.",
+    "searchAll": "Zoek in alle apparaten",
     "pauseAllSummary": "Hele Watchdog pauzeren…",
     "pauseAllUntil": "Tot",
     "pauseAllHint": "Tijdens de pauze wordt niets gescand of gemeld; de rapportagestatistieken blijven wel bijgehouden. Eindigt vanzelf, of met \"Nu hervatten\".",

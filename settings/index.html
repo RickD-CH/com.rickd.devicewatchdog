@@ -210,6 +210,8 @@
     .pause-all-block summary { cursor: pointer; font-size: 13px; color: var(--color-muted); }
     .pause-all-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0 4px; }
     .pause-all-row label { font-size: 13px; }
+    /* Shown while a search is typed and a status tile is active: the search only looks inside that group. */
+    .search-filter-note { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 14px; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-bg-alt); box-shadow: inset 3px 0 0 var(--color-info); }
     .global-pause-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 14px; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-bg-alt); box-shadow: inset 3px 0 0 var(--color-warn); }
     .stat {
       border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 10px; min-width: 0;
@@ -464,6 +466,11 @@
       </select>
       <span class="spacer"></span>
       <span id="last-scan-info" class="hint" style="margin:0;"></span>
+    </div>
+
+    <div class="search-filter-note" id="search-filter-note" style="display:none;">
+      <span id="search-filter-note-text"></span>
+      <button class="btn small" id="btn-search-all">Alle Geräte durchsuchen</button>
     </div>
 
     <div class="global-pause-banner" id="global-pause-banner" style="display:none;">
@@ -824,6 +831,7 @@
         document.getElementById('btn-clear-search').title = Homey.__('devices.clearSearch');
         document.getElementById('btn-run-scan').textContent = Homey.__('devices.scanNow');
         document.getElementById('btn-resume-global').textContent = Homey.__('devices.resumeNow');
+        document.getElementById('btn-search-all').textContent = Homey.__('devices.searchAll');
         document.getElementById('global-pause-summary').textContent = Homey.__('devices.pauseAllSummary');
         document.getElementById('hint-pause-all').textContent = Homey.__('devices.pauseAllHint');
         document.getElementById('btn-pause-all').textContent = Homey.__('devices.pauseAllButton');
@@ -2155,6 +2163,20 @@
           unmonitoredDetails.open = true;
         }
 
+        // The search only looks inside the active status tile (e.g. "Not reporting") - say so
+        // while a search is typed, with a one-click way out, instead of a silently empty list.
+        var filterTileLabelKey = {
+          offline: 'stats.offline', unavailable: 'stats.unavailable', lowBattery: 'stats.lowBattery',
+          unmonitored: 'stats.unmonitored', paused: 'stats.paused', specialRules: 'stats.specialRules',
+        }[state.filterMode];
+        var searchNote = document.getElementById('search-filter-note');
+        if (isSearching && filterTileLabelKey) {
+          document.getElementById('search-filter-note-text').textContent = Homey.__('devices.searchLimited', { filter: Homey.__(filterTileLabelKey) });
+          searchNote.style.display = 'flex';
+        } else {
+          searchNote.style.display = 'none';
+        }
+
         // Whole-Watchdog pause (Flow actions) - nothing below is being monitored while it lasts.
         var globalPausedUntil = state.config && typeof state.config.globalPausedUntilMs === 'number'
           ? state.config.globalPausedUntilMs : null;
@@ -3029,6 +3051,10 @@
         input.value = '';
         this.style.display = 'none';
         input.focus();
+        renderDevices();
+      });
+      document.getElementById('btn-search-all').addEventListener('click', function () {
+        state.filterMode = null;
         renderDevices();
       });
       document.getElementById('device-sort').addEventListener('change', renderDevices);
