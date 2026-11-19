@@ -90,6 +90,7 @@
     "ok": "ok",
     "noStatus": "ingen status (filtrerad)",
     "paused": "pausad till __date__",
+    "pausedIndefinite": "pausad tills den återupptas",
     "filterPinned": "förblir synlig",
     "filterPinnedHint": "Matchar inte längre det aktiva filtret efter den senaste ändringen, men förblir synlig medan dess detaljer är öppna här - så att du kan fortsätta justera den utan att enheten försvinner."
   },
@@ -163,6 +164,7 @@
     "pausedUntilHint": "Enheten hoppas över helt (som \"inte övervakad\") till det här datumet och klockslaget och återupptas sedan automatiskt vid nästa skanning. Välj datum och tid och tryck sedan på \"Sätt paus\".",
     "applyPauseButton": "Sätt paus",
     "clearPauseButton": "Ta bort paus",
+    "pausedIndefiniteNote": "Pausad tills den återupptas - flödeskortet \"Återuppta enhet\" avslutar den, eller ta bort pausen här.",
     "applyToAppIncludePause": "Tillämpa även pausdatumet",
     "batteryTypeOverride": "Batterityp (manuell)",
     "batteryTypeOverrideHint": "Visas i stället för den automatiskt identifierade batterityp (widget och detaljer) - för enheter där Homey inte ger något. Lämna tomt för att fortsätta använda automatisk identifiering.",

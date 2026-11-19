@@ -967,8 +967,14 @@
       // What the datetime-local input shows for a stored pause: a legacy date-only value
       // lasts through the end of that day, so 23:59 is the honest time to display for it.
       function pauseInputValue(pausedUntil) {
-        if (!pausedUntil) return '';
+        if (!pausedUntil || isIndefinitePause(pausedUntil)) return '';
         return String(pausedUntil).length === 10 ? pausedUntil + 'T23:59' : pausedUntil;
+      }
+
+      // "Pause device until resumed" (Flow action) is stored as this far-future date - mirror of
+      // PAUSE_UNTIL_RESUMED in lib/rules.js. It has no real end, so never show it as a date.
+      function isIndefinitePause(pausedUntil) {
+        return pausedUntil === '9999-12-31';
       }
 
       // "YYYY-MM-DDTHH:mm" in the browser's own zone - the value format of <input type="datetime-local">.
@@ -1247,7 +1253,9 @@
       function badgeHtml(view) {
         if (!view.monitored) {
           if (view.paused) {
-            return '<span class="badge">' + Homey.__('badge.paused', { date: formatPauseEnd(view.pauseDate) }) + '</span>';
+            return '<span class="badge">' + (isIndefinitePause(view.pauseDate)
+              ? Homey.__('badge.pausedIndefinite')
+              : Homey.__('badge.paused', { date: formatPauseEnd(view.pauseDate) })) + '</span>';
           }
           return '<span class="badge">' + Homey.__('badge.notMonitored') + '</span>';
         }
@@ -1648,6 +1656,7 @@
             '<input type="datetime-local" data-field="pausedUntilDraft" data-id="' + id + '" value="' + escapeHtml(pauseDraft) + '" />' +
             '<button class="btn small primary" data-action="apply-pause" data-id="' + id + '"' + (pauseDirty ? '' : ' disabled') + '>' + Homey.__('advanced.applyPauseButton') + '</button>' +
             (r.pausedUntil ? '<button class="btn small link" data-action="clear-pause" data-id="' + id + '">' + Homey.__('advanced.clearPauseButton') + '</button>' : '') +
+            (isIndefinitePause(r.pausedUntil) ? '<span class="hint" style="margin:0;">' + Homey.__('advanced.pausedIndefiniteNote') + '</span>' : '') +
           '</div></div>';
 
         return '' +

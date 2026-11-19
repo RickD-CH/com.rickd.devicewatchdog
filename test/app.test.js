@@ -530,6 +530,93 @@ describe('a device\'s own pause', () => {
   });
 });
 
+describe('pausing a device from a Flow', () => {
+  // A homey.flow that records the run listener of every card, so the real card wiring is tested.
+  function flowStub() {
+    const listeners = {};
+    const chain = (id) => new Proxy({}, {
+      get: (_target, prop) => {
+        if (prop === 'registerRunListener') {
+          return (fn) => {
+            listeners[id] = fn;
+            return chain(id);
+          };
+        }
+        return () => chain(id);
+      },
+    });
+    return { listeners, flow: { getTriggerCard: chain, getConditionCard: chain, getActionCard: chain } };
+  }
+
+  function makePauseApp(existingPause = null) {
+    const ctx = makeApp();
+    const { app } = ctx;
+    const lines = [];
+    const saved = [];
+    app.log = (...args) => lines.push(args.join(' '));
+    app._ensureApi = async () => {};
+    app.api = { devices: { getDevice: async () => ({ name: 'Hi-Fi' }) } };
+    if (existingPause) {
+      app.rules = [{ matchType: 'id', matchValue: 'dev', pausedUntil: existingPause }];
+      app._ruleIndex = scanner.buildRuleIndex(app.rules);
+    }
+    app.saveConfig = async ({ rules }) => {
+      saved.push(rules);
+      app.rules = rules;
+      app._ruleIndex = scanner.buildRuleIndex(rules);
+    };
+    const stub = flowStub();
+    app.homey.flow = stub.flow;
+    app._registerFlowCards();
+    return {
+      ...ctx, app, lines, saved, cards: stub.listeners,
+    };
+  }
+
+  // Regression (forum report): a "Format date" card produced "yyyy/MM/dd HH:mm" and the pause card
+  // silently paused nothing - not even a log line showed what had happened.
+  test('reads a date with slashes, as a "Format date" card writes it', async () => {
+    const { cards, saved, lines } = makePauseApp();
+    await cards.pause_device_variable({ device: { id: 'dev' }, date: '2026/11/20 02:11', rescanNow: false });
+    assert.equal(saved.length, 1);
+    assert.equal(saved[0][0].pausedUntil, '2026-11-20T02:11');
+    assert.ok(lines.some((l) => l === 'Pause gesetzt: Hi-Fi bis 2026-11-20T02:11'), lines.join('\n'));
+  });
+
+  test('a date it cannot read changes nothing - the existing pause stays - and says so in the log', async () => {
+    const {
+      app, cards, saved, lines,
+    } = makePauseApp('2026-11-25T08:00');
+    await cards.pause_device_variable({ device: { id: 'dev' }, date: 'tomorrow', rescanNow: false });
+    assert.equal(saved.length, 0);
+    assert.equal(app.rules[0].pausedUntil, '2026-11-25T08:00');
+    assert.ok(lines.some((l) => l.startsWith('Pause für Hi-Fi: Datum "tomorrow" nicht lesbar')), lines.join('\n'));
+  });
+
+  test('an empty date still clears the pause (an empty token), and logs it', async () => {
+    const { app, cards, lines } = makePauseApp('2026-11-25T08:00');
+    await cards.pause_device_variable({ device: { id: 'dev' }, date: '', rescanNow: false });
+    assert.equal(app.rules[0].pausedUntil, null);
+    assert.ok(lines.includes('Pause aufgehoben: Hi-Fi'), lines.join('\n'));
+  });
+
+  test('"Pause device until resumed" pauses with no end date until "Resume device" runs', async () => {
+    const ctx = makePauseApp();
+    const { app, cards, lines } = ctx;
+    await cards.pause_device_indefinite({ device: { id: 'dev' }, rescanNow: false });
+    assert.equal(app.rules[0].pausedUntil, '9999-12-31');
+    assert.ok(lines.includes('Pause gesetzt: Hi-Fi bis zur Fortsetzung'), lines.join('\n'));
+    assert.equal(app._isMonitored('dev'), false);
+
+    ctx.advance(5 * 365 * 24 * HOUR);
+    assert.equal(app._isMonitored('dev'), false, 'no date to wait for');
+
+    await cards.resume_device({ device: { id: 'dev' } });
+    assert.equal(app.rules[0].pausedUntil, null);
+    assert.equal(app._isMonitored('dev'), true);
+  });
+});
+
 describe('"value hasn\'t changed" trigger (value watchers)', () => {
   const FIFTEEN = 15 * MINUTE;
 

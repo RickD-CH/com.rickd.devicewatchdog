@@ -207,6 +207,37 @@ describe('isoDateOrNull', () => {
     assert.equal(rulesLib.isoDateOrNull('2026-03-15T12:75'), null);
   });
 
+  test('reads slashes and dots between the parts, with or without a time (a "Format date" card)', () => {
+    assert.equal(rulesLib.isoDateOrNull('2026/11/20 02:11'), '2026-11-20T02:11');
+    assert.equal(rulesLib.isoDateOrNull('2026/11/20'), '2026-11-20');
+    assert.equal(rulesLib.isoDateOrNull('2026.11.20 02:11'), '2026-11-20T02:11');
+  });
+
+  test('reads day-first dates with dots or slashes as European order', () => {
+    assert.equal(rulesLib.isoDateOrNull('20.11.2026'), '2026-11-20');
+    assert.equal(rulesLib.isoDateOrNull('20/11/2026 7:05'), '2026-11-20T07:05');
+  });
+
+  test('allows one-digit month, day and hour, and surrounding blanks', () => {
+    assert.equal(rulesLib.isoDateOrNull('2026-3-5'), '2026-03-05');
+    assert.equal(rulesLib.isoDateOrNull('2026-3-5 7:05'), '2026-03-05T07:05');
+    assert.equal(rulesLib.isoDateOrNull('  2026-03-15  '), '2026-03-15');
+  });
+
+  test('rejects dates that do not exist instead of rolling them over', () => {
+    assert.equal(rulesLib.isoDateOrNull('2026-02-30'), null);
+    assert.equal(rulesLib.isoDateOrNull('31.04.2026'), null);
+    assert.equal(rulesLib.isoDateOrNull('2026-13-01'), null);
+    assert.equal(rulesLib.isoDateOrNull('2026/00/10'), null);
+  });
+
+  test('the "until resumed" far-future date is a valid pause date and is recognised', () => {
+    assert.equal(rulesLib.isoDateOrNull(rulesLib.PAUSE_UNTIL_RESUMED), '9999-12-31');
+    assert.equal(rulesLib.isIndefinitePause(rulesLib.PAUSE_UNTIL_RESUMED), true);
+    assert.equal(rulesLib.isIndefinitePause('2026-12-31'), false);
+    assert.equal(rulesLib.isIndefinitePause(null), false);
+  });
+
   test('sanitizeRule keeps a pausedUntil that carries a time', () => {
     const rule = rulesLib.sanitizeRule({ matchType: 'id', matchValue: 'dev', pausedUntil: '2026-03-15T14:30' });
     assert.equal(rule.pausedUntil, '2026-03-15T14:30');

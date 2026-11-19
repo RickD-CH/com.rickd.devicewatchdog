@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.rickd.devicewatchdog",
-  "version": "1.9.58",
+  "version": "1.9.59",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -1723,6 +1723,61 @@
         ]
       },
       {
+        "id": "pause_device_indefinite",
+        "title": {
+          "en": "Pause device until resumed",
+          "de": "Gerät pausieren bis zur Fortsetzung",
+          "sv": "Pausa enhet tills den återupptas",
+          "nl": "Apparaat pauzeren tot hervatten",
+          "no": "Sett enhet på pause til den gjenopptas"
+        },
+        "titleFormatted": {
+          "en": "Pause [[device]] until resumed [[rescanNow]]",
+          "de": "[[device]] pausieren bis zur Fortsetzung [[rescanNow]]",
+          "sv": "Pausa [[device]] tills den återupptas [[rescanNow]]",
+          "nl": "Pauzeer [[device]] tot hervatten [[rescanNow]]",
+          "no": "Sett [[device]] på pause til den gjenopptas [[rescanNow]]"
+        },
+        "hint": {
+          "en": "Pauses monitoring of the device with no end date: it stays paused until a \"Resume device\" card runs (or you clear the pause in the Devices tab). Handy for devices that are switched off for a while, e.g. a Hi-Fi when you leave home - pause it when you go, resume it when you come back.\n\n\"Rescan immediately\" forces a full device scan right after pausing, so the counts, the virtual device's alarm and the dashboard widget reflect the pause right away. Off by default.",
+          "de": "Pausiert die Überwachung des Geräts ohne Enddatum: Es bleibt pausiert, bis eine Karte \"Gerät fortsetzen\" läuft (oder du die Pause im Geräte-Tab aufhebst). Praktisch für Geräte, die eine Weile ausgeschaltet sind, z.B. eine Hi-Fi-Anlage, wenn du das Haus verlässt - beim Gehen pausieren, bei der Rückkehr fortsetzen.\n\n\"Sofort neu scannen\" erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln. Standardmäßig aus.",
+          "sv": "Pausar övervakningen av enheten utan slutdatum: den förblir pausad tills ett kort \"Återuppta enhet\" körs (eller du tar bort pausen i fliken Enheter). Praktiskt för enheter som är avstängda en stund, t.ex. en hi-fi-anläggning när du lämnar hemmet - pausa när du går, återuppta när du kommer tillbaka.\n\n\"Skanna om direkt\" tvingar fram en fullständig enhetsskanning direkt efter pausen, så att räknarna, den virtuella enhetens larm och dashboard-widgeten speglar pausen direkt. Av som standard.",
+          "nl": "Pauzeert de bewaking van het apparaat zonder einddatum: het blijft gepauzeerd tot een kaart \"Apparaat hervatten\" wordt uitgevoerd (of je de pauze opheft in het tabblad Apparaten). Handig voor apparaten die een tijd uitstaan, bijv. een hifi-installatie als je van huis gaat - pauzeer bij vertrek, hervat bij thuiskomst.\n\n\"Direct opnieuw scannen\" forceert direct na het pauzeren een volledige apparaatscan, zodat de tellers, het alarm van het virtuele apparaat en de dashboardwidget de pauze meteen weergeven. Standaard uit.",
+          "no": "Setter overvåkingen av enheten på pause uten sluttdato: den forblir på pause til et kort \"Gjenoppta enhet\" kjører (eller du fjerner pausen i Enheter-fanen). Praktisk for enheter som er slått av en stund, f.eks. et hi-fi-anlegg når du forlater hjemmet - sett på pause når du drar, gjenoppta når du kommer tilbake.\n\n\"Skann på nytt umiddelbart\" tvinger frem en full enhetsskanning rett etter pausen, slik at tellerne, den virtuelle enhetens alarm og dashboard-widgeten gjenspeiler pausen med en gang. Av som standard."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "autocomplete",
+            "title": {
+              "en": "Device",
+              "de": "Gerät",
+              "sv": "Enhet",
+              "nl": "Apparaat",
+              "no": "Enhet"
+            },
+            "placeholder": {
+              "en": "Choose a device",
+              "de": "Gerät wählen",
+              "sv": "Välj en enhet",
+              "nl": "Kies een apparaat",
+              "no": "Velg en enhet"
+            }
+          },
+          {
+            "name": "rescanNow",
+            "type": "checkbox",
+            "title": {
+              "en": "Rescan immediately",
+              "de": "Sofort neu scannen",
+              "sv": "Skanna om direkt",
+              "nl": "Direct opnieuw scannen",
+              "no": "Skann på nytt umiddelbart"
+            }
+          }
+        ]
+      },
+      {
         "id": "pause_device_variable",
         "title": {
           "en": "Pause device until date (variable)",
@@ -1739,11 +1794,11 @@
           "no": "Sett [[device]] på pause til [[date]] [[rescanNow]]"
         },
         "hint": {
-          "en": "Same as \"Pause device until date\", but the date is a text field so you can drop in a token or a Homey Logic variable instead of picking a fixed date - useful for a computed or dynamic date. Type a date directly as YYYY-MM-DD (optionally with a time: YYYY-MM-DD HH:mm), or insert a token/variable that resolves to one. An unrecognizable value is treated as no pause, not an error.\n\n\"Rescan immediately\" below forces a full device scan right after pausing, so this device's counts, the virtual device's alarm, and the dashboard widget reflect the pause right away - instead of only catching up on the next scheduled/manual scan. Off by default (no extra scan unless you turn it on).",
-          "de": "Wie \"Gerät bis Datum pausieren\", aber das Datum ist ein Textfeld, in das sich ein Token oder eine Homey-Logic-Variable einfügen lässt statt ein festes Datum auszuwählen - nützlich für ein berechnetes oder dynamisches Datum. Direkt als YYYY-MM-DD (optional mit Uhrzeit: YYYY-MM-DD HH:mm) eintippen, oder ein Token/eine Variable einfügen, die sich dazu auflöst. Ein nicht erkennbarer Wert wird als \"keine Pause\" behandelt, nicht als Fehler.\n\n\"Sofort neu scannen\" weiter unten erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler dieses Geräts, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln - statt erst beim nächsten geplanten/manuellen Scan nachzuziehen. Standardmäßig aus (kein zusätzlicher Scan, außer du aktivierst es).",
-          "sv": "Samma som \"Pausa enhet till datum\", men datumet är ett textfält så att du kan lägga in en token eller en Homey Logic-variabel i stället för att välja ett fast datum - användbart för ett beräknat eller dynamiskt datum. Skriv in ett datum direkt som YYYY-MM-DD (valfritt med klockslag: YYYY-MM-DD HH:mm), eller infoga en token/variabel som ger ett sådant. Ett värde som inte går att tolka behandlas som ingen paus, inte som ett fel.\n\n\"Skanna om direkt\" nedan tvingar fram en fullständig enhetsskanning direkt efter pausen, så att enhetens räknare, den virtuella enhetens larm och dashboard-widgeten speglar pausen direkt - i stället för att först hinna ikapp vid nästa schemalagda/manuella skanning. Av som standard (ingen extra skanning om du inte slår på det).",
-          "nl": "Hetzelfde als \"Apparaat pauzeren tot datum\", maar de datum is een tekstveld, zodat je een token of een Homey Logic-variabele kunt gebruiken in plaats van een vaste datum te kiezen - handig voor een berekende of dynamische datum. Typ een datum rechtstreeks als YYYY-MM-DD (eventueel met tijdstip: YYYY-MM-DD HH:mm), of voeg een token/variabele in die er een oplevert. Een onherkenbare waarde wordt behandeld als geen pauze, niet als fout.\n\n\"Direct opnieuw scannen\" hieronder forceert direct na het pauzeren een volledige apparaatscan, zodat de tellers van dit apparaat, het alarm van het virtuele apparaat en de dashboardwidget de pauze meteen weergeven - in plaats van pas bij de volgende geplande/handmatige scan bij te werken. Standaard uit (geen extra scan, tenzij je het inschakelt).",
-          "no": "Samme som \"Sett enhet på pause til dato\", men datoen er et tekstfelt slik at du kan bruke et token eller en Homey Logic-variabel i stedet for å velge en fast dato - nyttig for en beregnet eller dynamisk dato. Skriv inn en dato direkte som YYYY-MM-DD (eventuelt med klokkeslett: YYYY-MM-DD HH:mm), eller sett inn et token/en variabel som gir en slik dato. En verdi som ikke gjenkjennes behandles som ingen pause, ikke som en feil.\n\n\"Skann på nytt umiddelbart\" nedenfor tvinger frem en full enhetsskanning rett etter pausen, slik at enhetens tellere, den virtuelle enhetens alarm og dashboard-widgeten gjenspeiler pausen med en gang - i stedet for å først oppdatere seg ved neste planlagte/manuelle skanning. Av som standard (ingen ekstra skanning med mindre du slår det på)."
+          "en": "Same as \"Pause device until date\", but the date is a text field so you can drop in a token or a Homey Logic variable instead of picking a fixed date - useful for a computed or dynamic date. Type a date directly as YYYY-MM-DD (optionally with a time: YYYY-MM-DD HH:mm; slashes or dots and DD.MM.YYYY work too), or insert a token/variable that resolves to one. An unreadable value is not an error: nothing is changed and a note is written to the app log.\n\n\"Rescan immediately\" below forces a full device scan right after pausing, so this device's counts, the virtual device's alarm, and the dashboard widget reflect the pause right away - instead of only catching up on the next scheduled/manual scan. Off by default (no extra scan unless you turn it on).",
+          "de": "Wie \"Gerät bis Datum pausieren\", aber das Datum ist ein Textfeld, in das sich ein Token oder eine Homey-Logic-Variable einfügen lässt statt ein festes Datum auszuwählen - nützlich für ein berechnetes oder dynamisches Datum. Direkt als YYYY-MM-DD (optional mit Uhrzeit: YYYY-MM-DD HH:mm; Schrägstriche oder Punkte und TT.MM.JJJJ gehen auch) eintippen, oder ein Token/eine Variable einfügen, die sich dazu auflöst. Ein nicht lesbarer Wert ist kein Fehler: Es wird nichts geändert und ein Hinweis ins App-Log geschrieben.\n\n\"Sofort neu scannen\" weiter unten erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler dieses Geräts, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln - statt erst beim nächsten geplanten/manuellen Scan nachzuziehen. Standardmäßig aus (kein zusätzlicher Scan, außer du aktivierst es).",
+          "sv": "Samma som \"Pausa enhet till datum\", men datumet är ett textfält så att du kan lägga in en token eller en Homey Logic-variabel i stället för att välja ett fast datum - användbart för ett beräknat eller dynamiskt datum. Skriv in ett datum direkt som YYYY-MM-DD (valfritt med klockslag: YYYY-MM-DD HH:mm; snedstreck eller punkter och DD.MM.YYYY fungerar också), eller infoga en token/variabel som ger ett sådant. Ett värde som inte går att läsa är inget fel: ingenting ändras och en rad skrivs till appens logg.\n\n\"Skanna om direkt\" nedan tvingar fram en fullständig enhetsskanning direkt efter pausen, så att enhetens räknare, den virtuella enhetens larm och dashboard-widgeten speglar pausen direkt - i stället för att först hinna ikapp vid nästa schemalagda/manuella skanning. Av som standard (ingen extra skanning om du inte slår på det).",
+          "nl": "Hetzelfde als \"Apparaat pauzeren tot datum\", maar de datum is een tekstveld, zodat je een token of een Homey Logic-variabele kunt gebruiken in plaats van een vaste datum te kiezen - handig voor een berekende of dynamische datum. Typ een datum rechtstreeks als YYYY-MM-DD (eventueel met tijdstip: YYYY-MM-DD HH:mm; schuine strepen of punten en DD.MM.YYYY werken ook), of voeg een token/variabele in die er een oplevert. Een onleesbare waarde is geen fout: er verandert niets en er wordt een regel naar het applog geschreven.\n\n\"Direct opnieuw scannen\" hieronder forceert direct na het pauzeren een volledige apparaatscan, zodat de tellers van dit apparaat, het alarm van het virtuele apparaat en de dashboardwidget de pauze meteen weergeven - in plaats van pas bij de volgende geplande/handmatige scan bij te werken. Standaard uit (geen extra scan, tenzij je het inschakelt).",
+          "no": "Samme som \"Sett enhet på pause til dato\", men datoen er et tekstfelt slik at du kan bruke et token eller en Homey Logic-variabel i stedet for å velge en fast dato - nyttig for en beregnet eller dynamisk dato. Skriv inn en dato direkte som YYYY-MM-DD (eventuelt med klokkeslett: YYYY-MM-DD HH:mm; skråstreker eller punktum og DD.MM.YYYY fungerer også), eller sett inn et token/en variabel som gir en slik dato. En verdi som ikke kan leses er ikke en feil: ingenting endres, og en linje skrives til applogg.\n\n\"Skann på nytt umiddelbart\" nedenfor tvinger frem en full enhetsskanning rett etter pausen, slik at enhetens tellere, den virtuelle enhetens alarm og dashboard-widgeten gjenspeiler pausen med en gang - i stedet for å først oppdatere seg ved neste planlagte/manuelle skanning. Av som standard (ingen ekstra skanning med mindre du slår det på)."
         },
         "args": [
           {

@@ -372,6 +372,15 @@ class DeviceWatchdogApp extends Homey.App {
       })
       .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
 
+    // No end date: stays paused until "Resume device" runs (or the pause is cleared in the
+    // Devices tab). Stored as the far-future date PAUSE_UNTIL_RESUMED, see lib/rules.js.
+    this.homey.flow.getActionCard('pause_device_indefinite')
+      .registerRunListener(async (args) => {
+        await this.pauseDevice(args.device.id, rulesLib.PAUSE_UNTIL_RESUMED, { rescanNow: !!args.rescanNow });
+        return true;
+      })
+      .registerArgumentAutocompleteListener('device', this._deviceAutocomplete.bind(this));
+
     this.homey.flow.getActionCard('resume_device')
       .registerRunListener(async (args) => {
         await this.pauseDevice(args.device.id, null);
@@ -1337,18 +1346,33 @@ class DeviceWatchdogApp extends Homey.App {
     const device = await this.api.devices.getDevice({ id: deviceId });
     if (!device) throw new Error(this.homey.__('backend.deviceNotFound'));
 
+    // Read the date here, not only in saveConfig's sanitizer: a date that can't be read must
+    // leave the pause as it is. It used to be sanitized to "no pause", which silently cleared an
+    // existing pause - and a token like "2026/11/20 02:00" (a "Format date" card with slashes)
+    // paused nothing at all, with no sign of it anywhere (forum report). Empty = clear, as before.
+    const raw = pausedUntil === undefined || pausedUntil === null ? '' : String(pausedUntil).trim();
+    const until = raw === '' ? null : rulesLib.isoDateOrNull(raw);
+    if (raw !== '' && until === null) {
+      this.log(`Pause für ${device.name}: Datum "${raw}" nicht lesbar - nichts geändert (erwartet JJJJ-MM-TT oder JJJJ-MM-TT HH:mm)`);
+      return;
+    }
+
     const { rule } = scanner.findRuleIndexed({ id: deviceId }, this._ruleIndex);
-    // Clearing a pause (pausedUntil falsy) on a device with no existing rule at all has
+    // Clearing a pause (nothing to set) on a device with no existing rule at all has
     // nothing to do - skip creating a rule that would only ever hold a null pause.
-    if (!rule && !pausedUntil) return;
+    if (!rule && !until) return;
 
     const rules = rule
-      ? this.rules.map((r) => (r === rule ? { ...r, pausedUntil } : r))
+      ? this.rules.map((r) => (r === rule ? { ...r, pausedUntil: until } : r))
       : [...this.rules, {
-        matchType: 'id', matchValue: deviceId, label: device.name, pausedUntil,
+        matchType: 'id', matchValue: deviceId, label: device.name, pausedUntil: until,
       }];
 
     await this.saveConfig({ rules });
+    // Logged on purpose: a diagnostic report is all a user can send back when a Flow "didn't pause".
+    this.log(until
+      ? `Pause gesetzt: ${device.name} bis ${rulesLib.isIndefinitePause(until) ? 'zur Fortsetzung' : until}`
+      : `Pause aufgehoben: ${device.name}`);
 
     if (rescanNow) await this.runScan('flow');
   }

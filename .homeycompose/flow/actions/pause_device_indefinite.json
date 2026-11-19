@@ -1,0 +1,55 @@
+{
+  "id": "pause_device_indefinite",
+  "title": {
+    "en": "Pause device until resumed",
+    "de": "Gerät pausieren bis zur Fortsetzung",
+    "sv": "Pausa enhet tills den återupptas",
+    "nl": "Apparaat pauzeren tot hervatten",
+    "no": "Sett enhet på pause til den gjenopptas"
+  },
+  "titleFormatted": {
+    "en": "Pause [[device]] until resumed [[rescanNow]]",
+    "de": "[[device]] pausieren bis zur Fortsetzung [[rescanNow]]",
+    "sv": "Pausa [[device]] tills den återupptas [[rescanNow]]",
+    "nl": "Pauzeer [[device]] tot hervatten [[rescanNow]]",
+    "no": "Sett [[device]] på pause til den gjenopptas [[rescanNow]]"
+  },
+  "hint": {
+    "en": "Pauses monitoring of the device with no end date: it stays paused until a \"Resume device\" card runs (or you clear the pause in the Devices tab). Handy for devices that are switched off for a while, e.g. a Hi-Fi when you leave home - pause it when you go, resume it when you come back.\n\n\"Rescan immediately\" forces a full device scan right after pausing, so the counts, the virtual device's alarm and the dashboard widget reflect the pause right away. Off by default.",
+    "de": "Pausiert die Überwachung des Geräts ohne Enddatum: Es bleibt pausiert, bis eine Karte \"Gerät fortsetzen\" läuft (oder du die Pause im Geräte-Tab aufhebst). Praktisch für Geräte, die eine Weile ausgeschaltet sind, z.B. eine Hi-Fi-Anlage, wenn du das Haus verlässt - beim Gehen pausieren, bei der Rückkehr fortsetzen.\n\n\"Sofort neu scannen\" erzwingt direkt nach dem Pausieren einen vollständigen Geräte-Scan, sodass die Zähler, der Alarm des virtuellen Geräts und das Dashboard-Widget die Pause sofort widerspiegeln. Standardmäßig aus.",
+    "sv": "Pausar övervakningen av enheten utan slutdatum: den förblir pausad tills ett kort \"Återuppta enhet\" körs (eller du tar bort pausen i fliken Enheter). Praktiskt för enheter som är avstängda en stund, t.ex. en hi-fi-anläggning när du lämnar hemmet - pausa när du går, återuppta när du kommer tillbaka.\n\n\"Skanna om direkt\" tvingar fram en fullständig enhetsskanning direkt efter pausen, så att räknarna, den virtuella enhetens larm och dashboard-widgeten speglar pausen direkt. Av som standard.",
+    "nl": "Pauzeert de bewaking van het apparaat zonder einddatum: het blijft gepauzeerd tot een kaart \"Apparaat hervatten\" wordt uitgevoerd (of je de pauze opheft in het tabblad Apparaten). Handig voor apparaten die een tijd uitstaan, bijv. een hifi-installatie als je van huis gaat - pauzeer bij vertrek, hervat bij thuiskomst.\n\n\"Direct opnieuw scannen\" forceert direct na het pauzeren een volledige apparaatscan, zodat de tellers, het alarm van het virtuele apparaat en de dashboardwidget de pauze meteen weergeven. Standaard uit.",
+    "no": "Setter overvåkingen av enheten på pause uten sluttdato: den forblir på pause til et kort \"Gjenoppta enhet\" kjører (eller du fjerner pausen i Enheter-fanen). Praktisk for enheter som er slått av en stund, f.eks. et hi-fi-anlegg når du forlater hjemmet - sett på pause når du drar, gjenoppta når du kommer tilbake.\n\n\"Skann på nytt umiddelbart\" tvinger frem en full enhetsskanning rett etter pausen, slik at tellerne, den virtuelle enhetens alarm og dashboard-widgeten gjenspeiler pausen med en gang. Av som standard."
+  },
+  "args": [
+    {
+      "name": "device",
+      "type": "autocomplete",
+      "title": {
+        "en": "Device",
+        "de": "Gerät",
+        "sv": "Enhet",
+        "nl": "Apparaat",
+        "no": "Enhet"
+      },
+      "placeholder": {
+        "en": "Choose a device",
+        "de": "Gerät wählen",
+        "sv": "Välj en enhet",
+        "nl": "Kies een apparaat",
+        "no": "Velg en enhet"
+      }
+    },
+    {
+      "name": "rescanNow",
+      "type": "checkbox",
+      "title": {
+        "en": "Rescan immediately",
+        "de": "Sofort neu scannen",
+        "sv": "Skanna om direkt",
+        "nl": "Direct opnieuw scannen",
+        "no": "Skann på nytt umiddelbart"
+      }
+    }
+  ]
+}

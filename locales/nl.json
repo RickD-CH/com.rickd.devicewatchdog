@@ -90,6 +90,7 @@
     "ok": "ok",
     "noStatus": "geen status (gefilterd)",
     "paused": "gepauzeerd tot __date__",
+    "pausedIndefinite": "gepauzeerd tot hervatten",
     "filterPinned": "blijft zichtbaar",
     "filterPinnedHint": "Voldoet na de laatste wijziging niet meer aan het actieve filter, maar blijft zichtbaar zolang de details hier openstaan - zodat je het kunt blijven aanpassen zonder dat het apparaat verdwijnt."
   },
@@ -163,6 +164,7 @@
     "pausedUntilHint": "Het apparaat wordt volledig overgeslagen (zoals \"niet bewaakt\") tot deze datum en tijd en wordt daarna bij de volgende scan automatisch hervat. Kies een datum en tijd en tik dan op \"Pauze instellen\".",
     "applyPauseButton": "Pauze instellen",
     "clearPauseButton": "Pauze opheffen",
+    "pausedIndefiniteNote": "Gepauzeerd tot hervatten - de Flow-kaart \"Apparaat hervatten\" beëindigt het, of heft de pauze hier op.",
     "applyToAppIncludePause": "Ook de pauzedatum toepassen",
     "batteryTypeOverride": "Batterijtype (handmatig)",
     "batteryTypeOverrideHint": "Wordt getoond in plaats van het automatisch herkende batterijtype (widget en details) - voor apparaten waarvoor Homey niets levert. Laat leeg om automatische herkenning te blijven gebruiken.",
