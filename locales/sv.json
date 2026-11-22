@@ -245,7 +245,7 @@
     "timelineIncludeNotReporting": "Inkludera enheter som inte rapporterar",
     "timelineIncludeLowBattery": "Inkludera lågt batteri",
     "vdAlarmTitle": "Larm för virtuell enhet",
-    "vdAlarmHint": "Räknarna på den virtuella Watchdog-enheten visar alltid de verkliga siffrorna. Det här styr bara vilka av dem som utlöser sammanfattningslarmet (alarm_generic) och vilka typer av problem som ingår i summan \"Enheter med problem\" (varje enhet räknas en gång).",
+    "vdAlarmHint": "Räknarna på den virtuella Watchdog-enheten visar alltid de verkliga siffrorna. Det här styr bara vilka av dem som utlöser sammanfattningslarmet (alarm_generic) och vilka typer av problem som ingår i summan \"Enheter med problem\" (varje enhet räknas en gång) och i namnet \"Senaste problemenhet\".",
     "vdAlarmUnavailable": "Inkludera otillgängliga",
     "vdAlarmNotReporting": "Inkludera enheter som inte rapporterar",
     "vdAlarmLowBattery": "Inkludera lågt batteri",

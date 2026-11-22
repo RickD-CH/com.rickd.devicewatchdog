@@ -245,7 +245,7 @@
     "timelineIncludeNotReporting": "Niet-rapporterende meenemen",
     "timelineIncludeLowBattery": "Lage batterij meenemen",
     "vdAlarmTitle": "Alarm virtueel apparaat",
-    "vdAlarmHint": "De tellers op het virtuele Watchdog-apparaat tonen altijd de echte aantallen. Dit bepaalt alleen welke ervan het samenvattingsalarm (alarm_generic) laten afgaan en welke soorten problemen meetellen in het totaal \"Apparaten met een probleem\" (elk apparaat telt één keer).",
+    "vdAlarmHint": "De tellers op het virtuele Watchdog-apparaat tonen altijd de echte aantallen. Dit bepaalt alleen welke ervan het samenvattingsalarm (alarm_generic) laten afgaan en welke soorten problemen meetellen in het totaal \"Apparaten met een probleem\" (elk apparaat telt één keer) en in de naam \"Laatste probleemapparaat\".",
     "vdAlarmUnavailable": "Niet-beschikbare meenemen",
     "vdAlarmNotReporting": "Niet-rapporterende meenemen",
     "vdAlarmLowBattery": "Lage batterij meenemen",

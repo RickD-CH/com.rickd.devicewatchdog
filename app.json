@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.rickd.devicewatchdog",
-  "version": "1.9.60",
+  "version": "1.9.61",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -2002,9 +2002,11 @@
       "capabilities": [
         "alarm_generic",
         "devices_problem_count",
+        "devices_latest_problem",
         "devices_not_reporting_count",
         "devices_unavailable_count",
-        "devices_low_battery_count"
+        "devices_low_battery_count",
+        "scan_now"
       ],
       "platforms": [
         "local"
@@ -2055,6 +2057,27 @@
     }
   },
   "capabilities": {
+    "devices_latest_problem": {
+      "type": "string",
+      "title": {
+        "en": "Latest problem device",
+        "de": "Zuletzt betroffenes Gerät",
+        "sv": "Senaste problemenhet",
+        "nl": "Laatste probleemapparaat",
+        "no": "Siste problemenhet"
+      },
+      "desc": {
+        "en": "Name of the device whose problem started most recently (not reporting, unavailable or low battery), or '-' when nothing is wrong. Of several problem devices only the newest is shown - the counter next to it says how many there are. Which kinds count follows the 'Virtual device alarm' switches in the app settings.",
+        "de": "Name des Geräts, dessen Problem zuletzt begonnen hat (meldet sich nicht, nicht erreichbar oder Batterie schwach), oder '-', wenn alles in Ordnung ist. Bei mehreren Problemgeräten wird nur das neueste gezeigt - wie viele es sind, steht im Zähler daneben. Welche Arten zählen, folgt den Schaltern 'Alarm des virtuellen Geräts' in den App-Einstellungen.",
+        "sv": "Namnet på enheten vars problem började senast (rapporterar inte, otillgänglig eller svagt batteri), eller '-' när inget är fel. Av flera problemenheter visas bara den senaste - räknaren bredvid anger hur många det är. Vilka typer som räknas följer reglagen 'Larm för virtuell enhet' i appens inställningar.",
+        "nl": "Naam van het apparaat waarvan het probleem het laatst begon (meldt zich niet, niet beschikbaar of batterij zwak), of '-' als er niets mis is. Van meerdere probleemapparaten wordt alleen het nieuwste getoond - de teller ernaast geeft aan hoeveel het er zijn. Welke soorten meetellen volgt de schakelaars 'Alarm van het virtuele apparaat' in de app-instellingen.",
+        "no": "Navnet på enheten hvis problem startet sist (melder seg ikke, utilgjengelig eller svakt batteri), eller '-' når alt er i orden. Av flere problemenheter vises bare den nyeste - telleren ved siden av viser hvor mange det er. Hvilke typer som teller følger bryterne 'Alarm for virtuell enhet' i appinnstillingene."
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/capabilities/devices_latest_problem.svg"
+    },
     "devices_low_battery_count": {
       "type": "number",
       "title": {
@@ -2174,6 +2197,28 @@
       "decimals": 0,
       "min": 0,
       "icon": "/assets/capabilities/devices_unavailable_count.svg"
+    },
+    "scan_now": {
+      "type": "boolean",
+      "title": {
+        "en": "Scan now",
+        "de": "Jetzt scannen",
+        "sv": "Skanna nu",
+        "nl": "Nu scannen",
+        "no": "Skann nå"
+      },
+      "desc": {
+        "en": "Checks all devices right now, the same as the 'Run a device scan now' Flow action. The counters update when the scan is done.",
+        "de": "Prüft sofort alle Geräte, genau wie die Flow-Aktion 'Geräte-Scan jetzt ausführen'. Die Zähler aktualisieren sich, sobald der Scan fertig ist.",
+        "sv": "Kontrollerar alla enheter direkt, precis som Flow-åtgärden 'Kör enhetsskanning nu'. Räknarna uppdateras när skanningen är klar.",
+        "nl": "Controleert direct alle apparaten, net als de Flow-actie 'Apparaatscan nu uitvoeren'. De tellers worden bijgewerkt zodra de scan klaar is.",
+        "no": "Sjekker alle enheter med en gang, på samme måte som Flow-handlingen 'Kjør enhetsskanning nå'. Tellerne oppdateres når skanningen er ferdig."
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "/assets/capabilities/scan_now.svg"
     }
   }
 }

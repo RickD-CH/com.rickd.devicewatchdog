@@ -1,0 +1,16 @@
+{
+  "type": "boolean",
+  "title": { "en": "Scan now", "de": "Jetzt scannen", "sv": "Skanna nu", "nl": "Nu scannen", "no": "Skann nå" },
+  "desc": {
+    "en": "Checks all devices right now, the same as the 'Run a device scan now' Flow action. The counters update when the scan is done.",
+    "de": "Prüft sofort alle Geräte, genau wie die Flow-Aktion 'Geräte-Scan jetzt ausführen'. Die Zähler aktualisieren sich, sobald der Scan fertig ist.",
+    "sv": "Kontrollerar alla enheter direkt, precis som Flow-åtgärden 'Kör enhetsskanning nu'. Räknarna uppdateras när skanningen är klar.",
+    "nl": "Controleert direct alle apparaten, net als de Flow-actie 'Apparaatscan nu uitvoeren'. De tellers worden bijgewerkt zodra de scan klaar is.",
+    "no": "Sjekker alle enheter med en gang, på samme måte som Flow-handlingen 'Kjør enhetsskanning nå'. Tellerne oppdateres når skanningen er ferdig."
+  },
+  "getable": false,
+  "setable": true,
+  "uiComponent": "button",
+  "uiQuickAction": true,
+  "icon": "/assets/capabilities/scan_now.svg"
+}

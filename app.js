@@ -226,6 +226,9 @@ class DeviceWatchdogApp extends Homey.App {
 
     this._zoneMap = {};
     this._availabilityMap = new Map();
+    // deviceId -> current name, kept from realtime updates/scans/priming: the virtual device shows
+    // the name of the latest problem device, and the scan snapshot (lastScan) holds ids only.
+    this._deviceNames = new Map();
     this._intervalTimer = null;
     this._startupGraceTimer = null;
     this._globalPauseTimer = null;
@@ -550,6 +553,7 @@ class DeviceWatchdogApp extends Homey.App {
       if (this._isOwnDevice(device)) continue;
       const isAvailable = device.available !== false;
       this._availabilityMap.set(device.id, isAvailable);
+      if (device.name) this._deviceNames.set(device.id, device.name);
       if (!isAvailable) {
         // Already down at startup - route through the same grace period a live
         // transition would get, so a Homey/app restart doesn't instantly count devices
@@ -588,6 +592,7 @@ class DeviceWatchdogApp extends Homey.App {
     const wasAvailable = this._availabilityMap.get(device.id);
     const isAvailable = device.available !== false;
     this._availabilityMap.set(device.id, isAvailable);
+    if (device.name) this._deviceNames.set(device.id, device.name);
 
     if (wasAvailable === true && isAvailable === false) {
       this._unavailableStartedAt.set(device.id, Date.now());
@@ -845,9 +850,13 @@ class DeviceWatchdogApp extends Homey.App {
       return; // driver not ready yet (e.g. called during very early onInit)
     }
 
-    // The total is derived from the app's own state (never from the partial `counts` of this call),
-    // so every update, whichever category triggered it, keeps it in step.
-    const withTotal = { ...counts, problemCount: this._countProblemDevices() };
+    // The total and the latest problem device are derived from the app's own state (never from the
+    // partial `counts` of this call), so every update, whichever category triggered it, keeps them in step.
+    const withTotal = {
+      ...counts,
+      problemCount: this._countProblemDevices(),
+      latestProblemName: this._latestProblemDeviceName(),
+    };
     await Promise.all(devices.map((device) => device.updateCounts(withTotal)))
       .catch((err) => this.error('Watchdog-Gerät-Update fehlgeschlagen:', err));
   }
@@ -858,19 +867,49 @@ class DeviceWatchdogApp extends Homey.App {
   // unavailable, delay-confirmed low battery, paused/excluded devices left out), and the same
   // three switches as the combined alarm decide which kinds of problem count.
   _countProblemDevices() {
-    const ids = new Set();
+    return this._problemDevices().size;
+  }
+
+  // The devices behind that total: id -> when its problem started (ms; the earliest of the
+  // problems that count). A problem without a "since" record yet was found just now.
+  _problemDevices() {
+    const problems = new Map();
+    const add = (id, category) => {
+      const at = this.problemSince?.[category]?.[id];
+      const since = typeof at === 'number' ? at : Date.now();
+      problems.set(id, problems.has(id) ? Math.min(problems.get(id), since) : since);
+    };
     if (this.config.alarmIncludesNotReporting !== false) {
-      (this.lastScan?.notReporting || []).forEach((id) => ids.add(id));
+      (this.lastScan?.notReporting || []).forEach((id) => add(id, 'notReporting'));
     }
     if (this.config.alarmIncludesUnavailable !== false) {
       for (const id of this._confirmedUnavailable) {
-        if (!this._isExcludedFromUnavailable(id)) ids.add(id);
+        if (!this._isExcludedFromUnavailable(id)) add(id, 'unavailable');
       }
     }
     if (this.config.alarmIncludesLowBattery !== false) {
-      (this.flagState?.lowBatteryConfirmed || []).filter((id) => this._isMonitored(id)).forEach((id) => ids.add(id));
+      (this.flagState?.lowBatteryConfirmed || []).filter((id) => this._isMonitored(id)).forEach((id) => add(id, 'lowBattery'));
     }
-    return ids.size;
+    return problems;
+  }
+
+  // "Latest problem device" on the virtual device: of the devices counted in the total, the one whose
+  // problem started most recently (ties: alphabetical). null = nothing is wrong right now.
+  // undefined = there are problems but no name is known yet (right after an app start, before the
+  // first scan/priming), so the virtual device keeps the value it already has instead of showing an id.
+  _latestProblemDeviceName() {
+    const problems = this._problemDevices();
+    if (problems.size === 0) return null;
+
+    let latest = null;
+    for (const [id, since] of problems) {
+      const name = this._deviceNames.get(id);
+      if (!name) continue;
+      if (!latest || since > latest.since || (since === latest.since && name.localeCompare(latest.name) < 0)) {
+        latest = { name, since };
+      }
+    }
+    return latest ? latest.name : undefined;
   }
 
   // Bundles devices that go unavailable within a few seconds of each other (e.g. a
@@ -1794,6 +1833,9 @@ class DeviceWatchdogApp extends Homey.App {
     }
     for (const id of Array.from(this._pendingUnavailableTimers.keys())) {
       if (!(id in devices)) this._cancelPendingUnavailableConfirmation(id);
+    }
+    for (const id of Array.from(this._deviceNames.keys())) {
+      if (!(id in devices)) this._deviceNames.delete(id);
     }
     if (unavailablePruned) {
       this._persistProblemSince();

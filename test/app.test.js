@@ -86,6 +86,7 @@ function makeApp(configOverrides = {}) {
   app.rules = [];
   app._zoneMap = {};
   app._availabilityMap = new Map();
+  app._deviceNames = new Map();
   app._confirmedUnavailable = new Set();
   app._pendingUnavailableTimers = new Map();
   app._unavailableBatch = new Set();
@@ -594,9 +595,136 @@ describe('"Devices with a problem" on the virtual device', () => {
     await realUpdate.call(app, { unavailableCount: 2 });
     await realUpdate.call(app, { lowBatteryCount: 0 });
     assert.deepEqual(received, [
-      { unavailableCount: 2, problemCount: 2 },
-      { lowBatteryCount: 0, problemCount: 2 },
-    ]);
+      { unavailableCount: 2, problemCount: 2, latestProblemName: undefined },
+      { lowBatteryCount: 0, problemCount: 2, latestProblemName: undefined },
+    ], 'no names known yet: the name is left untouched (undefined), never replaced by an id');
+  });
+});
+
+describe('"Latest problem device" on the virtual device', () => {
+  // Forum request (Drako74/Andy): show the name of the most recent failed device on the virtual device.
+  function makeLatestApp({
+    names = {}, notReporting = [], unavailable = [], lowBattery = [], since = {}, config = {},
+  } = {}) {
+    const ctx = makeApp(config);
+    const { app } = ctx;
+    app.lastScan = { notReporting, lowBattery: [], all: [] };
+    app._confirmedUnavailable = new Set(unavailable);
+    app.flagState = { notReporting, lowBattery, lowBatteryConfirmed: lowBattery };
+    app.problemSince = {
+      notReporting: {}, unavailable: {}, lowBattery: {}, ...since,
+    };
+    app._deviceNames = new Map(Object.entries(names));
+    return ctx;
+  }
+
+  test('is null when nothing is wrong', () => {
+    const { app } = makeLatestApp({ names: { a: 'Alpha' } });
+    assert.equal(app._latestProblemDeviceName(), null);
+  });
+
+  test('picks the device whose problem started most recently, across all three kinds', () => {
+    const { app } = makeLatestApp({
+      names: { a: 'Alpha', b: 'Bravo', c: 'Charlie' },
+      notReporting: ['a'],
+      unavailable: ['b'],
+      lowBattery: ['c'],
+      since: { notReporting: { a: 1000 }, unavailable: { b: 3000 }, lowBattery: { c: 2000 } },
+    });
+    assert.equal(app._latestProblemDeviceName(), 'Bravo');
+  });
+
+  test('a device with two problems counts from when its first one started', () => {
+    // Alpha has been broken since 1000 (and not reporting too since 5000, just a consequence);
+    // Bravo only broke at 3000 - Bravo is the latest failure.
+    const { app } = makeLatestApp({
+      names: { a: 'Alpha', b: 'Bravo' },
+      notReporting: ['a'],
+      unavailable: ['a', 'b'],
+      since: { notReporting: { a: 5000 }, unavailable: { a: 1000, b: 3000 } },
+    });
+    assert.equal(app._latestProblemDeviceName(), 'Bravo');
+  });
+
+  test('a tie goes to the name that sorts first', () => {
+    const { app } = makeLatestApp({
+      names: { a: 'Zulu', b: 'Alpha' },
+      unavailable: ['a', 'b'],
+      since: { unavailable: { a: 1000, b: 1000 } },
+    });
+    assert.equal(app._latestProblemDeviceName(), 'Alpha');
+  });
+
+  test('follows the three "Virtual device alarm" switches, like the total', () => {
+    const base = {
+      names: { a: 'Alpha', b: 'Bravo' },
+      notReporting: ['a'],
+      unavailable: ['b'],
+      since: { notReporting: { a: 1000 }, unavailable: { b: 3000 } },
+    };
+    assert.equal(makeLatestApp(base).app._latestProblemDeviceName(), 'Bravo');
+    assert.equal(makeLatestApp({ ...base, config: { alarmIncludesUnavailable: false } }).app._latestProblemDeviceName(), 'Alpha');
+    assert.equal(makeLatestApp({
+      ...base,
+      config: { alarmIncludesUnavailable: false, alarmIncludesNotReporting: false },
+    }).app._latestProblemDeviceName(), null);
+  });
+
+  test('the name goes away again when the device is fine, and falls back to the next newest', () => {
+    const { app } = makeLatestApp({
+      names: { a: 'Alpha', b: 'Bravo' },
+      unavailable: ['a', 'b'],
+      since: { unavailable: { a: 1000, b: 3000 } },
+    });
+    assert.equal(app._latestProblemDeviceName(), 'Bravo');
+    app._confirmedUnavailable.delete('b');
+    assert.equal(app._latestProblemDeviceName(), 'Alpha');
+    app._confirmedUnavailable.delete('a');
+    assert.equal(app._latestProblemDeviceName(), null);
+  });
+
+  test('a problem without a "since" record yet counts as just found', () => {
+    const { app } = makeLatestApp({
+      names: { a: 'Alpha', b: 'Bravo' },
+      notReporting: ['a'],
+      unavailable: ['b'],
+      since: { unavailable: { b: 1000 } },
+    });
+    assert.equal(app._latestProblemDeviceName(), 'Alpha');
+  });
+
+  test('is undefined (leave the shown name alone) while problems exist but no name is known yet', () => {
+    const { app } = makeLatestApp({ unavailable: ['a'] });
+    assert.equal(app._latestProblemDeviceName(), undefined);
+  });
+
+  test('a device without a known name is skipped in favour of one that has a name', () => {
+    const { app } = makeLatestApp({
+      names: { b: 'Bravo' },
+      unavailable: ['a', 'b'],
+      since: { unavailable: { a: 9000, b: 1000 } },
+    });
+    assert.equal(app._latestProblemDeviceName(), 'Bravo');
+  });
+
+  test('names are remembered from realtime updates, so a renamed device shows its new name', () => {
+    const { app } = makeLatestApp({ unavailable: ['a'] });
+    app._handleDeviceUpdate({ id: 'a', name: 'Old name', available: false });
+    assert.equal(app._latestProblemDeviceName(), 'Old name');
+    app._handleDeviceUpdate({ id: 'a', name: 'New name', available: false });
+    assert.equal(app._latestProblemDeviceName(), 'New name');
+  });
+
+  test('every update of the virtual device carries the name', async () => {
+    const { app } = makeLatestApp({
+      names: { a: 'Alpha' },
+      unavailable: ['a'],
+      since: { unavailable: { a: 1000 } },
+    });
+    const received = [];
+    app.homey.drivers = { getDriver: () => ({ getDevices: () => [{ updateCounts: async (counts) => received.push(counts) }] }) };
+    await DeviceWatchdogApp.prototype._updateWatchdogDevice.call(app, { unavailableCount: 1 });
+    assert.deepEqual(received, [{ unavailableCount: 1, problemCount: 1, latestProblemName: 'Alpha' }]);
   });
 });
 
