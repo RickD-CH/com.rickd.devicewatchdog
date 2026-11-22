@@ -4,6 +4,7 @@
   "class": "sensor",
   "capabilities": [
     "alarm_generic",
+    "devices_problem_count",
     "devices_not_reporting_count",
     "devices_unavailable_count",
     "devices_low_battery_count"

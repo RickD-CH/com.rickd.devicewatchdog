@@ -2,8 +2,11 @@
 
 const Homey = require('homey');
 
+// Order = display order for a newly added device: the total first, then its three parts.
+// (A device added before devices_problem_count existed gets it appended last by addCapability -
+// the SDK has no way to reorder, and removing/re-adding the others could break Flows using them.)
 const ALL_CAPABILITIES = [
-  'alarm_generic', 'devices_not_reporting_count', 'devices_unavailable_count', 'devices_low_battery_count',
+  'alarm_generic', 'devices_problem_count', 'devices_not_reporting_count', 'devices_unavailable_count', 'devices_low_battery_count',
 ];
 
 class WatchdogDevice extends Homey.Device {
@@ -22,6 +25,7 @@ class WatchdogDevice extends Homey.Device {
     }
 
     this._counts = {
+      problem: this.getCapabilityValue('devices_problem_count') || 0,
       notReporting: this.getCapabilityValue('devices_not_reporting_count') || 0,
       unavailable: this.getCapabilityValue('devices_unavailable_count') || 0,
       lowBattery: this.getCapabilityValue('devices_low_battery_count') || 0,
@@ -37,6 +41,7 @@ class WatchdogDevice extends Homey.Device {
       notReportingCount: app.lastScan ? app.lastScan.notReporting.length : 0,
       lowBatteryCount: app.flagState ? (app.flagState.lowBatteryConfirmed || []).length : 0,
       unavailableCount: app._countUnavailable(),
+      problemCount: app._countProblemDevices(),
     });
 
     this.log('Watchdog device initialized', this._counts);
@@ -45,7 +50,11 @@ class WatchdogDevice extends Homey.Device {
   // Called by app.js after every scan (and, for unavailableCount, on every realtime
   // availability change) - missing values are left untouched, e.g. keeps the low-battery
   // count as-is between scans instead of resetting it while a realtime update comes in.
-  async updateCounts({ notReportingCount, unavailableCount, lowBatteryCount } = {}) {
+  // problemCount (every device once, see App#_countProblemDevices) is sent with every update.
+  async updateCounts({
+    notReportingCount, unavailableCount, lowBatteryCount, problemCount,
+  } = {}) {
+    if (problemCount !== undefined) this._counts.problem = problemCount;
     if (notReportingCount !== undefined) this._counts.notReporting = notReportingCount;
     if (unavailableCount !== undefined) this._counts.unavailable = unavailableCount;
     if (lowBatteryCount !== undefined) this._counts.lowBattery = lowBatteryCount;
@@ -59,6 +68,7 @@ class WatchdogDevice extends Homey.Device {
       || (config.alarmIncludesLowBattery !== false && this._counts.lowBattery > 0);
 
     const updates = [
+      this.setCapabilityValue('devices_problem_count', this._counts.problem),
       this.setCapabilityValue('devices_not_reporting_count', this._counts.notReporting),
       this.setCapabilityValue('devices_unavailable_count', this._counts.unavailable),
       this.setCapabilityValue('devices_low_battery_count', this._counts.lowBattery),

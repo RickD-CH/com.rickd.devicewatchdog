@@ -245,7 +245,7 @@
     "timelineIncludeNotReporting": "Meldet sich nicht einbeziehen",
     "timelineIncludeLowBattery": "Niedriger Akku einbeziehen",
     "vdAlarmTitle": "Alarm des virtuellen Geräts",
-    "vdAlarmHint": "Die Zähler im virtuellen Watchdog-Gerät zeigen immer die echten Werte. Hier legst du nur fest, welche davon den Sammel-Alarm (alarm_generic) auslösen.",
+    "vdAlarmHint": "Die Zähler im virtuellen Watchdog-Gerät zeigen immer die echten Werte. Hier legst du nur fest, welche davon den Sammel-Alarm (alarm_generic) auslösen und welche Problemarten in die Summe \"Geräte mit Problem\" zählen (jedes Gerät nur einmal).",
     "vdAlarmUnavailable": "Nicht erreichbar einbeziehen",
     "vdAlarmNotReporting": "Meldet sich nicht einbeziehen",
     "vdAlarmLowBattery": "Niedriger Akku einbeziehen",

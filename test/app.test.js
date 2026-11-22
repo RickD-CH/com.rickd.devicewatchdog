@@ -530,6 +530,76 @@ describe('a device\'s own pause', () => {
   });
 });
 
+describe('"Devices with a problem" on the virtual device', () => {
+  // Forum request (Victor_Bicknese): a device that is both unreachable and not reporting showed up
+  // as 2 (one in each counter) - the total must count every device once.
+  function makeProblemApp({
+    notReporting = [], unavailable = [], lowBattery = [], rules = [], config = {},
+  } = {}) {
+    const ctx = makeApp(config);
+    const { app } = ctx;
+    app.lastScan = { notReporting, lowBattery: [], all: [] };
+    app._confirmedUnavailable = new Set(unavailable);
+    app.flagState = { notReporting, lowBattery, lowBatteryConfirmed: lowBattery };
+    app.rules = rules;
+    app._ruleIndex = scanner.buildRuleIndex(rules);
+    return ctx;
+  }
+
+  test('a device that is both unavailable and not reporting counts once', () => {
+    const { app } = makeProblemApp({ notReporting: ['a', 'b'], unavailable: ['b', 'c'] });
+    assert.equal(app._countProblemDevices(), 3, 'a, b, c - not 4');
+  });
+
+  test('a device in all three categories is still one device', () => {
+    const { app } = makeProblemApp({ notReporting: ['a'], unavailable: ['a'], lowBattery: ['a'] });
+    assert.equal(app._countProblemDevices(), 1);
+  });
+
+  test('is 0 when nothing is wrong, also before the first scan', () => {
+    const { app } = makeProblemApp();
+    assert.equal(app._countProblemDevices(), 0);
+    app.lastScan = null;
+    app.flagState = null;
+    assert.equal(app._countProblemDevices(), 0);
+  });
+
+  test('follows the three "Virtual device alarm" switches', () => {
+    const base = { notReporting: ['a'], unavailable: ['b'], lowBattery: ['c'] };
+    assert.equal(makeProblemApp(base).app._countProblemDevices(), 3);
+    assert.equal(makeProblemApp({ ...base, config: { alarmIncludesLowBattery: false } }).app._countProblemDevices(), 2);
+    assert.equal(makeProblemApp({ ...base, config: { alarmIncludesNotReporting: false } }).app._countProblemDevices(), 2);
+    assert.equal(makeProblemApp({ ...base, config: { alarmIncludesUnavailable: false } }).app._countProblemDevices(), 2);
+    assert.equal(makeProblemApp({
+      ...base,
+      config: { alarmIncludesUnavailable: false, alarmIncludesLowBattery: false },
+    }).app._countProblemDevices(), 1);
+  });
+
+  test('a device that is paused or not monitored does not count (unavailable, low battery)', () => {
+    const rules = [
+      { matchType: 'id', matchValue: 'paused', pausedUntil: '2099-01-01T00:00' },
+      { matchType: 'id', matchValue: 'off', excludeAll: true },
+    ];
+    const { app } = makeProblemApp({ unavailable: ['paused', 'off', 'ok'], lowBattery: ['paused', 'off', 'ok2'], rules });
+    assert.equal(app._countProblemDevices(), 2, 'only the two devices that are being monitored');
+  });
+
+  test('every update of the virtual device carries the total, whichever count triggered it', async () => {
+    const { app } = makeProblemApp({ notReporting: ['a'], unavailable: ['a', 'b'] });
+    const received = [];
+    app.homey.drivers = { getDriver: () => ({ getDevices: () => [{ updateCounts: async (counts) => received.push(counts) }] }) };
+    // makeApp() swaps _updateWatchdogDevice for a recorder - this test is about the real one
+    const realUpdate = DeviceWatchdogApp.prototype._updateWatchdogDevice;
+    await realUpdate.call(app, { unavailableCount: 2 });
+    await realUpdate.call(app, { lowBatteryCount: 0 });
+    assert.deepEqual(received, [
+      { unavailableCount: 2, problemCount: 2 },
+      { lowBatteryCount: 0, problemCount: 2 },
+    ]);
+  });
+});
+
 describe('pausing a device from a Flow', () => {
   // A homey.flow that records the run listener of every card, so the real card wiring is tested.
   function flowStub() {

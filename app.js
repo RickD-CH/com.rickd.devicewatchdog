@@ -845,8 +845,32 @@ class DeviceWatchdogApp extends Homey.App {
       return; // driver not ready yet (e.g. called during very early onInit)
     }
 
-    await Promise.all(devices.map((device) => device.updateCounts(counts)))
+    // The total is derived from the app's own state (never from the partial `counts` of this call),
+    // so every update, whichever category triggered it, keeps it in step.
+    const withTotal = { ...counts, problemCount: this._countProblemDevices() };
+    await Promise.all(devices.map((device) => device.updateCounts(withTotal)))
       .catch((err) => this.error('Watchdog-Gerät-Update fehlgeschlagen:', err));
+  }
+
+  // "Devices with a problem" on the virtual device: every device ONCE, however many categories it
+  // is in (a device that is both unreachable and not reporting is one broken device, not two).
+  // Same inputs as the three counts next to it (last scan's not-reporting list, confirmed
+  // unavailable, delay-confirmed low battery, paused/excluded devices left out), and the same
+  // three switches as the combined alarm decide which kinds of problem count.
+  _countProblemDevices() {
+    const ids = new Set();
+    if (this.config.alarmIncludesNotReporting !== false) {
+      (this.lastScan?.notReporting || []).forEach((id) => ids.add(id));
+    }
+    if (this.config.alarmIncludesUnavailable !== false) {
+      for (const id of this._confirmedUnavailable) {
+        if (!this._isExcludedFromUnavailable(id)) ids.add(id);
+      }
+    }
+    if (this.config.alarmIncludesLowBattery !== false) {
+      (this.flagState?.lowBatteryConfirmed || []).filter((id) => this._isMonitored(id)).forEach((id) => ids.add(id));
+    }
+    return ids.size;
   }
 
   // Bundles devices that go unavailable within a few seconds of each other (e.g. a

@@ -1,0 +1,18 @@
+{
+  "type": "number",
+  "title": { "en": "Devices with a problem", "de": "Geräte mit Problem", "sv": "Enheter med problem", "nl": "Apparaten met een probleem", "no": "Enheter med problem" },
+  "desc": {
+    "en": "How many devices have at least one problem (not reporting, unavailable or low battery). Each device is counted once, however many problems it has. Which kinds count follows the 'Virtual device alarm' switches in the app settings.",
+    "de": "Wie viele Geräte mindestens ein Problem haben (meldet sich nicht, nicht erreichbar oder Batterie schwach). Jedes Gerät zählt nur einmal, egal wie viele Probleme es hat. Welche Arten zählen, folgt den Schaltern 'Alarm des virtuellen Geräts' in den App-Einstellungen.",
+    "sv": "Hur många enheter som har minst ett problem (rapporterar inte, otillgänglig eller svagt batteri). Varje enhet räknas en gång, oavsett hur många problem den har. Vilka typer som räknas följer reglagen 'Larm för virtuell enhet' i appens inställningar.",
+    "nl": "Hoeveel apparaten minstens één probleem hebben (meldt zich niet, niet beschikbaar of batterij zwak). Elk apparaat telt één keer, ongeacht het aantal problemen. Welke soorten meetellen volgt de schakelaars 'Alarm van het virtuele apparaat' in de app-instellingen.",
+    "no": "Hvor mange enheter som har minst ett problem (melder seg ikke, utilgjengelig eller svakt batteri). Hver enhet telles én gang, uansett hvor mange problemer den har. Hvilke typer som teller følger bryterne 'Alarm for virtuell enhet' i appinnstillingene."
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "units": { "en": "", "de": "", "sv": "", "nl": "", "no": "" },
+  "decimals": 0,
+  "min": 0,
+  "icon": "/assets/capabilities/devices_problem_count.svg"
+}

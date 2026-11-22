@@ -245,7 +245,7 @@
     "timelineIncludeNotReporting": "Ta med de som ikke rapporterer",
     "timelineIncludeLowBattery": "Ta med lavt batteri",
     "vdAlarmTitle": "Alarm for virtuell enhet",
-    "vdAlarmHint": "Tellerne på den virtuelle Watchdog-enheten viser alltid de faktiske tallene. Dette styrer bare hvilke av dem som utløser sammendragsalarmen (alarm_generic).",
+    "vdAlarmHint": "Tellerne på den virtuelle Watchdog-enheten viser alltid de faktiske tallene. Dette styrer bare hvilke av dem som utløser sammendragsalarmen (alarm_generic) og hvilke typer problemer som inngår i summen \"Enheter med problem\" (hver enhet telles én gang).",
     "vdAlarmUnavailable": "Ta med utilgjengelige",
     "vdAlarmNotReporting": "Ta med de som ikke rapporterer",
     "vdAlarmLowBattery": "Ta med lavt batteri",
